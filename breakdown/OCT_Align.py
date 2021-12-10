@@ -91,9 +91,11 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
 
     # Copy original e2e volume & save each b-scan to 'images' dir
     images_path = dst_dir_path / 'images'
-    os.makedirs(images_path, exist_ok=True)
+    if save:
+        os.makedirs(images_path, exist_ok=True)
     res = []
-    shutil.copy2(src_e2e_path, dst_dir_path)
+    if save:
+        shutil.copy2(src_e2e_path, dst_dir_path)
     last = None
     idx = 0
     for volume in E2E(src_e2e_path).read_oct_volume():

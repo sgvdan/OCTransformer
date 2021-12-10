@@ -13,9 +13,9 @@ class OCT_Vol_DataSet(torch.utils.data.Dataset):
         label = 0
         for epe_path in os.listdir(path):
             if epe_path.endswith(".E2E"):
-                epe_path = path +"/"+epe_path
+                epe_path = path + "/" + epe_path
                 pil_vol = OCT_Align.align_E2E_dir(epe_path, "")
-                tensor_list = [transforms.ToTensor()(pil_pic)[0] for pil_pic in pil_vol]
+                tensor_list = [transforms.ToTensor()(pil_pic)[0].unsqueeze(0) for pil_pic in pil_vol]
                 Vol_stack_3D = torch.stack(tensor_list, dim=1)
                 self.dataset.append((Vol_stack_3D, label))
         pass
