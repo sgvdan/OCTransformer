@@ -9,7 +9,7 @@ import data
 if __name__ == '__main__':
     batch_size = 4
     epochs = 2
-    trainset = data.OCT_Vol_DataSet("C:/Users/guylu/Desktop/tests")
+    trainset = data.OCT_Vol_DataSet("C:/Users/guylu/Academy/MSc_WIZ/BasriLab/OCTransfomer/OCTransformer/breakdown/files")
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                               shuffle=True, num_workers=2)
 
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                              shuffle=False, num_workers=2)
     model = models.RepresentationNet(c_in=1)
-    criterion = nn.L1Loss
+    criterion = nn.CrossEntropyLoss #nn.L1Loss
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     for epoch in range(epochs):  # loop over the dataset multiple times
         running_loss = 0.0

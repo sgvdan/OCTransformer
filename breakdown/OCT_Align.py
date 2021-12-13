@@ -90,7 +90,7 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
         return False
 
     # Copy original e2e volume & save each b-scan to 'images' dir
-    images_path = dst_dir_path / 'images'
+    images_path = dst_dir_path / 'images_' + str(src_e2e_path)
     if save:
         os.makedirs(images_path, exist_ok=True)
     res = []
@@ -121,11 +121,15 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
             # in: 2->1
             # ret
             # 2
-            img_enhanced_aligned = align_images(tmp2, last)
-            img_enhanced_aligned = Image.fromarray(img_enhanced_aligned).convert('RGB')
-            res.append(img_enhanced1)
-            if save:
-                img_enhanced_aligned.save(images_path / '{idx}_{pat_id}.png'.format(idx=idx, pat_id=volume.patient_id))
+            try:
+                img_enhanced_aligned = align_images(tmp2, last)
+                img_enhanced_aligned = Image.fromarray(img_enhanced_aligned).convert('RGB')
+                res.append(img_enhanced1)
+                if save:
+                    img_enhanced_aligned.save(
+                        images_path / '{idx}_{pat_id}.png'.format(idx=idx, pat_id=volume.patient_id))
+            except Exception:
+                pass
             idx += 1
             last = np.array(img_enhanced_aligned)[:, :, 2]
 
@@ -133,59 +137,61 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
 
 
 if __name__ == '__main__':
-    path = "C:/Users/Lutsk/OneDrive/Desktop/Guy/Weizmann/OCT/RAFT/demo-frames/"
-    path2 = "C:/Users/Lutsk/OneDrive/Desktop/Guy/Weizmann/OCT/data/"
+    pil_vol = align_E2E_dir("files", "aligned_files")
 
-    img1_orig = cv.imread(path2 + "im_6.png", cv.IMREAD_GRAYSCALE)
-    img2_orig = cv.imread(path2 + "im_13.png", cv.IMREAD_GRAYSCALE)
-    img1 = ndimage.gaussian_filter(img1_orig, sigma=(10, 10), order=0)
-    img2 = ndimage.gaussian_filter(img2_orig, sigma=(10, 10), order=0)
-
-    filter_blurred_f1 = ndimage.gaussian_filter(img1, 1)
-    filter_blurred_f2 = ndimage.gaussian_filter(img2, 1)
-
-    alpha = 30
-    img1 = img1 + alpha * (img1 - filter_blurred_f1)
-    img2 = img2 + alpha * (img2 - filter_blurred_f2)
-
-    _, img1 = cv.threshold(img1, 65, 255, cv.THRESH_BINARY)
-    _, img2 = cv.threshold(img2, 65, 255, cv.THRESH_BINARY)
-
-    mask = np.array([j / 5 if j % 5 == 0 else 0 for i in range(img1.shape[0]) for j in range(img1.shape[1])],
-                    dtype=np.uint8).reshape(
-        img1.shape[0], img1.shape[1])
-
-    mask2 = np.array([i / 5 if i % 5 == 0 else 0 for i in range(img1.shape[0]) for j in range(img1.shape[1])],
-                     dtype=np.uint8).reshape(
-        img1.shape[0], img1.shape[1])
-
-    img1 = mask * img1 + mask2 * img1
-    img2 = mask * img2 + mask2 * img2
-
-    plt.title("img1"), plt.imshow(img1_orig, 'gray'), plt.show()
-    plt.title("img2"), plt.imshow(img2_orig, 'gray'), plt.show()
-
-    plt.title("img1_play"), plt.imshow(img1, 'gray'), plt.show()
-    plt.title("img2_play"), plt.imshow(img2, 'gray'), plt.show()
-
-    l1 = []
-    l2 = []
-    for i in range(img2.shape[1]):
-        w1 = np.where(img1[:, i] > 0)[0]
-        w2 = np.where(img2[:, i] > 0)[0]
-        if len(w1) == 0 or len(w2) == 0:
-            continue
-        l1.append([[i, w1.max()]])
-        l2.append([[i, w2.max()]])
-
-        l1.append([[i, w1.min()]])
-        l2.append([[i, w2.min()]])
-        print(i)
-
-    src_pts = np.array(l1)
-    dst_pts = np.array(l2)
-
-    M, _ = cv.findHomography(src_pts, dst_pts, cv.RANSAC, 5.0)
-    h, w = img1.shape
-    dst2 = cv.warpPerspective(img1_orig, M, (w, h))
-    plt.title("img1 transform to img2"), plt.imshow(dst2, 'gray'), plt.show()
+    # path = "C:/Users/Lutsk/OneDrive/Desktop/Guy/Weizmann/OCT/RAFT/demo-frames/"
+    # path2 = "C:/Users/Lutsk/OneDrive/Desktop/Guy/Weizmann/OCT/data/"
+    #
+    # img1_orig = cv.imread(path2 + "im_6.png", cv.IMREAD_GRAYSCALE)
+    # img2_orig = cv.imread(path2 + "im_13.png", cv.IMREAD_GRAYSCALE)
+    # img1 = ndimage.gaussian_filter(img1_orig, sigma=(10, 10), order=0)
+    # img2 = ndimage.gaussian_filter(img2_orig, sigma=(10, 10), order=0)
+    #
+    # filter_blurred_f1 = ndimage.gaussian_filter(img1, 1)
+    # filter_blurred_f2 = ndimage.gaussian_filter(img2, 1)
+    #
+    # alpha = 30
+    # img1 = img1 + alpha * (img1 - filter_blurred_f1)
+    # img2 = img2 + alpha * (img2 - filter_blurred_f2)
+    #
+    # _, img1 = cv.threshold(img1, 65, 255, cv.THRESH_BINARY)
+    # _, img2 = cv.threshold(img2, 65, 255, cv.THRESH_BINARY)
+    #
+    # mask = np.array([j / 5 if j % 5 == 0 else 0 for i in range(img1.shape[0]) for j in range(img1.shape[1])],
+    #                 dtype=np.uint8).reshape(
+    #     img1.shape[0], img1.shape[1])
+    #
+    # mask2 = np.array([i / 5 if i % 5 == 0 else 0 for i in range(img1.shape[0]) for j in range(img1.shape[1])],
+    #                  dtype=np.uint8).reshape(
+    #     img1.shape[0], img1.shape[1])
+    #
+    # img1 = mask * img1 + mask2 * img1
+    # img2 = mask * img2 + mask2 * img2
+    #
+    # plt.title("img1"), plt.imshow(img1_orig, 'gray'), plt.show()
+    # plt.title("img2"), plt.imshow(img2_orig, 'gray'), plt.show()
+    #
+    # plt.title("img1_play"), plt.imshow(img1, 'gray'), plt.show()
+    # plt.title("img2_play"), plt.imshow(img2, 'gray'), plt.show()
+    #
+    # l1 = []
+    # l2 = []
+    # for i in range(img2.shape[1]):
+    #     w1 = np.where(img1[:, i] > 0)[0]
+    #     w2 = np.where(img2[:, i] > 0)[0]
+    #     if len(w1) == 0 or len(w2) == 0:
+    #         continue
+    #     l1.append([[i, w1.max()]])
+    #     l2.append([[i, w2.max()]])
+    #
+    #     l1.append([[i, w1.min()]])
+    #     l2.append([[i, w2.min()]])
+    #     print(i)
+    #
+    # src_pts = np.array(l1)
+    # dst_pts = np.array(l2)
+    #
+    # M, _ = cv.findHomography(src_pts, dst_pts, cv.RANSAC, 5.0)
+    # h, w = img1.shape
+    # dst2 = cv.warpPerspective(img1_orig, M, (w, h))
+    # plt.title("img1 transform to img2"), plt.imshow(dst2, 'gray'), plt.show()
