@@ -10,7 +10,8 @@ class MyViT(torch.nn.Module):
                                        embed_dim=embedding_dim, depth=12, num_heads=12, mlp_ratio=4., qkv_bias=True,
                                        representation_size=None, distilled=False, drop_rate=0., attn_drop_rate=0.,
                                        drop_path_rate=0., embed_layer=Backbone, norm_layer=None, act_layer=None,
-                                       weight_init='')
+                                       weight_init='')  # TODO: Migrate many of these to config.py
+        self.name = 'MyViT'
 
     def forward(self, x):
         return self.model(x)
@@ -19,8 +20,8 @@ class MyViT(torch.nn.Module):
 class Backbone(torch.nn.Module):
     def __init__(self, embed_dim, **kwargs):
         super().__init__()
-        self.resnet = resnet18(pretrained=False, num_classes=embed_dim)
-        self.num_patches = 37
+        self.resnet = resnet18(pretrained=False, num_classes=embed_dim)  # TODO: pretrained on ImageNet?
+        self.num_patches = 37  # TODO: Change this to flexible # of slices per volume
 
     def forward(self, x):
         batch_size, slices, channels, height, width = x.shape
