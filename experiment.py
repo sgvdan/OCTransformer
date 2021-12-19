@@ -23,14 +23,14 @@ class Experiment:
         # Set up Data
         self.train_loader, self.eval_loader, self.test_loader = self.setup_data()
 
-        # Set up Model
+        # Set up Model Bank
         self.model_bank = ModelsBank(self.config)
 
         # Set up Trainer
         self.trainer = Trainer(self.config, self.train_loader, self.evaluation_loader,
                                self.test_loader, self.model_bank, self.logger)
 
-        # Choose Model
+        # Choose Model   TODO: Incorporate 'current model' into model_bank and make everything 'play together nicely'
         self.model = MyViT(embedding_dim=self.config.embbedding_dim)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)
         self.criterion = torch.nn.functional.cross_entropy

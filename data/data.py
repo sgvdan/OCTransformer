@@ -1,7 +1,7 @@
-from torch.utils.data import Dataset
 import torch
+from torch.utils.data import Dataset
 
-from cache import DatasetIterator
+from data.cache import DatasetIterator
 
 
 class E2EVolumeDataset(Dataset):
@@ -35,6 +35,7 @@ def get_balance_weights(dataset):
     labels = dataset.get_labels()
     num_classes = len(classes)
     num_scans = len(dataset)
+    assert num_scans > 0 and num_classes > 0
 
     # Count # of appearances per each class
     count = [0] * num_classes
