@@ -90,7 +90,7 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
         return False
 
     # Copy original e2e volume & save each b-scan to 'images' dir
-    images_path = dst_dir_path / 'images_' + str(src_e2e_path)
+    images_path = str(dst_dir_path) + '/images_' + str(src_e2e_path)[:-3]
     if save:
         os.makedirs(images_path, exist_ok=True)
     res = []
@@ -103,6 +103,8 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
         volume.volume = volume.volume[1:]
         volume.volume.append(last)
         for b_scan1, b_scan2 in zip(volume.volume[:-1], volume.volume[1:]):
+            if isinstance(b_scan1,int) or isinstance(b_scan1,int):
+                continue
             img1 = Image.fromarray(b_scan1).convert('RGB')
             img2 = Image.fromarray(b_scan2).convert('RGB')
             enhancer1 = ImageEnhance.Brightness(img1)
@@ -113,7 +115,7 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
             if idx == 0:
                 res.append(img_enhanced1)
                 if save:
-                    img_enhanced1.save(images_path / '{idx}_{pat_id}.tiff'.format(idx=idx, pat_id=volume.patient_id))
+                    img_enhanced1.save(images_path +"/"+ '{idx}_{pat_id}.png'.format(idx=idx, pat_id=volume.patient_id))
                 idx += 1
                 last = np.array(img_enhanced1)[:, :, 2]
                 continue
@@ -122,14 +124,20 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
             # ret
             # 2
             try:
+                a = 1
                 img_enhanced_aligned = align_images(tmp2, last)
+                a = 2
                 img_enhanced_aligned = Image.fromarray(img_enhanced_aligned).convert('RGB')
+                a = 3
                 res.append(img_enhanced1)
+                a = 4
                 if save:
                     img_enhanced_aligned.save(
-                        images_path / '{idx}_{pat_id}.png'.format(idx=idx, pat_id=volume.patient_id))
-            except Exception:
-                pass
+                        images_path +"/"+ '{idx}_{pat_id}.png'.format(idx=idx, pat_id=volume.patient_id))
+                a = 5
+            except Exception as e:
+                print('{a}____{idx}_{pat_id}.png'.format(a=a,idx=idx, pat_id=volume.patient_id))
+                print(e)
             idx += 1
             last = np.array(img_enhanced_aligned)[:, :, 2]
 
@@ -137,8 +145,10 @@ def align_E2E_dir(src_e2e_path, dst_dir_path, save=False):
 
 
 if __name__ == '__main__':
-    pil_vol = align_E2E_dir("files", "aligned_files")
-
+    # pil_vol = align_E2E_dir("files", "aligned_files",True)
+    for epe_path in Path("../../../DR_25_patients_prelim/Study group").rglob('*.E2E'):
+        align_E2E_dir(str(epe_path), "aligned_files/Study group", True)
+    print("finito")
     # path = "C:/Users/Lutsk/OneDrive/Desktop/Guy/Weizmann/OCT/RAFT/demo-frames/"
     # path2 = "C:/Users/Lutsk/OneDrive/Desktop/Guy/Weizmann/OCT/data/"
     #
