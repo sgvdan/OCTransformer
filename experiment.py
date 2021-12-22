@@ -52,6 +52,7 @@ class Experiment:
 
     def run(self):
         self.trainer.train(self.model, self.criterion, self.optimizer, self.config.epochs)
+        self.model_bank.load_model_env(self.model, self.optimizer)  # Load best model
         self.trainer.test(self.model)
 
 

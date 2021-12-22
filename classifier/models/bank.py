@@ -51,7 +51,7 @@ class ModelsBank:
         if not os.path.exists(best_model_path):
             print("Model {model_name} does not exist.".format(model_name=model.name))
 
-        print("Loading best model ({model_name}) state from: {{path}}".format(model_name=model.name, path=best_model_path), flush=True)
+        print("Loading best model ({0}) state from: {1}".format(model.name, best_model_path), flush=True)
         states_dict = torch.load(best_model_path)
         model.load_state_dict(states_dict['model_state_dict'])
         optimizer.load_state_dict(states_dict['optimizer_state_dict'])

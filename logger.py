@@ -15,12 +15,20 @@ class Logger:
         self.steps, self.loss, self.pred, self.gt = None, None, None, None
         self.scratch()
 
-    def scratch(self):
-        self.steps, self.loss, self.pred, self.gt = 0, 0, [], []
-
     def get_current_accuracy(self, classes):
         accuracy, _ = self.assess(classes)
         return np.mean([value for value in accuracy.values()])
+
+    def scratch(self):
+        self.steps, self.loss, self.pred, self.gt = 0, 0, [], []
+
+    def accumulate(self, pred, gt, loss=None):
+        self.pred += pred.cpu()
+        self.gt += gt.cpu()
+        self.steps += 1
+
+        if loss is not None:
+            self.loss += loss
 
     def assess(self, classes):
         iou, accuracy = {}, {}
@@ -32,21 +40,16 @@ class Logger:
             incorrect_predictions = ((pred_labels == label) & (gt_labels != label)).count_nonzero()
             batch_size = (gt_labels == label).count_nonzero()
 
-            iou[label_name] = correct_predictions / batch_size
-            accuracy[label_name] = correct_predictions / (batch_size + incorrect_predictions)
+            iou[label_name] = correct_predictions / (batch_size + incorrect_predictions)
+            accuracy[label_name] = correct_predictions / batch_size
 
         return accuracy, iou
 
-    def log_train(self, pred, gt, loss, epoch, classes, periodic_flush=True):
-        self.loss += loss
-        self.pred += pred.cpu()
-        self.gt += gt.cpu()
-        self.steps += 1
-
+    def log_train_periodic(self, epoch, classes):
         if not self.config.log:
             return
 
-        if self.steps % self.config.log_frequency == 0 or not periodic_flush:
+        if self.steps % self.config.log_frequency == 0:
             accuracy, iou = self.assess(classes)
             for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
                 wandb.log({'train/accuracy/{label}'.format(label=label): acc,
@@ -55,30 +58,22 @@ class Logger:
 
             wandb.log({'train/loss': self.loss/self.steps})
 
-    def log_eval(self, pred, gt, epoch, classes, periodic_flush=True):
-        self.steps += 1
-        self.pred += pred.cpu()
-        self.gt += gt.cpu()
-
+    def log_eval_periodic(self, epoch, classes):
         if not self.config.log:
             return
 
-        if self.steps % self.config.log_frequency == 0 or not periodic_flush:
-            accuracy, iou = self.asses(classes)
+        if self.steps % self.config.log_frequency == 0:
+            accuracy, iou = self.assess(classes)
             for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
                 wandb.log({'evaluation/accuracy/{label}'.format(label=label): acc,
                            'evaluation/iou/{label}'.format(label=label): iou,
                            'evaluation/epoch': epoch})
 
-    def log_test(self, pred, gt, classes):
-        self.steps += 1
-        self.pred += pred.cpu()
-        self.gt += gt.cpu()
-
+    def log_test(self, classes):
         if not self.config.log:
             return
 
-        accuracy, iou = self.asses(classes)
+        accuracy, iou = self.assess(classes)
         for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
             wandb.log({'test/accuracy/{label}'.format(label=label): acc,
                        'test/iou/{label}'.format(label=label): iou})

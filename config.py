@@ -22,7 +22,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'embedding_dim': 768,
 
                            # Trainer
-                           'epochs': 7,
+                           'epochs': 10,
                            'lr': 1e-4,
                            'batch_size': 5,
 
