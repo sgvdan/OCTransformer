@@ -1,7 +1,7 @@
 import torch
 import util
-from classifier.models.bank import ModelsBank
-from classifier.models.vit import MyViT
+from models.bank import ModelsBank
+from models.vit import MyViT
 from config import default_config
 from data.cache import Cache
 from data.data import E2EVolumeDataset, get_balance_weights
@@ -30,7 +30,7 @@ class Experiment:
                                self.test_loader, self.model_bank, self.logger)
 
         # Choose Model   TODO: Incorporate 'current model' into model_bank and make everything 'play together nicely'
-        self.model = MyViT(embedding_dim=self.config.embedding_dim).to(self.config.device)  # Move to device nicer
+        self.model = MyViT(embedding_dim=self.config.embedding_dim).to(self.config.device)  # TODO: Nicer move to device
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)
         self.criterion = torch.nn.functional.cross_entropy
 

@@ -23,8 +23,8 @@ class Logger:
         self.steps, self.loss, self.pred, self.gt = 0, 0, [], []
 
     def accumulate(self, pred, gt, loss=None):
-        self.pred += pred.cpu()
-        self.gt += gt.cpu()
+        self.pred += pred.detach().cpu()
+        self.gt += gt.detach().cpu()
         self.steps += 1
 
         if loss is not None:
@@ -45,29 +45,31 @@ class Logger:
 
         return accuracy, iou
 
-    def log_train_periodic(self, epoch, classes):
+    def log_train_periodic(self, classes):
+        if self.steps % self.config.log_frequency == 0:
+            self.log_train(None, classes)
+
+    def log_train(self, epoch, classes):
         if not self.config.log:
             return
 
-        if self.steps % self.config.log_frequency == 0:
-            accuracy, iou = self.assess(classes)
-            for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
-                wandb.log({'train/accuracy/{label}'.format(label=label): acc,
-                           'train/iou/{label}'.format(label=label): iou,
-                           'train/epoch': epoch})
+        accuracy, iou = self.assess(classes)
+        for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
+            wandb.log({'train/accuracy/{label}'.format(label=label): acc,
+                       'train/iou/{label}'.format(label=label): iou,
+                       'train/epoch': epoch})
 
-            wandb.log({'train/loss': self.loss/self.steps})
+        wandb.log({'train/loss': self.loss/self.steps})
 
-    def log_eval_periodic(self, epoch, classes):
+    def log_eval(self, epoch, classes):
         if not self.config.log:
             return
 
-        if self.steps % self.config.log_frequency == 0:
-            accuracy, iou = self.assess(classes)
-            for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
-                wandb.log({'evaluation/accuracy/{label}'.format(label=label): acc,
-                           'evaluation/iou/{label}'.format(label=label): iou,
-                           'evaluation/epoch': epoch})
+        accuracy, iou = self.assess(classes)
+        for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
+            wandb.log({'evaluation/accuracy/{label}'.format(label=label): acc,
+                       'evaluation/iou/{label}'.format(label=label): iou,
+                       'evaluation/epoch': epoch})
 
     def log_test(self, classes):
         if not self.config.log:

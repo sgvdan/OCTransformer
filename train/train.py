@@ -24,7 +24,8 @@ class Trainer:
                 pred, loss = self._feed_forward(model, images, labels, mode='train',
                                                 criterion=criterion, optimizer=optimizer)
                 self.logger.accumulate(pred=pred, gt=labels, loss=loss)
-                self.logger.log_train_periodic(epoch=epoch, classes=self.train_loader.dataset.get_classes())
+                self.logger.log_train_periodic(classes=self.train_loader.dataset.get_classes())
+            self.logger.log_train(epoch=epoch, classes=self.train_loader.dataset.get_classes())
 
             # Evaluate
             tqdm.write("\nEvaluation:")
@@ -32,7 +33,7 @@ class Trainer:
             for images, labels in tqdm(self.eval_loader):
                 pred, _ = self._feed_forward(model, images, labels, mode='eval')
                 self.logger.accumulate(pred=pred, gt=labels)
-                self.logger.log_eval_periodic(epoch=epoch, classes=self.eval_loader.dataset.get_classes())
+            self.logger.log_eval(epoch=epoch, classes=self.eval_loader.dataset.get_classes())
 
             # Sync Model Bank
             accuracy = self.logger.get_current_accuracy(classes=self.eval_loader.dataset.get_classes())
@@ -44,7 +45,6 @@ class Trainer:
         for images, labels in tqdm(self.test_loader):
             pred, _ = self._feed_forward(model, images, labels, mode='eval')
             self.logger.accumulate(pred=pred, gt=labels)
-
         self.logger.log_test(classes=self.test_loader.dataset.get_classes())
 
         # Obtain Test Accuracy

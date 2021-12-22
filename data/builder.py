@@ -33,6 +33,46 @@ def build_volume_cache(cache, path, label):
           .format(counter=counter, label=label, cache_name=cache.name))
 
 
+def get_stats(path):
+    # Obtain # of E2E files in path
+    total_e2e_count = 0
+    total_volume_count = 0
+    total_scans_count = 0
+    corrupt_volumes_count = 0
+    volume_count_histogram = {}
+    scans_count_histogram = {}
+
+    for sample in tqdm(list(Path(path).rglob("*.E2E"))):
+        if sample.is_file():
+            total_e2e_count += 1
+
+            volumes = E2E(sample).read_oct_volume()
+
+            # Keep the histogram of volumes in each E2E file
+            number_of_volumes = len(volumes)
+            if number_of_volumes not in volume_count_histogram:
+                volume_count_histogram[number_of_volumes] = 0
+            volume_count_histogram[number_of_volumes] += 1
+
+            # Keep total volume count
+            total_volume_count += number_of_volumes
+
+            # How many scans in each volume
+            for scan in volumes:
+                validity = [isinstance(tomogram, np.ndarray) for tomogram in scan.volume]
+                if not all(validity):
+                    corrupt_volumes_count += 1
+                    continue
+
+                number_of_scans = len(validity)
+                if number_of_scans not in scans_count_histogram:
+                    scans_count_histogram[number_of_scans] = 0
+                scans_count_histogram[number_of_scans] += 1
+
+                # Keep total scan count
+                total_scans_count += number_of_scans
+
+
 def main():
     parser = argparse.ArgumentParser(description='Build new OCT (cached) dataset')
     parser.add_argument('--path', type=str, nargs='+', required=True,
@@ -41,8 +81,8 @@ def main():
                         help='Specify the label\'s name. Should correspond to `path`')
     parser.add_argument('--name', type=str, required=True,
                         help='The dataset\'s name')
-    parser.add_argument('--action', type=str, choices=['create', 'delete'], default='create',
-                        help='Choose what to do with the cache')
+    parser.add_argument('--action', type=str, choices=['create', 'delete', 'assess'], default='create',
+                        help='Choose what to do with the dataset (create/delete cache or assess dataset)')
     parser.add_argument('--label_type', choices=['one_hot', 'scalar'], default='scalar',
                         help='Choose labels kind')
 
