@@ -3,8 +3,9 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': False,
-                           'log_frequency': 100,
+                           'log': True,
+                           'log_group': 'preliminary',
+                           'log_frequency': 10,
 
                            # Data
                            'train_cache': '37-slices/train',
@@ -23,7 +24,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # Trainer
                            'epochs': 7,
                            'lr': 1e-4,
-                           'batch_size': 1,
+                           'batch_size': 5,
 
                            # General
                            'device': 'cuda',

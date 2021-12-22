@@ -1,3 +1,4 @@
+import os
 import pickle
 from pathlib import Path
 
@@ -8,7 +9,7 @@ class Cache:
         :param name: Unique name for this cache
         """
         self.name = name
-        self.cache_path = Path('./.cache') / name
+        self.cache_path = Path('.cache') / self.name
         self.cache_fs_path = self.cache_path / '.cache_fs'
         self.labels_path = self.cache_path / '.labels'
         self.classes_path = self.cache_path / '.classes'

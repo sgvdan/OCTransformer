@@ -1,6 +1,5 @@
 import torch
 from torch.utils.data import Dataset
-
 from data.cache import DatasetIterator
 
 
@@ -39,7 +38,7 @@ def get_balance_weights(dataset):
 
     # Count # of appearances per each class
     count = [0] * num_classes
-    for label in labels.values():  # TODO: If one_hot needed - take `label.argmax(-1)`
+    for label in labels.values():  # TODO: If one_hot handling required - take `label.argmax(-1)`
         count[int(label)] += 1
 
     # Each class receives weight in reverse proportion to its # of appearances

@@ -1,5 +1,4 @@
 import torch
-
 import util
 from classifier.models.bank import ModelsBank
 from classifier.models.vit import MyViT
@@ -27,22 +26,23 @@ class Experiment:
         self.model_bank = ModelsBank(self.config)
 
         # Set up Trainer
-        self.trainer = Trainer(self.config, self.train_loader, self.evaluation_loader,
+        self.trainer = Trainer(self.config, self.train_loader, self.eval_loader,
                                self.test_loader, self.model_bank, self.logger)
 
         # Choose Model   TODO: Incorporate 'current model' into model_bank and make everything 'play together nicely'
-        self.model = MyViT(embedding_dim=self.config.embbedding_dim)
+        self.model = MyViT(embedding_dim=self.config.embedding_dim).to(self.config.device)  # Move to device nicer
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)
         self.criterion = torch.nn.functional.cross_entropy
 
     def setup_data(self):
-        test_dataset = E2EVolumeDataset(Cache(self.config.test_cache), transformations=None)
+        transform = util.get_default_transform(self.config.input_size)
+        test_dataset = E2EVolumeDataset(Cache(self.config.test_cache), transformations=transform)
         test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=self.config.batch_size)
 
-        eval_dataset = E2EVolumeDataset(Cache(self.config.eval_cache), transformations=None)
+        eval_dataset = E2EVolumeDataset(Cache(self.config.eval_cache), transformations=transform)
         eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset, batch_size=self.config.batch_size)
 
-        train_dataset = E2EVolumeDataset(Cache(self.config.train_cache), transformations=None)
+        train_dataset = E2EVolumeDataset(Cache(self.config.train_cache), transformations=transform)
         train_weights = get_balance_weights(train_dataset)
         train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
         train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=self.config.batch_size,

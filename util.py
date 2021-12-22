@@ -1,5 +1,6 @@
 import random
 import torch
+import torchvision.transforms as transforms
 
 
 class dot_dict(dict):
@@ -13,3 +14,9 @@ def make_deterministic(seed=0):
     torch.manual_seed(seed)
     random.seed(seed)
     torch.use_deterministic_algorithms(mode=True)
+
+
+def get_default_transform(image_size):
+    return transforms.Compose([transforms.ToTensor(),
+                               transforms.Resize(image_size)])
+

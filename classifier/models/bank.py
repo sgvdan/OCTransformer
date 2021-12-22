@@ -7,46 +7,47 @@ from pathlib import Path
 class ModelsBank:
     def __init__(self, config):
         self.config = config
-        self.bank_path = Path(self.config.bank_path)
-        self.bank_fs = self.bank_path / '.bank_fs'
+        self.bank_path = Path('.models_bank')
+        self.bank_record_path = self.bank_path / '.bank_record'
 
         if not self.config.model_bank_open:
             return
 
-        if self.bank_path.exists():
-            with open(self.bank_fs, 'rb') as file:
-                self.bank = pickle.load(file)
+        if self.bank_record_path.exists():
+            with open(self.bank_record_path, 'rb') as file:
+                self.bank_record = pickle.load(file)
         else:
-            self.bank = {}
+            self.bank_record = {}
 
-    def sync_model(self, model, optimizer, epoch, avg_accuracy):
-        if not self.config.model_bank_open:
+    def sync_model(self, model, optimizer, avg_accuracy):
+        if not self.config.model_bank_open or not self.config.keep_best_model:
             return
 
-        # Save Model
-        if self.config.backup_last_model:
-            path = os.path.join(self.bank_path, model.name, 'epoch-{:06d}.tar'.format(epoch))
+        # Create required subdirectories
+        model_path = os.path.join(self.bank_path, model.name)
+
+        if model.name not in self.bank_record:
+            self.bank_record[model.name] = {}
+            self.bank_record[model.name]['accuracy'] = 0
+            os.makedirs(model_path, exist_ok=True)
+
+        if avg_accuracy > self.bank_record[model.name]['accuracy']:
             torch.save({
-                'epoch': epoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-            }, path)
-            print("Model {model_name} backup saved at {path}".format(model_name=model.name, path=path))
+            }, os.path.join(self.bank_path, model.name, 'best.tar'))
+            self.bank_record[model.name]['accuracy'] = avg_accuracy
+            print("Best model updated.", "Model: {0}, Avg. Accuracy: {1}".format(model.name, avg_accuracy))
 
-        if self.config.keep_best_model:
-            if model.name not in self.bank or avg_accuracy > self.bank[model.name].accuracy:
-                torch.save({
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                }, os.path.join(self.bank_path, model.name, 'best.tar'))
-                self.bank[model.name].accuracy = avg_accuracy
-                print("Best model updated.", "Model: {0}, Avg. Accuracy: {1}".format(model.name, avg_accuracy))
+        # Save bank records
+        with open(self.bank_record_path, 'wb+') as file:
+            pickle.dump(self.bank_record, file)
 
     def load_model_env(self, model, optimizer):
         if not self.config.model_bank_open:
             return
 
-        best_model_path = os.path.join(self.bank_path, model.name + ".pth")
+        best_model_path = os.path.join(self.bank_path, model.name, 'best.tar')
         if not os.path.exists(best_model_path):
             print("Model {model_name} does not exist.".format(model_name=model.name))
 
