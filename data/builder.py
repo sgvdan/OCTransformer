@@ -33,7 +33,7 @@ def build_volume_cache(cache, path, label):
           .format(counter=counter, label=label, cache_name=cache.name))
 
 
-def get_stats(path):
+def print_stats(path):
     # Obtain # of E2E files in path
     total_e2e_count = 0
     total_volume_count = 0
@@ -72,33 +72,54 @@ def get_stats(path):
                 # Keep total scan count
                 total_scans_count += number_of_scans
 
+    print('TOTAL E2E COUNT: {}\n'
+          'TOTAL VOLUME COUNT: {}\n'
+          'TOTAL CORRUPT VOLUMES COUNT: {}\n'
+          'TOTAL SCANS COUNT: {}\n'
+          'VOLUME COUNT HISTOGRAM: {}\n'
+          'SCANS COUNT HISTOGRAM: {}\n'.format(total_e2e_count,
+                                               total_volume_count,
+                                               corrupt_volumes_count,
+                                               total_scans_count,
+                                               volume_count_histogram,
+                                               scans_count_histogram)
+          )
+
 
 def main():
     parser = argparse.ArgumentParser(description='Build new OCT (cached) dataset')
+    parser.add_argument('--action', type=str, choices=['create', 'assess'], default='create',
+                        help='Choose what to do with the dataset (create/delete cache or assess dataset)')
     parser.add_argument('--path', type=str, nargs='+', required=True,
                         help='Specify the data\'s path(s). Should correspond to `label`')
-    parser.add_argument('--label', type=str, nargs='+', required=True,
+    parser.add_argument('--label', type=str, nargs='+', default=None,
                         help='Specify the label\'s name. Should correspond to `path`')
-    parser.add_argument('--name', type=str, required=True,
+    parser.add_argument('--name', type=str, default=None,
                         help='The dataset\'s name')
-    parser.add_argument('--action', type=str, choices=['create', 'delete', 'assess'], default='create',
-                        help='Choose what to do with the dataset (create/delete cache or assess dataset)')
     parser.add_argument('--label_type', choices=['one_hot', 'scalar'], default='scalar',
                         help='Choose labels kind')
 
     args = parser.parse_args()
 
-    cache = Cache(args.name)
-    for idx, (path, label_name) in enumerate(zip(args.path, args.label)):
-        if args.label_type == 'one_hot':
-            label = one_hot(idx, num_classes=len(args.label))
-        elif args.label_type == 'scalar':
-            label = torch.tensor(idx)
-        cache.set_class(label_name, label)
+    if args.action == 'create':
+        assert args.name is not None and args.label is not None
 
-        print('Appending [{path}] to label [{label_name}:{label_value}] in cache [{cache_name}]'
-              .format(path=path, label_name=label_name, label_value=label, cache_name=cache.name))
-        build_volume_cache(cache, path, label)
+        cache = Cache(args.name)
+        for idx, (path, label_name) in enumerate(zip(args.path, args.label)):
+            if args.label_type == 'one_hot':
+                label = one_hot(idx, num_classes=len(args.label))
+            elif args.label_type == 'scalar':
+                label = torch.tensor(idx)
+            cache.set_class(label_name, label)
+
+            print('Appending [{path}] to label [{label_name}:{label_value}] in cache [{cache_name}]'
+                  .format(path=path, label_name=label_name, label_value=label, cache_name=cache.name))
+            build_volume_cache(cache, path, label)
+
+    elif args.action == 'assess':
+        for path in args.path:
+            print('\n--STATS ({})---\n'.format(path))
+            print_stats(path)
 
 
 if __name__ == '__main__':
