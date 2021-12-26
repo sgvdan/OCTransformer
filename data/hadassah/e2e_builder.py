@@ -6,9 +6,7 @@ import torch
 from oct_converter.readers import E2E
 import argparse
 
-from cache import Cache
-
-LABELS = {'HEALTHY': torch.tensor(0), 'SICK': torch.tensor(1)}
+from data.cache import Cache
 
 
 def build_volume_cache(cache, path, label):

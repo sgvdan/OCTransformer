@@ -3,6 +3,8 @@ import pickle
 import torch
 from pathlib import Path
 
+from models.vit import MyViT
+
 
 class ModelsBank:
     def __init__(self, config):
@@ -10,17 +12,27 @@ class ModelsBank:
         self.bank_path = Path('.models_bank')
         self.bank_record_path = self.bank_path / '.bank_record'
 
-        if not self.config.model_bank_open:
-            return
-
         if self.bank_record_path.exists():
             with open(self.bank_record_path, 'rb') as file:
                 self.bank_record = pickle.load(file)
         else:
             self.bank_record = {}
 
+    def get_environment(self, environment, model_name):
+        if environment == 'vit':
+            model = MyViT(self.config).to(self.config.device)
+            model.name = model_name
+            optimizer = torch.optim.Adam(model.parameters(), lr=self.config.lr)
+
+            if self.config.load_best_model:
+                self.load_best(model, optimizer)
+        else:
+            raise NotImplementedError
+
+        return model, optimizer
+
     def sync_model(self, model, optimizer, avg_accuracy):
-        if not self.config.model_bank_open or not self.config.keep_best_model:
+        if not self.config.keep_best_model:
             return
 
         # Create required subdirectories
@@ -43,10 +55,7 @@ class ModelsBank:
         with open(self.bank_record_path, 'wb+') as file:
             pickle.dump(self.bank_record, file)
 
-    def load_model_env(self, model, optimizer):
-        if not self.config.model_bank_open:
-            return
-
+    def load_best(self, model, optimizer):
         best_model_path = os.path.join(self.bank_path, model.name, 'best.tar')
         if not os.path.exists(best_model_path):
             print("Model {model_name} does not exist.".format(model_name=model.name))

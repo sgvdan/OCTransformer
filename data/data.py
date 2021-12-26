@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 from data.cache import DatasetIterator
 
 
-class E2EVolumeDataset(Dataset):
+class CachedDataset(Dataset):
     def __init__(self, cache, transformations=None):
         self.cache = cache
         self.transformations = transformations
@@ -21,12 +21,11 @@ class E2EVolumeDataset(Dataset):
         return len(self.cache)
 
     def __getitem__(self, idx):
-        volume, *other = self.cache[idx]
+        data, *other = self.cache[idx]
         if self.transformations is not None:
-            volume = self.transformations(volume)
+            data = self.transformations(data)
 
-        volume = volume.unsqueeze(dim=1).expand(-1, 3, -1, -1)
-        return volume, *other
+        return data, *other
 
 
 def get_balance_weights(dataset):
