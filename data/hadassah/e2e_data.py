@@ -12,6 +12,7 @@ class E2EVolumeDataset(CachedDataset):
         if self.transformations is not None:
             volume = self.transformations(volume)
 
+        volume = volume.index_select(input=volume, dim=1, index=indices)
         volume = volume.unsqueeze(dim=1).expand(-1, 3, -1, -1)
         return volume, *other
 
