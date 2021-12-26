@@ -4,9 +4,8 @@ from data.cache import DatasetIterator
 
 
 class CachedDataset(Dataset):
-    def __init__(self, cache, transformations=None):
+    def __init__(self, cache):
         self.cache = cache
-        self.transformations = transformations
 
     def get_classes(self):
         return self.cache.get_classes()
@@ -21,11 +20,7 @@ class CachedDataset(Dataset):
         return len(self.cache)
 
     def __getitem__(self, idx):
-        data, *other = self.cache[idx]
-        if self.transformations is not None:
-            data = self.transformations(data)
-
-        return data, *other
+        return self.cache[idx]
 
 
 def get_balance_weights(dataset):

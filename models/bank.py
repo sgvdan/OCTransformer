@@ -59,6 +59,7 @@ class ModelsBank:
         best_model_path = os.path.join(self.bank_path, model.name, 'best.tar')
         if not os.path.exists(best_model_path):
             print("Model {model_name} does not exist.".format(model_name=model.name))
+            return
 
         print("Loading best model ({0}) state from: {1}".format(model.name, best_model_path), flush=True)
         states_dict = torch.load(best_model_path)

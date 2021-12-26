@@ -1,11 +1,11 @@
 import torch
 import util
+from data.kermany.kermany_data import KermanyDataset, get_kermany_transform
 from models.bank import ModelsBank
-from models.vit import MyViT
 from config import default_config
 from data.cache import Cache
-from data.data import get_balance_weights, CachedDataset
-from data.hadassah.e2e_data import E2EVolumeDataset
+from data.data import get_balance_weights
+from data.hadassah.e2e_data import E2EVolumeDataset, get_hadassah_transform
 from logger import Logger
 from train.train import Trainer
 
@@ -35,11 +35,12 @@ class Experiment:
         self.criterion = self.config.criterion
 
     def setup_data(self):
-        transform = util.get_default_transform(self.config.input_size)
         if self.config.dataset == 'hadassah':
             dataset = E2EVolumeDataset
+            transform = get_hadassah_transform(self.config.input_size)
         elif self.config.dataset == 'kermany':
-            dataset = CachedDataset
+            dataset = KermanyDataset
+            transform = get_kermany_transform(self.config.input_size)
 
         test_dataset = dataset(Cache(self.config.test_cache), transformations=transform)
         test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=self.config.batch_size)
