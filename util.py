@@ -12,5 +12,4 @@ class dot_dict(dict):
 
 def make_deterministic(seed=0):
     torch.manual_seed(seed)
-    random.seed(seed)
     torch.use_deterministic_algorithms(mode=True)

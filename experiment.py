@@ -1,4 +1,8 @@
+from functools import partial
+
 import torch
+import wandb
+
 import util
 from data.kermany.kermany_data import KermanyDataset, get_kermany_transform
 from models.bank import ModelsBank
@@ -17,6 +21,12 @@ class Experiment:
 
         util.make_deterministic()
 
+        # Initiate W&B
+        if self.config.log:
+            wandb.login()
+            wandb.init(project=self.config.project, group=self.config.log_group, config=self.config)
+            self.config = wandb.config
+
         # Set up Logger
         self.logger = Logger(self.config)
 
@@ -31,12 +41,11 @@ class Experiment:
                                self.test_loader, self.model_bank, self.logger)
 
         # Set up Model Environment
-        self.model, self.optimizer = self.model_bank.get_environment(self.config.environment, self.config.model_name)
-        self.criterion = self.config.criterion
+        self.model, self.criterion, self.optimizer = self.model_bank.get_environment()
 
     def setup_data(self):
         if self.config.dataset == 'hadassah':
-            dataset = E2EVolumeDataset
+            dataset = partial(E2EVolumeDataset, samples_num=self.config.num_slices)  # TODO: Change page to E2E...
             transform = get_hadassah_transform(self.config.input_size)
         elif self.config.dataset == 'kermany':
             dataset = KermanyDataset
@@ -62,7 +71,8 @@ class Experiment:
         if self.config.load_best_model:
             self.model_bank.load_best(self.model, self.optimizer)  # Refresh model (important for train over fitting)
 
-        self.trainer.test(self.model)
+        accuracy = self.trainer.test(self.model)
+        self.logger.log({'Overall_Accuracy': accuracy})
 
 
 def main():

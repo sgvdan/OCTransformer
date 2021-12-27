@@ -1,5 +1,8 @@
 import os
 import pickle
+import string
+import random
+
 import torch
 from pathlib import Path
 
@@ -18,18 +21,35 @@ class ModelsBank:
         else:
             self.bank_record = {}
 
-    def get_environment(self, environment, model_name):
-        if environment == 'vit':
+    def get_environment(self):
+        # Choose Model
+        if self.config.model == 'vit':
             model = MyViT(self.config).to(self.config.device)
-            model.name = model_name
-            optimizer = torch.optim.Adam(model.parameters(), lr=self.config.lr)
-
-            if self.config.load_best_model:
-                self.load_best(model, optimizer)
         else:
             raise NotImplementedError
 
-        return model, optimizer
+        # if Model Name not specified, random out a new one
+        if self.config.model_name is None:
+            model_name = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+            print('Random model name generated:', model_name)
+        model.name = model_name
+
+        # Choose Optimizer
+        if self.config.optimizer == 'adam':
+            optimizer = torch.optim.Adam(model.parameters(), lr=self.config.lr)
+        else:
+            raise NotImplementedError
+
+        # Choose Criterion
+        if self.config.criterion == 'cross_entropy':
+            criterion = torch.nn.functional.cross_entropy
+        else:
+            raise NotImplementedError
+
+        if self.config.load_best_model:
+            self.load_best(model, optimizer)
+
+        return model, criterion, optimizer
 
     def sync_model(self, model, optimizer, avg_accuracy):
         if not self.config.keep_best_model:

@@ -8,10 +8,6 @@ class Logger:
     def __init__(self, config):
         self.config = config
 
-        if self.config.log:
-            wandb.login()
-            wandb.init(project=self.config.project, group=self.config.log_group)
-
         self.steps, self.loss, self.pred, self.gt = None, None, None, None
         self.scratch()
 
@@ -79,3 +75,9 @@ class Logger:
         for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
             wandb.log({'test/accuracy/{label}'.format(label=label): acc,
                        'test/iou/{label}'.format(label=label): iou})
+
+    def log(self, data):
+        if not self.config.log:
+            return
+
+        wandb.log(data)

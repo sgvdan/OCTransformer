@@ -10,8 +10,9 @@ class MyViT(torch.nn.Module):
         super().__init__()
 
         self.config = config
-        backbone = partial(Backbone, num_patches=self.config.num_patches)
-        self.model = VisionTransformer(img_size=self.config.input_size, patch_size=(self.config.embedding_dim, 1), in_chans=3, num_classes=self.config.num_classes,  # TODO: CHANGE NUM_CLASSES ACCORDING TO DATASET
+        backbone = partial(Backbone, num_patches=self.config.num_slices)
+        self.model = VisionTransformer(img_size=self.config.input_size, patch_size=(self.config.embedding_dim, 1),
+                                       in_chans=3, num_classes=self.config.num_classes,  # TODO: CHANGE NUM_CLASSES ACCORDING TO DATASET
                                        embed_dim=self.config.embedding_dim, depth=12, num_heads=12, mlp_ratio=4., qkv_bias=True,
                                        representation_size=None, distilled=False, drop_rate=0., attn_drop_rate=0.,
                                        drop_path_rate=0., embed_layer=backbone, norm_layer=None, act_layer=None,

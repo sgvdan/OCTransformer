@@ -51,6 +51,8 @@ class Trainer:
         accuracy = self.logger.get_current_accuracy(classes=self.eval_loader.dataset.get_classes())
         tqdm.write("\nTest Accuracy: {}".format(accuracy))
 
+        return accuracy
+
     def _feed_forward(self, model, images, labels, mode, criterion=None, optimizer=None):
         # Make sure mode is as expected
         if mode == 'train' and not model.training:
