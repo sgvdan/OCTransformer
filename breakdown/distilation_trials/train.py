@@ -13,6 +13,7 @@ import numpy as np
 import argparse
 import cv2 as cv
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(f"running on {device}")
 wandb.login()
 wandb.init(project="my-test-project", entity="guylu")
 torch.backends.cudnn.deterministic = True
@@ -58,6 +59,7 @@ if __name__ == '__main__':
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            inputs, labels = inputs.to(device),labels.to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
