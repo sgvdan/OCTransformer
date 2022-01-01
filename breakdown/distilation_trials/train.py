@@ -5,11 +5,14 @@ import torch.optim as optim
 import torchvision
 import kermany_dataset
 import kermany_net
+from config import default_config
+import utils
 
 if __name__ == '__main__':
+
     batch_size = 4
     epochs = 2
-    trainset = kermany_dataset.Kermany_DataSet("C:/Users/guylu/Academy/MSc_WIZ/BasriLab/OCTransfomer/OCTransformer/breakdown/files")
+    trainset = kermany_dataset.Kermany_DataSet("")
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                               shuffle=True, num_workers=2)
 
