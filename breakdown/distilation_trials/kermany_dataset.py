@@ -24,7 +24,7 @@ class Kermany_DataSet(torch.utils.data.Dataset):
         i = 0
         for path2 in Path(path).rglob('*.jpeg'):
             i += 1
-            if i > 3: break
+            if i > 300: break
             path2 = str(path2)
             image = t(cv.imread(path2))
             label = f_1(path2) + f_2(path2) + f_3(path2) + f_4(path2)
