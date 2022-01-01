@@ -39,7 +39,7 @@ if __name__ == '__main__':
     }
 
     batch_size = 10
-    epochs = 50
+    epochs = 10
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
@@ -76,7 +76,7 @@ if __name__ == '__main__':
             # print(f"sizes: {labels.shape}, {outputs.shape}")
             # raise NotImplemented
             acc = (outputs == labels).sum().item() / inputs.shape[0]
-            wandb.log({"epoch": epoch, "train loss": loss, "acc": acc})
+            wandb.log({"epoch": epoch, "train loss": loss, "train acc": acc})
             optimizer.step()
 
             # print statistics
@@ -95,20 +95,16 @@ if __name__ == '__main__':
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
-
-            # forward + backward + optimize
+            # forward
             outputs = model(inputs)
             loss = criterion(outputs, labels)
-            loss.backward()
             acc = (outputs == labels).sum().item() / inputs.shape[0]
-            wandb.log({"val loss": loss, "acc": acc})
-            optimizer.step()
+            wandb.log({"val loss": loss, "val acc": acc})
 
             # print statistics
             running_loss += loss.item()
 
     print('Finished Validating')
+    print("Finito La Cola")
     # model.to_onnx()
     # wandb.save("model.onnx")
