@@ -10,7 +10,7 @@ class Kermany_DataSet(torch.utils.data.Dataset):
     def __init__(self, path):
         # load your dataset (how every you want, this example has the dataset stored in a json file
         # path = "C:/Users/guylu/Desktop/prev_files/Weizmann/OCT/test/AIA 03346 OS 13.01.2020.E2E"
-        t = transforms.Compose([transforms.ToTensor(), transforms.RandomResizedCrop((496, 512))])
+        self.t = transforms.Compose([transforms.ToTensor(), transforms.RandomResizedCrop((496, 512))])
         self.dataset = []
         label = 0
         label_dict = {"NORMAL": 0,
@@ -23,15 +23,21 @@ class Kermany_DataSet(torch.utils.data.Dataset):
         f_4 = lambda x: 3 if "DRUSEN" in x else 0
         i = 0
         for path2 in Path(path).rglob('*.jpeg'):
-            i += 1
-            # if i > 300: break
+            # i += 1
+            # # if i > 300: break
+            # path2 = str(path2)
+            # image = self.t(cv.imread(path2))
+            # label = f_1(path2) + f_2(path2) + f_3(path2) + f_4(path2)
+            # self.dataset.append((image, label))
+
             path2 = str(path2)
-            image = t(cv.imread(path2))
             label = f_1(path2) + f_2(path2) + f_3(path2) + f_4(path2)
-            self.dataset.append((image, label))
+            self.dataset.append((path2, label))
 
     def __getitem__(self, idx):
         sample = self.dataset[idx]
+
+        sample[0] = self.t(cv.imread(sample[0]))
         return sample
 
     def __len__(self):
