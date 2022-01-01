@@ -68,6 +68,11 @@ if __name__ == '__main__':
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
+            print(f"outputs: {outputs}")
+            print()
+            print()
+            print(f"labels: {labels}")
+            print(f"sizes: {labels.shape}, {outputs.shape}")
             acc = (outputs == labels).sum().item() / inputs.shape[0]
             wandb.log({"epoch": epoch, "train loss": loss, "acc": acc})
             optimizer.step()
