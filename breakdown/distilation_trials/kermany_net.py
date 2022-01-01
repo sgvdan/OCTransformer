@@ -6,14 +6,13 @@ from torchvision.models import resnet18
 
 
 class MyViT(torch.nn.Module):
-    def __init__(self, config):
+    def __init__(self, config=None):
         super().__init__()
 
         self.config = config
-        backbone = partial(Backbone, num_patches=self.config.num_slices)
-        self.model = VisionTransformer(img_size=self.config.input_size, patch_size=(self.config.embedding_dim, 1),
-                                       in_chans=3, num_classes=self.config.num_classes,
-                                       # TODO: CHANGE NUM_CLASSES ACCORDING TO DATASET
+        backbone = partial(Backbone)
+        self.model = VisionTransformer(img_size=(496, 1024), patch_size=(768, 1),
+                                       in_chans=3, num_classes=4,
                                        embed_dim=self.config.embedding_dim, depth=12, num_heads=12, mlp_ratio=4.,
                                        qkv_bias=True,
                                        representation_size=None, distilled=False, drop_rate=0., attn_drop_rate=0.,

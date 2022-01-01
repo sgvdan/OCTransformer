@@ -14,10 +14,16 @@ import argparse
 import cv2 as cv
 from tqdm import tqdm
 
+wandb.config = {
+    "learning_rate": 0.001,
+    "epochs": 10,
+    "batch_size": 256
+}
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
 wandb.login()
-wandb.init(project="my-test-project", entity="guylu")
+wandb.init(project="my-test-project", entity="guylu",name="vit trial")
 torch.backends.cudnn.deterministic = True
 random.seed(hash("setting random seeds") % 2 ** 32 - 1)
 np.random.seed(hash("improves reproducibility") % 2 ** 32 - 1)
@@ -33,29 +39,21 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    wandb.config = {
-        "learning_rate": 0.001,
-        "epochs": 100,
-        "batch_size": 128
-    }
-
-    batch_size = 256
-    epochs = 10
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=wandb.config.batch_size,
                                               shuffle=True, num_workers=0)
     print("getting validation set")
     valset = kermany_dataset.Kermany_DataSet(args.val[0])
-    valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size,
+    valloader = torch.utils.data.DataLoader(valset, batch_size=wandb.config.batch_size,
                                             shuffle=False, num_workers=0)
     print("starting network")
     config = 0
-    model = kermany_net.Resnet(4).to(device)
+    model = kermany_net.MyViT() #kermany_net.Resnet(4).to(device)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    for epoch in range(epochs):  # loop over the dataset multiple times
+    optimizer = optim.SGD(model.parameters(), lr=wandb.config.lr, momentum=0.9)
+    for epoch in range(wandb.config.epochs):  # loop over the dataset multiple times
         running_loss = 0.0
         print(f"epoch:{epoch}")
         for i, data in enumerate(tqdm(trainloader), 0):
