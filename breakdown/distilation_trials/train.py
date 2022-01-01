@@ -23,7 +23,7 @@ class dot_dict(dict):
 
 
 config = dot_dict({
-    "learning_rate": 0.001,
+    "lr": 0.001,
     "epochs": 10,
     "batch_size": 256
 })
