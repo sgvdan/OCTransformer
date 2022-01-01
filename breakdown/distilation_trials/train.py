@@ -60,7 +60,7 @@ if __name__ == '__main__':
     model = kermany_net.MyViT()  # kermany_net.Resnet(4).to(device)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
-    optimizer = optim.SGD(model.parameters(), lr=wandb.config.lr, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=0.9)
     for epoch in range(config.epochs):  # loop over the dataset multiple times
         running_loss = 0.0
         print(f"epoch:{epoch}")
