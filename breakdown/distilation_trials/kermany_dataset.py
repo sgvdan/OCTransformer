@@ -37,7 +37,8 @@ class Kermany_DataSet(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         sample = self.dataset[idx]
 
-        sample[0] = self.t(cv.imread(sample[0]))
+        sample = self.t(cv.imread(sample[0])), sample[1]
+
         return sample
 
     def __len__(self):
