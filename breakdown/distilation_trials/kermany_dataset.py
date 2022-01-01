@@ -10,7 +10,7 @@ class Kermany_DataSet(torch.utils.data.Dataset):
     def __init__(self, path):
         # load your dataset (how every you want, this example has the dataset stored in a json file
         # path = "C:/Users/guylu/Desktop/prev_files/Weizmann/OCT/test/AIA 03346 OS 13.01.2020.E2E"
-        t = transforms.Compose([transforms.ToTensor()])
+        t = transforms.Compose([transforms.ToTensor(), transforms.RandomResizedCrop((496, 512))])
         self.dataset = []
         label = 0
         label_dict = {"NORMAL": 0,
