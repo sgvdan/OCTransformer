@@ -14,13 +14,15 @@ import argparse
 import cv2 as cv
 from tqdm import tqdm
 
+
 class dot_dict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
-wandb.config = dot_dict({
+
+config = dot_dict({
     "learning_rate": 0.001,
     "epochs": 10,
     "batch_size": 256
@@ -29,7 +31,7 @@ wandb.config = dot_dict({
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
 wandb.login()
-wandb.init(project="my-test-project", entity="guylu",name="vit trial")
+wandb.init(project="my-test-project", entity="guylu", config=config, name="vit trial")
 torch.backends.cudnn.deterministic = True
 random.seed(hash("setting random seeds") % 2 ** 32 - 1)
 np.random.seed(hash("improves reproducibility") % 2 ** 32 - 1)
@@ -47,19 +49,19 @@ if __name__ == '__main__':
 
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=wandb.config.batch_size,
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=config.batch_size,
                                               shuffle=True, num_workers=0)
     print("getting validation set")
     valset = kermany_dataset.Kermany_DataSet(args.val[0])
-    valloader = torch.utils.data.DataLoader(valset, batch_size=wandb.config.batch_size,
+    valloader = torch.utils.data.DataLoader(valset, batch_size=config.batch_size,
                                             shuffle=False, num_workers=0)
     print("starting network")
     config = 0
-    model = kermany_net.MyViT() #kermany_net.Resnet(4).to(device)
+    model = kermany_net.MyViT()  # kermany_net.Resnet(4).to(device)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
     optimizer = optim.SGD(model.parameters(), lr=wandb.config.lr, momentum=0.9)
-    for epoch in range(wandb.config.epochs):  # loop over the dataset multiple times
+    for epoch in range(config.epochs):  # loop over the dataset multiple times
         running_loss = 0.0
         print(f"epoch:{epoch}")
         for i, data in enumerate(tqdm(trainloader), 0):
