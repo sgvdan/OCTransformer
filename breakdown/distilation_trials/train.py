@@ -56,7 +56,7 @@ if __name__ == '__main__':
     valloader = torch.utils.data.DataLoader(valset, batch_size=config.batch_size,
                                             shuffle=False, num_workers=0)
     print("starting network")
-    config = 0
+    # config = 0
     model = kermany_net.MyViT()  # kermany_net.Resnet(4).to(device)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
