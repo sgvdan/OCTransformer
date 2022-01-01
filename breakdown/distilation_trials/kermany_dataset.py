@@ -3,13 +3,14 @@ import os
 from torchvision import transforms as transforms
 from pathlib import Path
 from torchvision.io import read_image
+import cv2 as cv
 
 
 class Kermany_DataSet(torch.utils.data.Dataset):
     def __init__(self, path):
         # load your dataset (how every you want, this example has the dataset stored in a json file
         # path = "C:/Users/guylu/Desktop/prev_files/Weizmann/OCT/test/AIA 03346 OS 13.01.2020.E2E"
-        t = transforms.Compose([transforms.ToTensor])
+        t = transforms.Compose([transforms.ToTensor()])
         self.dataset = []
         label = 0
         label_dict = {"NORMAL": 0,
@@ -20,12 +21,14 @@ class Kermany_DataSet(torch.utils.data.Dataset):
         f_2 = lambda x: 1 if "CNV" in x else 0
         f_3 = lambda x: 2 if "DME" in x else 0
         f_4 = lambda x: 3 if "DRUSEN" in x else 0
-        for path in Path(path).rglob('*.jpeg'):
-            path = str(path)
-            image = t(read_image(path))
-            label = f_1(path) + f_2(path) + f_3(path) + f_4(path)
+        i = 0
+        for path2 in Path(path).rglob('*.jpeg'):
+            i += 1
+            if i > 3: break
+            path2 = str(path2)
+            image = t(cv.imread(path2))
+            label = f_1(path2) + f_2(path2) + f_3(path2) + f_4(path2)
             self.dataset.append((image, label))
-
 
     def __getitem__(self, idx):
         sample = self.dataset[idx]
