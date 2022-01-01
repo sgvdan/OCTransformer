@@ -27,7 +27,7 @@ class Backbone(torch.nn.Module):
     def __init__(self, embed_dim, num_patches, **kwargs):
         super().__init__()
         self.resnet = resnet18(pretrained=False, num_classes=embed_dim)  # TODO: pretrained on ImageNet?
-        # self.num_patches = num_patches  # TODO: Should be flexible # of slices per volume
+        self.num_patches = 30  # TODO: Should be flexible # of slices per volume
 
     def forward(self, x):
         batch_size, slices, channels, height, width = x.shape
