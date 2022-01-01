@@ -24,7 +24,7 @@ class MyViT(torch.nn.Module):
 
 
 class Backbone(torch.nn.Module):
-    def __init__(self, embed_dim, num_patches, **kwargs):
+    def __init__(self, embed_dim, num_patches=30, **kwargs):
         super().__init__()
         self.resnet = resnet18(pretrained=False, num_classes=embed_dim)  # TODO: pretrained on ImageNet?
         self.num_patches = 30  # TODO: Should be flexible # of slices per volume
