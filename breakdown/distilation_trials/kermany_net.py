@@ -30,11 +30,11 @@ class Backbone(torch.nn.Module):
         self.num_patches = 30  # TODO: Should be flexible # of slices per volume
 
     def forward(self, x):
-        batch_size, slices, channels, height, width = x.shape
+        batch_size, channels, height, width = x.shape
 
-        x = x.reshape(batch_size * slices, channels, height, width)
+        x = x.reshape(batch_size , channels, height, width)
         x = self.resnet(x)
-        x = x.reshape(batch_size, slices, -1)
+        x = x.reshape(batch_size, -1)
 
         return x
 
