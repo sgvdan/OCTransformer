@@ -39,7 +39,7 @@ if __name__ == '__main__':
         "batch_size": 128
     }
 
-    batch_size = 50
+    batch_size = 256
     epochs = 10
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
@@ -71,12 +71,6 @@ if __name__ == '__main__':
             loss = criterion(outputs, labels)
             loss.backward()
             outputs = torch.argmax(outputs, dim=1)
-            # print(f"outputs: {outputs}")
-            # print()
-            # print()
-            # print(f"labels: {labels}")
-            # print(f"sizes: {labels.shape}, {outputs.shape}")
-            # raise NotImplemented
             acc = (outputs == labels).sum().item() / inputs.shape[0]
             optimizer.step()
 
@@ -84,8 +78,9 @@ if __name__ == '__main__':
             running_loss += loss.item()
             if i % 20 == 0:  # print every 2000 mini-batches
                 wandb.log({"epoch": epoch, "train loss": loss, "train acc": acc})
-                print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 2000))
+                if i % 100 == 0:
+                    print('[%d, %5d] loss: %.3f' %
+                          (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
 
     print('Finished Training')
