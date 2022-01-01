@@ -12,6 +12,7 @@ import random
 import numpy as np
 import argparse
 import cv2 as cv
+import tqdm
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
@@ -38,7 +39,7 @@ if __name__ == '__main__':
         "batch_size": 128
     }
 
-    batch_size = 10
+    batch_size = 50
     epochs = 10
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     valset = kermany_dataset.Kermany_DataSet(args.val[0])
     valloader = torch.utils.data.DataLoader(valset, batch_size=batch_size,
                                             shuffle=False, num_workers=0)
-    print("preping network")
+    print("starting network")
     config = 0
     model = kermany_net.Resnet(4).to(device)
     wandb.watch(model)
@@ -56,7 +57,8 @@ if __name__ == '__main__':
     optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     for epoch in range(epochs):  # loop over the dataset multiple times
         running_loss = 0.0
-        for i, data in enumerate(trainloader, 0):
+        print(f"epoch:{epoch}")
+        for i, data in enumerate(tqdm(trainloader), 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
@@ -76,12 +78,12 @@ if __name__ == '__main__':
             # print(f"sizes: {labels.shape}, {outputs.shape}")
             # raise NotImplemented
             acc = (outputs == labels).sum().item() / inputs.shape[0]
-            wandb.log({"epoch": epoch, "train loss": loss, "train acc": acc})
             optimizer.step()
 
             # print statistics
             running_loss += loss.item()
-            if i % 2000 == 1999:  # print every 2000 mini-batches
+            if i % 20 == 0:  # print every 2000 mini-batches
+                wandb.log({"epoch": epoch, "train loss": loss, "train acc": acc})
                 print('[%d, %5d] loss: %.3f' %
                       (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
