@@ -13,7 +13,7 @@ class MyViT(torch.nn.Module):
         backbone = partial(Backbone)
         self.model = VisionTransformer(img_size=(496, 1024), patch_size=(768, 1),
                                        in_chans=3, num_classes=4,
-                                       embed_dim=self.config.embedding_dim, depth=12, num_heads=12, mlp_ratio=4.,
+                                       embed_dim=768, depth=12, num_heads=12, mlp_ratio=4.,
                                        qkv_bias=True,
                                        representation_size=None, distilled=False, drop_rate=0., attn_drop_rate=0.,
                                        drop_path_rate=0., embed_layer=backbone, norm_layer=None, act_layer=None,
