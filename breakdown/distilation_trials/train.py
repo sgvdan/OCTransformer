@@ -12,7 +12,7 @@ import random
 import numpy as np
 import argparse
 import cv2 as cv
-import tqdm
+from tqdm import tqdm
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     with torch.no_grad():
         running_loss = 0.0
-        for i, data in enumerate(valloader, 0):
+        for i, data in enumerate(tqdm(trainloader), 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
