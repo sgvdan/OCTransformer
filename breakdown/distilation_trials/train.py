@@ -57,7 +57,7 @@ if __name__ == '__main__':
                                             shuffle=False, num_workers=0)
     print("starting network")
     # config = 0
-    model = kermany_net.MyViT()  # kermany_net.Resnet(4).to(device)
+    model = kermany_net.MyViT().to(device)  # kermany_net.Resnet(4).to(device)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
     optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=0.9)
