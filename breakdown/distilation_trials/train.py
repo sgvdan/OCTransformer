@@ -25,7 +25,8 @@ class dot_dict(dict):
 config = dot_dict({
     "lr": 0.001,
     "epochs": 2,
-    "batch_size": 256
+    "batch_size": 4,
+    "architecture": "res"
 })
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -57,8 +58,10 @@ if __name__ == '__main__':
                                             shuffle=False, num_workers=0)
     print("starting network")
     # config = 0
-    # model = kermany_net.MyViT().to(device)
-    model = kermany_net.Resnet(4).to(device)
+    if config.architecture == "vit":
+        model = kermany_net.MyViT().to(device)
+    elif config.architecture == "res":
+        model = kermany_net.Resnet(4).to(device)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
     optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=0.9)
@@ -101,6 +104,8 @@ if __name__ == '__main__':
 
             # forward
             outputs = model(inputs)
+            print(f'outputs: {outputs}')
+            print(f'labels: {labels}')
             loss = criterion(outputs, labels)
             acc = (outputs == labels).sum().item() / inputs.shape[0]
             wandb.log({"val loss": loss, "val acc": acc})
