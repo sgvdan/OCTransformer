@@ -25,7 +25,7 @@ class dot_dict(dict):
 config = dot_dict({
     "lr": 0.001,
     "epochs": 2,
-    "batch_size": 6,
+    "batch_size": 256,
     "architecture": "res"
 })
 
