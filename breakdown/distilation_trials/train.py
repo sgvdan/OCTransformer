@@ -50,7 +50,7 @@ config = dot_dict({
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
 wandb.login()
-wandb.init(project="my-test-project", entity="guylu", config=config, name="vit trial")
+wandb.init(project="my-test-project", entity="guylu", config=config, name="vit trial2")
 torch.backends.cudnn.deterministic = True
 random.seed(hash("setting random seeds") % config.seed)
 np.random.seed(hash("improves reproducibility") % config.seed)
