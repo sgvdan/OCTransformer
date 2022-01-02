@@ -21,6 +21,7 @@ class MyViT(torch.nn.Module):
 
     def forward(self, x):
         print(x.shape)
+        raise NotImplemented
         return self.model(x)
 
 
