@@ -31,7 +31,7 @@ config = dot_dict({
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
 wandb.login()
-wandb.init(project="my-test-project", entity="guylu", config=config, name="vit trial")
+wandb.init(project="my-test-project", entity="guylu", config=config, name="resnet trial")
 torch.backends.cudnn.deterministic = True
 random.seed(hash("setting random seeds") % 2 ** 32 - 1)
 np.random.seed(hash("improves reproducibility") % 2 ** 32 - 1)
@@ -57,7 +57,8 @@ if __name__ == '__main__':
                                             shuffle=False, num_workers=0)
     print("starting network")
     # config = 0
-    model = kermany_net.MyViT().to(device)  # kermany_net.Resnet(4).to(device)
+    # model = kermany_net.MyViT().to(device)
+    model = kermany_net.Resnet(4).to(device)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
     optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=0.9)
