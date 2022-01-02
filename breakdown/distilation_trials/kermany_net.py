@@ -34,7 +34,7 @@ class Backbone(torch.nn.Module):
 
         x = x.reshape(batch_size , channels, height, width)
         x = self.resnet(x)
-        x = x.reshape(batch_size, 1, -1)
+        x = x.reshape(batch_size, self.num_patches, -1)
 
         return x
 
