@@ -11,7 +11,7 @@ class MyViT(torch.nn.Module):
 
         self.config = config
         backbone = partial(Backbone)
-        self.model = VisionTransformer(img_size=(496, 512), patch_size=(768, 1),
+        self.model = VisionTransformer(img_size=(496, 512), patch_size=(16, 16),
                                        in_chans=3, num_classes=4,
                                        embed_dim=768, depth=12, num_heads=12, mlp_ratio=4.,
                                        qkv_bias=True,
@@ -27,7 +27,7 @@ class Backbone(torch.nn.Module):
     def __init__(self, embed_dim, num_patches=30, **kwargs):
         super().__init__()
         self.resnet = resnet18(pretrained=False, num_classes=embed_dim)  # TODO: pretrained on ImageNet?
-        self.num_patches = 1  # TODO: Should be flexible # of slices per volume
+        self.num_patches = 100 # TODO: Should be flexible # of slices per volume
 
     def forward(self, x):
         batch_size, channels, height, width = x.shape
