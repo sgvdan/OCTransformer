@@ -79,7 +79,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()  # nn.L1Loss
 
     if config.architecture == "vit":
-        model = kermany_net.MyViT().to(device)
+        model = kermany_net.MyViT(config).to(device)
     elif config.architecture == "res":
         model = kermany_net.Resnet(4).to(device)
 
