@@ -104,9 +104,9 @@ if __name__ == '__main__':
 
             # forward
             outputs = model(inputs)
+            loss = criterion(outputs, labels)
             outputs = torch.argmax(outputs, dim=1)
             acc = (outputs == labels).sum().item() / inputs.shape[0]
-            loss = criterion(outputs, labels)
             wandb.log({"val loss": loss, "val acc": acc})
 
             # print statistics
