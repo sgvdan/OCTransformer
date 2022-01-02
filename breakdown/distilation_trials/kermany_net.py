@@ -20,6 +20,7 @@ class MyViT(torch.nn.Module):
                                        weight_init='')  # TODO: Migrate many of these to config.py
 
     def forward(self, x):
+        print(x.shape)
         return self.model(x)
 
 
