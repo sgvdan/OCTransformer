@@ -51,11 +51,11 @@ if __name__ == '__main__':
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=config.batch_size,
-                                              shuffle=True, num_workers=0, drop_last=True)
+                                              shuffle=True, num_workers=0)# drop_last=True
     print("getting validation set")
     valset = kermany_dataset.Kermany_DataSet(args.val[0])
     valloader = torch.utils.data.DataLoader(valset, batch_size=config.batch_size,
-                                            shuffle=False, num_workers=0, drop_last=True)
+                                            shuffle=False, num_workers=0)
     print("starting network")
     # config = 0
     if config.architecture == "vit":
@@ -104,10 +104,9 @@ if __name__ == '__main__':
 
             # forward
             outputs = model(inputs)
-            print(f'outputs: {outputs}')
-            print(f'labels: {labels}')
-            loss = criterion(outputs, labels)
+            outputs = torch.argmax(outputs, dim=1)
             acc = (outputs == labels).sum().item() / inputs.shape[0]
+            loss = criterion(outputs, labels)
             wandb.log({"val loss": loss, "val acc": acc})
 
             # print statistics
