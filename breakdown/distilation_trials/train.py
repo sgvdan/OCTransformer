@@ -117,7 +117,7 @@ if __name__ == '__main__':
             # print statistics
             running_loss += loss.item()
             if i % 20 == 0:  # print every 2000 mini-batches
-                wandb.log({"epoch": epoch, "train loss": loss, "train acc": acc, "lr": optimizer.lr})
+                wandb.log({"epoch": epoch, "train loss": loss, "train acc": acc})
                 if i % 100 == 0:
                     print('[%d, %5d] loss: %.3f' %
                           (epoch + 1, i + 1, running_loss / 2000))
