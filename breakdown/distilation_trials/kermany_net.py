@@ -28,7 +28,8 @@ class Backbone(torch.nn.Module):
     def __init__(self, embed_dim, num_patches=30, **kwargs):
         super().__init__()
         self.num_patches = 64
-        self.resnet = resnet18(num_classes=embed_dim * self.num_patches, pretrained=self.config.backbone_pretrained)
+        #self.config.backbone_pretrained
+        self.resnet = resnet18(num_classes=embed_dim * self.num_patches, pretrained=False)
 
     def forward(self, x):
         batch_size, channels, height, width = x.shape
