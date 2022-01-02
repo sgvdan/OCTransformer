@@ -61,6 +61,7 @@ def build_records(data_root, annotations_file, labels_to_extract, dataset_root, 
 
     for row_idx in range(1, len(contents)):
         patient_name = contents['P.I.D'][row_idx]
+        patient_eye = contents['EYE'][row_idx]
         patient_src_path = data_root / contents['PATH'][row_idx]
         patient_dst_path = dataset_root / patient_name
         label = {key: contents[key][row_idx] for key in labels_to_extract}
@@ -70,6 +71,7 @@ def build_records(data_root, annotations_file, labels_to_extract, dataset_root, 
         os.makedirs(patient_dst_path, exist_ok=True)
         patient = Patient(name=patient_name, path=patient_src_path, reside_path=patient_dst_path, label=label)
         records.add_patient(patient)
+        # TODO: THERE ARE TWO LINES - LEFT & RIGHT. NEED TO FIGURE OUT HOW TO TREAT THOSE (ADD RIGHT, THEN ADD LEFT)
 
         # Iterate through patient's samples
         for sample in tqdm(list(patient_src_path.rglob("*.E2E"))):
