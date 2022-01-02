@@ -26,13 +26,13 @@ config = dot_dict({
     "lr": 0.001,
     "epochs": 2,
     "batch_size": 256,
-    "architecture": "res"
+    "architecture": "vit"
 })
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
 wandb.login()
-wandb.init(project="my-test-project", entity="guylu", config=config, name="resnet trial")
+wandb.init(project="my-test-project", entity="guylu", config=config, name="vit trial")
 torch.backends.cudnn.deterministic = True
 random.seed(hash("setting random seeds") % 2 ** 32 - 1)
 np.random.seed(hash("improves reproducibility") % 2 ** 32 - 1)
