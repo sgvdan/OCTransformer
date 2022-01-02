@@ -9,7 +9,7 @@ from models.bank import ModelsBank
 from config import default_config
 from data.cache import Cache
 from data.data import get_balance_weights
-from data.hadassah.e2e_data import E2EVolumeDataset, get_hadassah_transform
+from data.hadassah.hadassah_data import E2EVolumeDataset, get_hadassah_transform
 from logger import Logger
 from train.train import Trainer
 
@@ -44,8 +44,17 @@ class Experiment:
         self.model, self.criterion, self.optimizer = self.model_bank.get_environment()
 
     def setup_data(self):
+        # TODO: First, see that HadassahDataset Actually works!
+
+        """
+        TODO: patients = read records.pkl
+        TODO: slice patients to control & study according to configuration
+        TODO: split by patients into train/eval/test
+        TODO: create datasets
+        :return:
+        """
         if self.config.dataset == 'hadassah':
-            dataset = partial(E2EVolumeDataset, samples_num=self.config.num_slices)  # TODO: Change page to E2E...
+            dataset = partial(E2EVolumeDataset, samples_num=self.config.num_slices)
             transform = get_hadassah_transform(self.config.input_size)
         elif self.config.dataset == 'kermany':
             dataset = KermanyDataset
