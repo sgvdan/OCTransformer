@@ -35,7 +35,7 @@ config = dot_dict({
     'scheduler': "lr",
     "scheduler_gamma": 0.9,
     "scheduler_step_size": 1,
-    "vit_patch_size": (16, 16),
+    "vit_patch_size": 16,
     "vit_num_classes": 4,
     "vit_embed_dim": 768,
     "vit_depth": 12,
