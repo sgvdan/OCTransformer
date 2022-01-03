@@ -14,6 +14,7 @@ import argparse
 import cv2 as cv
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
+import sweeps
 
 
 class dot_dict(dict):
@@ -34,7 +35,6 @@ config = dot_dict({
     'scheduler': "lr",
     "scheduler_gamma": 0.9,
     "scheduler_step_size": 1,
-    "backbone_pretrained": False,
     "vit_patch_size": (16, 16),
     "vit_num_classes": 4,
     "vit_embed_dim": 768,
@@ -43,7 +43,8 @@ config = dot_dict({
     "vit_mlp_ratio": 4.,
     "vit_drop_rate": 0.2,
     "vit_num_patches": 64,
-    "vit_attn_drop_rate": 0.
+    "vit_attn_drop_rate": 0.,
+    'weight_decay': 0.001
 
 })
 
@@ -57,7 +58,8 @@ np.random.seed(hash("improves reproducibility") % config.seed)
 torch.manual_seed(hash("by removing stochasticity") % config.seed)
 torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
 
-if __name__ == '__main__':
+
+def main():
     parser = argparse.ArgumentParser(description='Build Kermany dataset')
 
     parser.add_argument('--train', type=str, nargs='+', default=None)
@@ -86,18 +88,18 @@ if __name__ == '__main__':
     wandb.watch(model)
 
     if config.optimizer == "sgd":
-        optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=config.mom)
+        optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=config.mom, weight_decay=config.weight_decay)
     elif config.optimizer == "adam":
-        optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=config.mom)
+        optimizer = optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
 
     if config.scheduler == "lr":
         scheduler = StepLR(optimizer, step_size=config.scheduler_step_size, gamma=config.scheduler_gamma)
 
     #############################################################################
+
     for epoch in range(config.epochs):  # loop over the dataset multiple times
         running_loss = 0.0
         print(f"epoch:{epoch}")
-        scheduler.step()
         for i, data in enumerate(tqdm(trainloader), 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
@@ -122,8 +124,10 @@ if __name__ == '__main__':
                     print('[%d, %5d] loss: %.3f' %
                           (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
+        scheduler.step()
 
     print('Finished Training')
+
     correct = 0
     with torch.no_grad():
         running_loss = 0.0
@@ -144,9 +148,15 @@ if __name__ == '__main__':
             running_loss += loss.item()
 
     wandb.log({"Final Accuracy": correct / len(valset)})
+
     print('Finished Validating')
     print()
     print("Finito La Cola")
 
-    # model.to_onnx()
-    # wandb.save("model.onnx")
+
+if __name__ == '__main__':
+    sweep_id = wandb.sweep(sweeps.sweep_config)
+    wandb.agent(sweep_id, function=main)
+
+# model.to_onnx()
+# wandb.save("model.onnx")
