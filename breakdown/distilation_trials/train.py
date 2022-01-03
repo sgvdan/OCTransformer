@@ -63,11 +63,11 @@ torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
 def main():
     parser = argparse.ArgumentParser(description='Build Kermany dataset')
 
-    parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
-    parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
-    parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
+    # parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
+    # parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
+    # parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
     def_args = dot_dict({
         "train": ["../../../data/kermany/train"],
