@@ -52,7 +52,7 @@ config = dot_dict({
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"running on {device}")
 wandb.login()
-wandb.init(project="my-test-project", entity="guylu", config=config, name="vit trial2")
+wandb.init(project="my-test-project", entity="guylu", config=config, name=str(config))
 torch.backends.cudnn.deterministic = True
 random.seed(hash("setting random seeds") % config.seed)
 np.random.seed(hash("improves reproducibility") % config.seed)
@@ -63,9 +63,9 @@ torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
 def main():
     parser = argparse.ArgumentParser(description='Build Kermany dataset')
 
-    parser.add_argument('--train', type=str, nargs='+', default=None)
-    parser.add_argument('--val', type=str, nargs='+', default=None)
-    parser.add_argument('--test', type=str, nargs='+', default=None)
+    parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
+    parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
+    parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
 
     args = parser.parse_args()
 
