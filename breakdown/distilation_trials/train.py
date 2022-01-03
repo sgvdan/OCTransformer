@@ -91,6 +91,9 @@ def main():
         optimizer = optim.SGD(model.parameters(), lr=config.lr, momentum=config.mom, weight_decay=config.weight_decay)
     elif config.optimizer == "adam":
         optimizer = optim.Adam(model.parameters(), lr=config.lr, weight_decay=config.weight_decay)
+    elif config.optimizer == "rmsprop":
+        optimizer = optim.RMSprop(model.parameters(), lr=config.lr, momentum=config.mom,
+                                  weight_decay=config.weight_decay)
 
     if config.scheduler == "lr":
         scheduler = StepLR(optimizer, step_size=config.scheduler_step_size, gamma=config.scheduler_gamma)
