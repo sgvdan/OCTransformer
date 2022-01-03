@@ -83,11 +83,11 @@ def main():
     config = wandb.config
 
     print("getting traning set")
-    trainset = kermany_dataset.Kermany_DataSet(args.train[0])
+    trainset = kermany_dataset.Kermany_DataSet(def_args.train[0])
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=config.batch_size,
                                               shuffle=True, num_workers=0)  # drop_last=True
     print("getting validation set")
-    valset = kermany_dataset.Kermany_DataSet(args.val[0])
+    valset = kermany_dataset.Kermany_DataSet(def_args.val[0])
     valloader = torch.utils.data.DataLoader(valset, batch_size=config.batch_size,
                                             shuffle=False, num_workers=0)
     print("starting network")
