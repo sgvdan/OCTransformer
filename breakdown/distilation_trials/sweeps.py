@@ -20,7 +20,7 @@ sweep_config = {
             # 'values': [1e-2, 1e-3, 1e-4, 3e-4, 3e-5, 1e-5]
         },
         'epochs': {
-            'values': 5
+            'values': [5]
         },
         'batch_size': {
             'values': [2048, 1024, 512, 256, 128, 64, 32, 2]
@@ -34,7 +34,7 @@ sweep_config = {
             'distribution': 'uniform'
         },
         'scheduler': {
-            'values': 'lr'
+            'values': ['lr']
         },
         'scheduler_gamma': {
             'min': 0.001,
@@ -42,13 +42,13 @@ sweep_config = {
             'distribution': 'uniform'
         },
         'scheduler_step_size': {
-            'values': 1
+            'values': [1]
         },
         'vit_patch_size': {
             'values': [4, 6, 10, 16, 32, 64]
         },
         'vit_num_classes': {
-            'values': 4
+            'values': [4]
         },
         'vit_embed_dim': {
             'values': [50, 100, 300, 768, 1024, 2048]
