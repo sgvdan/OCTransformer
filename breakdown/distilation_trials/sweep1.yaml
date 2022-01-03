@@ -1,5 +1,5 @@
 program: train.py
-name: resnet search
+name: resnet search2
 method: bayes
 metric:
   goal: maximize
