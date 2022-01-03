@@ -69,11 +69,18 @@ def main():
 
     args = parser.parse_args()
 
-    # args = dot_dict({
-    #     "train": ["../../../data/kermany/train"],
-    #     "val": ["../../../data/kermany/val"],
-    #     "test": ["../../../data/kermany/test"],
-    # })
+    def_args = dot_dict({
+        "train": ["../../../data/kermany/train"],
+        "val": ["../../../data/kermany/val"],
+        "test": ["../../../data/kermany/test"],
+    })
+    # Get the hyperparameters
+    args = parser.parse_args()
+
+    # Pass them to wandb.init
+    wandb.init(config=args)
+    # Access all hyperparameter values through wandb.config
+    config = wandb.config
 
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
