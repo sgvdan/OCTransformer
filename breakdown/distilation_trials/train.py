@@ -29,7 +29,7 @@ config = dot_dict({
     "seed": 42,
     "lr": 0.001,
     "epochs": 2,
-    "batch_size": 256,
+    "batch_size": 16,
     'optimizer': "sgd",
     "mom": 0.9,
     'scheduler': "lr",
@@ -134,7 +134,7 @@ def main():
     correct = 0
     with torch.no_grad():
         running_loss = 0.0
-        for i, data in enumerate(tqdm(trainloader), 0):
+        for i, data in enumerate(tqdm(valloader), 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
