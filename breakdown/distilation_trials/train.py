@@ -61,19 +61,19 @@ torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
 
 
 def main():
-    # parser = argparse.ArgumentParser(description='Build Kermany dataset')
-    #
-    # parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
-    # parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
-    # parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
-    #
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Build Kermany dataset')
 
-    args = dot_dict({
-        "train": ["../../../data/kermany/train"],
-        "val": ["../../../data/kermany/val"],
-        "test": ["../../../data/kermany/test"],
-    })
+    parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
+    parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
+    parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
+
+    args = parser.parse_args()
+
+    # args = dot_dict({
+    #     "train": ["../../../data/kermany/train"],
+    #     "val": ["../../../data/kermany/val"],
+    #     "test": ["../../../data/kermany/test"],
+    # })
 
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
@@ -175,9 +175,9 @@ def main():
 
 
 if __name__ == '__main__':
-    # sweep_id = wandb.sweep(sweeps.sweep_config)
-    # wandb.agent(sweep_id, function=main)
-    main()
+    sweep_id = wandb.sweep(sweeps.sweeps_config_resnet)
+    wandb.agent(sweep_id, function=main)
+    # main()
 
 # model.to_onnx()
 # wandb.save("model.onnx")

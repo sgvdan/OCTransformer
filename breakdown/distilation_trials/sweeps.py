@@ -1,3 +1,70 @@
+sweeps_config_resnet = {
+    'name': 'resnet search',
+    'method': 'bayes',
+    'metric': {
+        'goal': 'maximize',
+        'name': 'Final Accuracy',
+    },
+    'parameters': {
+        'pretrained_res': {
+            'values': [True, False],
+            'distribution': 'categorical',
+        },
+        'scheduler_step_size': {
+            'max': 2,
+            'min': 1,
+            'distribution': 'int_uniform',
+        },
+        'scheduler_gamma': {
+            'max': 1.997028076592444,
+            'min': 0.06880986061232498,
+            'distribution': 'uniform',
+        },
+        'weight_decay': {
+            'max': 0.033569866313412654,
+            'min': 0.00013422248069545946,
+            'distribution': 'uniform',
+        },
+        'architecture': {
+            'values': ['res18', 'resnet50', 'resnet101', 'resnet152'],
+            'distribution': 'categorical',
+        },
+        'batch_size': {
+            'max': 128,
+            'min': 1,
+            'distribution': 'int_uniform',
+        },
+        'scheduler': {
+            'values': ['lr'],
+            'distribution': 'categorical',
+        },
+        'optimizer': {
+            'values': ['rmsprop', 'adam', 'sgd'],
+            'distribution': 'categorical',
+        },
+        'epochs': {
+            'max': 3,
+            'min': 3,
+            'distribution': 'int_uniform',
+        },
+        'seed': {
+            'max': 19331.88309125071,
+            'min': 354.1561390473186,
+            'distribution': 'uniform',
+        },
+        'mom': {
+            'max': 2.554618436876222,
+            'min': 0.014827283535859812,
+            'distribution': 'uniform',
+        },
+        'lr': {
+            'max': 0.1,
+            'min': 0.00001,
+            'distribution': 'uniform'
+        }
+    }
+}
+
 sweep_config = {
     'method': 'random',  # grid, random
     'metric': {
