@@ -26,6 +26,7 @@ class dot_dict(dict):
 
 config = dot_dict({
     "architecture": "vit",
+    "pretrained_res": False,
     "seed": 42,
     "lr": 0.001,
     "epochs": 2,
@@ -82,8 +83,18 @@ def main():
 
     if config.architecture == "vit":
         model = kermany_net.MyViT(config).to(device)
-    elif config.architecture == "res":
-        model = kermany_net.Resnet(4).to(device)
+    elif config.architecture == "res18":
+        model = kermany_net.Resnet18(4, pretrained=config.pretrained_res).to(device)
+    elif config.architecture == "res50":
+        model = kermany_net.Resnet50(4, pretrained=config.pretrained_res).to(device)
+    elif config.architecture == "res101":
+        model = kermany_net.Resnet101(4, pretrained=config.pretrained_res).to(device)
+    elif config.architecture == "res152":
+        model = kermany_net.Resnet152(4, pretrained=config.pretrained_res).to(device)
+    elif config.architecture == "wide_resnet50_2":
+        model = kermany_net.Wide_Resnet50_2(4, pretrained=config.pretrained_res).to(device)
+    elif config.architecture == "wide_resnet101_2":
+        model = kermany_net.Wide_Resnet101_2(4, pretrained=config.pretrained_res).to(device)
 
     wandb.watch(model)
 
@@ -158,9 +169,9 @@ def main():
 
 
 if __name__ == '__main__':
-    # sweep_id = wandb.sweep(sweeps.sweep_config)
-    # wandb.agent(sweep_id, function=main)
-    main()
+    sweep_id = wandb.sweep(sweeps.sweep_config)
+    wandb.agent(sweep_id, function=main)
+    # main()
 
 # model.to_onnx()
 # wandb.save("model.onnx")

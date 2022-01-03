@@ -6,7 +6,10 @@ sweep_config = {
     },
     'parameters': {
         'architecture': {
-            'values': ['vit', 'res'],
+            'values': ['vit', 'res18', 'resnet50', 'resnet101', 'resnet152', 'wide_resnet50_2', 'wide_resnet101_2'],
+        },
+        'pretrained_res': {
+            'values': [True, False],
         },
         'seed': {
             'min': 1,
@@ -23,7 +26,7 @@ sweep_config = {
             'values': [5]
         },
         'batch_size': {
-            'values': [2048, 1024, 512, 256, 128, 64, 32, 2]
+            'values': [128, 64, 32, 2]
         },
         'optimizer': {
             'values': ['adam', 'sgd', 'rmsprop']
