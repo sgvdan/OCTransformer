@@ -61,13 +61,19 @@ torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Build Kermany dataset')
+    # parser = argparse.ArgumentParser(description='Build Kermany dataset')
+    #
+    # parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
+    # parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
+    # parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
+    #
+    # args = parser.parse_args()
 
-    parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
-    parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
-    parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
-
-    args = parser.parse_args()
+    args = dot_dict({
+        "train": ["../../../data/kermany/train"],
+        "val": ["../../../data/kermany/val"],
+        "test": ["../../../data/kermany/test"],
+    })
 
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(args.train[0])
