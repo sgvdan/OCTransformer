@@ -169,9 +169,9 @@ def main():
 
 
 if __name__ == '__main__':
-    sweep_id = wandb.sweep(sweeps.sweep_config)
-    wandb.agent(sweep_id, function=main)
-    # main()
+    # sweep_id = wandb.sweep(sweeps.sweep_config)
+    # wandb.agent(sweep_id, function=main)
+    main()
 
 # model.to_onnx()
 # wandb.save("model.onnx")
