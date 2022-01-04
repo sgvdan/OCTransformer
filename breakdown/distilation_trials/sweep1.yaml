@@ -1,5 +1,5 @@
 program: train2.py
-name: resnet search2
+name: resnet search trial 2
 method: bayes
 metric:
   goal: maximize
@@ -30,7 +30,7 @@ parameters:
       - resnet152
     distribution: categorical
   batch_size:
-    max: 128
+    max: 64
     min: 1
     distribution: int_uniform
   scheduler:
@@ -44,8 +44,8 @@ parameters:
       - sgd
     distribution: categorical
   epochs:
-    max: 10
-    min: 3
+    max: 1
+    min: 1
     distribution: int_uniform
   seed:
     max: 19331.88309125071
