@@ -46,6 +46,7 @@ class Resnet18(torch.nn.Module):
         self.resnet = resnet18(pretrained=pretrained)
         num_ftrs = self.resnet.fc.in_features
         self.resnet.fc = nn.Linear(num_ftrs, num_classes)
+
     def forward(self, x):
         batch_size, channels, height, width = x.shape
 
@@ -124,40 +125,41 @@ def main():
 
             iter += 1
 
-            if iter % 10 == 0:
+            if iter % 1000 == 0:
                 # Calculate Accuracy
                 correct = 0.0
                 correct_arr = [0.0] * 10
                 total = 0.0
                 total_arr = [0.0] * 10
                 # Iterate through test dataset
-                for images, labels in val_loader:
-                    images = Variable(images)
+                with torch.no_grad:
+                    for images, labels in val_loader:
+                        images = Variable(images)
 
-                    # Forward pass only to get logits/output
-                    outputs = model(images)
+                        # Forward pass only to get logits/output
+                        outputs = model(images)
 
-                    # Get predictions from the maximum value
-                    _, predicted = torch.max(outputs.data, 1)
+                        # Get predictions from the maximum value
+                        _, predicted = torch.max(outputs.data, 1)
 
-                    # Total number of labels
-                    total += labels.size(0)
-                    correct += (predicted == labels).sum()
+                        # Total number of labels
+                        total += labels.size(0)
+                        correct += (predicted == labels).sum()
 
+                        for label in range(4):
+                            correct_arr[label] += (((predicted == labels) & (labels == label)).sum())
+                            total_arr[label] += (labels == label).sum()
+
+                    accuracy = correct / total
+
+                    metrics = {'accuracy': accuracy, 'loss': loss}
                     for label in range(4):
-                        correct_arr[label] += (((predicted == labels) & (labels == label)).sum())
-                        total_arr[label] += (labels == label).sum()
+                        metrics['Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
 
-                accuracy = correct / total
+                    wandb.log(metrics)
 
-                metrics = {'accuracy': accuracy, 'loss': loss}
-                for label in range(4):
-                    metrics['Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
-
-                wandb.log(metrics)
-
-                # Print Loss
-                print('Iteration: {0} Loss: {1:.2f} Accuracy: {2:.2f}'.format(iter, loss, accuracy))
+                    # Print Loss
+                    print('Iteration: {0} Loss: {1:.2f} Accuracy: {2:.2f}'.format(iter, loss, accuracy))
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
 
 
