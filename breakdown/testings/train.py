@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 """
 Builds a convolutional neural network on the fashion mnist data set.
@@ -11,55 +10,88 @@ import torchvision.transforms as transforms
 import torchvision.datasets as dsets
 from torch.autograd import Variable
 import torch.nn.functional as F
-from fashion_data import Kermany_DataSet
+from fashion_data import fashion
 
 import wandb
 import os
-from torchvision.models import resnet18
-
-class dot_dict(dict):
-    """dot.notation access to dictionary attributes"""
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
 
 hyperparameter_defaults = dict(
-    batch_size=100,
-    learning_rate=0.001,
-    epochs=2,
-)
+    dropout = 0.5,
+    channels_one = 16,
+    channels_two = 32,
+    batch_size = 100,
+    learning_rate = 0.001,
+    epochs = 2,
+    )
 
 wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion")
 config = wandb.config
 
+class CNNModel(nn.Module):
+    def __init__(self):
+        super(CNNModel, self).__init__()
 
-class Resnet18(torch.nn.Module):
-    def __init__(self, num_classes, pretrained=False):
-        super().__init__()
-        self.resnet = resnet18(pretrained=pretrained, num_classes=num_classes)
+        # Convolution 1
+        self.cnn1 = nn.Conv2d(in_channels=1, out_channels=config.channels_one, kernel_size=5, stride=1, padding=0)
+        self.relu1 = nn.ReLU()
+        # Max pool 1
+        self.maxpool1 = nn.MaxPool2d(kernel_size=2)
+
+        # Convolution 2
+        self.cnn2 = nn.Conv2d(in_channels=config.channels_one, out_channels=config.channels_two, kernel_size=5, stride=1, padding=0)
+        self.relu2 = nn.ReLU()
+
+        # Max pool 2
+        self.maxpool2 = nn.MaxPool2d(kernel_size=2)
+
+        self.dropout = nn.Dropout(p=config.dropout)
+
+        # Fully connected 1 (readout)
+        self.fc1 = nn.Linear(config.channels_two*4*4, 10)
 
     def forward(self, x):
-        batch_size, channels, height, width = x.shape
+        # Convolution 1
+        out = self.cnn1(x)
+        out = self.relu1(out)
 
-        x = x.reshape(batch_size, channels, height, width)
-        x = self.resnet(x)
-        x = x.reshape(batch_size, -1)
+        # Max pool 1
+        out = self.maxpool1(out)
 
-        return x
+        # Convolution 2
+        out = self.cnn2(out)
+        out = self.relu2(out)
 
+        # Max pool 2
+        out = self.maxpool2(out)
+
+        # Resize
+        # Original size: (100, 32, 7, 7)
+        # out.size(0): 100
+        # New out size: (100, 32*7*7)
+        out = out.view(out.size(0), -1)
+        out = self.dropout(out)
+        # Linear function (readout)
+        out = self.fc1(out)
+
+        return out
 
 def main():
+    normalize = transforms.Normalize(mean=[x/255.0 for x in [125.3, 123.0, 113.9]],
+                                         std=[x/255.0 for x in [63.0, 62.1, 66.7]])
 
-    def_args = dot_dict({
-        "train": ["../../../data/kermany/train"],
-        "val": ["../../../data/kermany/val"],
-        "test": ["../../../data/kermany/test"],
-    })
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.1307,), (0.3081,))])
 
-    train_dataset = Kermany_DataSet(def_args.train[0])
+    train_dataset = fashion(root='./data',
+                                train=True,
+                                transform=transform,
+                                download=True
+                               )
 
-    test_dataset = Kermany_DataSet(def_args.val[0])
+    test_dataset = fashion(root='./data',
+                                train=False,
+                                transform=transform,
+                               )
 
     label_names = [
         "T-shirt or top",
@@ -81,16 +113,16 @@ def main():
                                               batch_size=config.batch_size,
                                               shuffle=False)
 
-    model = Resnet18(4)
+
+    model = CNNModel()
     wandb.watch(model)
-    print("got data")
+
     criterion = nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 
     iter = 0
     for epoch in range(config.epochs):
-        print(epoch)
         for i, (images, labels) in enumerate(train_loader):
 
             images = Variable(images)
@@ -134,14 +166,14 @@ def main():
                     total += labels.size(0)
                     correct += (predicted == labels).sum()
 
-                    for label in range(4):
-                        correct_arr[label] += (((predicted == labels) & (labels == label)).sum())
+                    for label in range(10):
+                        correct_arr[label] += (((predicted == labels) & (labels==label)).sum())
                         total_arr[label] += (labels == label).sum()
 
                 accuracy = correct / total
 
                 metrics = {'accuracy': accuracy, 'loss': loss}
-                for label in range(4):
+                for label in range(10):
                     metrics['Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
 
                 wandb.log(metrics)
@@ -150,6 +182,5 @@ def main():
                 print('Iteration: {0} Loss: {1:.2f} Accuracy: {2:.2f}'.format(iter, loss, accuracy))
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
 
-
 if __name__ == '__main__':
-    main()
+   main()
