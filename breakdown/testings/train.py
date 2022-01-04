@@ -107,19 +107,19 @@ def main():
 
             # Getting gradients w.r.t. parameters
             loss.backward()
-            print(loss)
+
             # Updating parameters
             optimizer.step()
 
             iter += 1
 
-            if iter % 10 == 0:
+            if iter % 100 == 0:
                 # Calculate Accuracy
                 correct = 0.0
                 correct_arr = [0.0] * 10
                 total = 0.0
                 total_arr = [0.0] * 10
-                print("total")
+
                 # Iterate through test dataset
                 for images, labels in test_loader:
                     images = Variable(images)
