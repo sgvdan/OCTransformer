@@ -1,9 +1,3 @@
-import torch
-import os
-from torchvision import transforms as transforms
-from pathlib import Path
-from torchvision.io import read_image
-import cv2 as cv
 from __future__ import print_function
 import torch.utils.data as data
 from PIL import Image
@@ -12,6 +6,13 @@ import os.path
 import errno
 import torch
 import codecs
+import torch
+import os
+from torchvision import transforms as transforms
+from pathlib import Path
+from torchvision.io import read_image
+import cv2 as cv
+
 
 
 class Kermany_DataSet(torch.utils.data.Dataset):
