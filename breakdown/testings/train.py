@@ -17,7 +17,6 @@ import wandb
 import os
 from torchvision.models import resnet18
 
-
 class dot_dict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
@@ -29,14 +28,9 @@ hyperparameter_defaults = dict(
     batch_size=100,
     learning_rate=0.001,
     epochs=2,
-    res_pretrain=False,
-    seed=42,
-    optimizer="sgd",
-    mom=0.9,
-    weight_decay=0.001
 )
 
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany")
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion")
 config = wandb.config
 
 
@@ -56,6 +50,7 @@ class Resnet18(torch.nn.Module):
 
 
 def main():
+
     def_args = dot_dict({
         "train": ["../../../data/kermany/train"],
         "val": ["../../../data/kermany/val"],
@@ -71,28 +66,21 @@ def main():
         "CNV",
         "DME",
         "DRUSEN",
-    ]
+        ]
 
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=config.batch_size,
                                                shuffle=True)
 
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
-                                             batch_size=config.batch_size,
-                                             shuffle=False)
+                                              batch_size=config.batch_size,
+                                              shuffle=False)
 
-    model = Resnet18(4, pretrained=config.res_pretrain)
+    model = Resnet18(4)
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()
 
-    if config.optimizer == "sgd":
-        optimizer = torch.optim.SGD(model.parameters(), lr=config.learning_rate, momentum=config.mom,
-                                    weight_decay=config.weight_decay)
-    elif config.optimizer == "adam":
-        optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
-    elif config.optimizer == "rmsprop":
-        optimizer = torch.optim.RMSprop(model.parameters(), lr=config.learning_rate, momentum=config.mom,
-                                        weight_decay=config.weight_decay)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 
     iter = 0
     for epoch in range(config.epochs):
