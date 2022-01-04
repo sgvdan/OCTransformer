@@ -35,7 +35,7 @@ hyperparameter_defaults = dict(
     mom=0.9,
     weight_decay=0.001
 )
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany3")
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany4-test")
 config = wandb.config
 
 
@@ -71,7 +71,7 @@ def main():
 
     train_dataset = Kermany_DataSet(def_args.train[0])
 
-    val_dataset = Kermany_DataSet(def_args.val[0])
+    val_dataset = Kermany_DataSet(def_args.test[0])
 
     label_names = [
         "NORMAL",
@@ -125,7 +125,7 @@ def main():
 
             iter += 1
 
-            if iter % 1000 == 0:
+            if iter % 2000 == 0:
                 # Calculate Accuracy
                 correct = 0.0
                 correct_arr = [0.0] * 10
