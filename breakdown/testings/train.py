@@ -50,11 +50,6 @@ class Resnet18(torch.nn.Module):
 
 
 def main():
-    normalize = transforms.Normalize(mean=[x / 255.0 for x in [125.3, 123.0, 113.9]],
-                                     std=[x / 255.0 for x in [63.0, 62.1, 66.7]])
-
-    transform = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Normalize((0.1307,), (0.3081,))])
 
     def_args = dot_dict({
         "train": ["../../../data/kermany/train"],
@@ -88,13 +83,14 @@ def main():
 
     model = Resnet18(4)
     wandb.watch(model)
-
+    print("got data")
     criterion = nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 
     iter = 0
     for epoch in range(config.epochs):
+        print(epoch)
         for i, (images, labels) in enumerate(train_loader):
 
             images = Variable(images)
@@ -111,7 +107,7 @@ def main():
 
             # Getting gradients w.r.t. parameters
             loss.backward()
-
+            print(loss)
             # Updating parameters
             optimizer.step()
 
