@@ -35,7 +35,7 @@ hyperparameter_defaults = dict(
     mom=0.9,
     weight_decay=0.001
 )
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany")
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany2")
 config = wandb.config
 
 
