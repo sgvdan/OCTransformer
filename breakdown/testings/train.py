@@ -11,10 +11,16 @@ import torchvision.transforms as transforms
 import torchvision.datasets as dsets
 from torch.autograd import Variable
 import torch.nn.functional as F
-from fashion_data import fashion
+from fashion_data import Kermany_DataSet
 
 import wandb
 import os
+
+class dot_dict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
 hyperparameter_defaults = dict(
     dropout = 0.5,
@@ -48,7 +54,7 @@ class CNNModel(nn.Module):
         self.dropout = nn.Dropout(p=config.dropout)
 
         # Fully connected 1 (readout)
-        self.fc1 = nn.Linear(config.channels_two*4*4, 10)
+        self.fc1 = nn.Linear(config.channels_two*4*4, 4)
 
     def forward(self, x):
         # Convolution 1
@@ -83,16 +89,15 @@ def main():
     transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Normalize((0.1307,), (0.3081,))])
 
-    train_dataset = fashion(root='./data',
-                                train=True,
-                                transform=transform,
-                                download=True
-                               )
+    def_args = dot_dict({
+        "train": ["../../../data/kermany/train"],
+        "val": ["../../../data/kermany/val"],
+        "test": ["../../../data/kermany/test"],
+    })
 
-    test_dataset = fashion(root='./data',
-                                train=False,
-                                transform=transform,
-                               )
+    train_dataset = Kermany_DataSet(def_args.train[0])
+
+    test_dataset = Kermany_DataSet(def_args.val[0])
 
     label_names = [
         "T-shirt or top",
@@ -167,14 +172,14 @@ def main():
                     total += labels.size(0)
                     correct += (predicted == labels).sum()
 
-                    for label in range(10):
+                    for label in range(4):
                         correct_arr[label] += (((predicted == labels) & (labels==label)).sum())
                         total_arr[label] += (labels == label).sum()
 
                 accuracy = correct / total
 
                 metrics = {'accuracy': accuracy, 'loss': loss}
-                for label in range(10):
+                for label in range(4):
                     metrics['Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
 
                 wandb.log(metrics)
