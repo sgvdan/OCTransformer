@@ -23,8 +23,8 @@ class Kermany_DataSet(torch.utils.data.Dataset):
         f_4 = lambda x: 3 if "DRUSEN" in x else 0
         i = 0
         for path2 in Path(path).rglob('*.jpeg'):
-            i += 1
-            if i > 200: break
+            # i += 1
+            # if i > 200: break
             # path2 = str(path2)
             # image = self.t(cv.imread(path2))
             # label = f_1(path2) + f_2(path2) + f_3(path2) + f_4(path2)

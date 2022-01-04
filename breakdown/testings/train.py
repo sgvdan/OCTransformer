@@ -113,7 +113,7 @@ def main():
 
             iter += 1
 
-            if iter % 100 == 0:
+            if iter % 10 == 0:
                 # Calculate Accuracy
                 correct = 0.0
                 correct_arr = [0.0] * 10
