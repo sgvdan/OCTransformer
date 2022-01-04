@@ -49,15 +49,14 @@ config = dot_dict({
     'weight_decay': 0.001
 
 })
-wandb.login()
-wandb.init(project="my-test-project", entity="guylu", config=config, name=str(config))
+
+wandb.init(project="my-test-project", entity="guylu", config=config)
 config = wandb.config
 
 
 def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"running on {device}")
-    wandb.name = str(config)
     random.seed(hash("setting random seeds") % config.seed)
     np.random.seed(hash("improves reproducibility") % config.seed)
     torch.manual_seed(hash("by removing stochasticity") % config.seed)
@@ -68,7 +67,7 @@ def main():
         "val": ["../../../data/kermany/val"],
         "test": ["../../../data/kermany/test"],
     })
-
+    print(config)
     print("getting traning set")
     trainset = kermany_dataset.Kermany_DataSet(def_args.train[0])
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=config.batch_size,
