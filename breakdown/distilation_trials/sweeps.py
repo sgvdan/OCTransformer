@@ -1,5 +1,5 @@
 sweeps_config_resnet = {
-    'name': 'resnet search',
+    'name': 'resnet search_trial',
     'method': 'bayes',
     'metric': {
         'goal': 'maximize',
@@ -43,8 +43,8 @@ sweeps_config_resnet = {
             'distribution': 'categorical',
         },
         'epochs': {
-            'max': 3,
-            'min': 3,
+            'max': 1,
+            'min': 1,
             'distribution': 'int_uniform',
         },
         'seed': {
