@@ -30,9 +30,7 @@ sweeps_config_resnet = {
             'distribution': 'categorical',
         },
         'batch_size': {
-            'max': 128,
-            'min': 1,
-            'distribution': 'int_uniform',
+            'values': [2, 8, 32, 64]
         },
         'scheduler': {
             'values': ['lr'],
