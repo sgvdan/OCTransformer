@@ -26,7 +26,7 @@ class dot_dict(dict):
 
 
 config = dot_dict({
-    "architecture": "vit",
+    "architecture": "res18",
     "pretrained_res": False,
     "seed": 42,
     "lr": 0.001,
