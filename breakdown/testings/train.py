@@ -59,31 +59,38 @@ def main():
 
     train_dataset = Kermany_DataSet(def_args.train[0])
 
-    val_dataset = Kermany_DataSet(def_args.val[0])
+    test_dataset = Kermany_DataSet(def_args.val[0])
 
     label_names = [
-        "NORMAL",
-        "CNV",
-        "DME",
-        "DRUSEN",
-        ]
+        "T-shirt or top",
+        "Trouser",
+        "Pullover",
+        "Dress",
+        "Coat",
+        "Sandal",
+        "Shirt",
+        "Sneaker",
+        "Bag",
+        "Boot"]
 
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=config.batch_size,
                                                shuffle=True)
 
-    val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                               batch_size=config.batch_size,
                                               shuffle=False)
 
     model = Resnet18(4)
     wandb.watch(model)
+    print("got data")
     criterion = nn.CrossEntropyLoss()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 
     iter = 0
     for epoch in range(config.epochs):
+        print(epoch)
         for i, (images, labels) in enumerate(train_loader):
 
             images = Variable(images)
@@ -100,6 +107,7 @@ def main():
 
             # Getting gradients w.r.t. parameters
             loss.backward()
+            print(loss)
             # Updating parameters
             optimizer.step()
 
@@ -111,8 +119,9 @@ def main():
                 correct_arr = [0.0] * 10
                 total = 0.0
                 total_arr = [0.0] * 10
+                print("total")
                 # Iterate through test dataset
-                for images, labels in val_loader:
+                for images, labels in test_loader:
                     images = Variable(images)
 
                     # Forward pass only to get logits/output
