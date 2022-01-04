@@ -42,8 +42,10 @@ config = wandb.config
 class Resnet18(torch.nn.Module):
     def __init__(self, num_classes, pretrained=False):
         super().__init__()
-        self.resnet = resnet18(pretrained=pretrained, num_classes=num_classes)
-
+        # self.resnet = resnet18(pretrained=pretrained, num_classes=num_classes)
+        self.resnet = resnet18(pretrained=pretrained)
+        num_ftrs = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_ftrs, num_classes)
     def forward(self, x):
         batch_size, channels, height, width = x.shape
 
