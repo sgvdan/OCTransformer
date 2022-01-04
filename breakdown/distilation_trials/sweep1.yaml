@@ -50,7 +50,7 @@ parameters:
   seed:
     max: 19331
     min: 2
-    distribution: uniform
+    distribution: int_uniform
   mom:
     max: 2.554618436876222
     min: 0.014827283535859812

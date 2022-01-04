@@ -46,9 +46,9 @@ sweeps_config_resnet = {
             'distribution': 'int_uniform',
         },
         'seed': {
-            'max': 19331.88309125071,
-            'min': 354.1561390473186,
-            'distribution': 'uniform',
+            'max': 19331,
+            'min': 2,
+            'distribution': 'int_uniform',
         },
         'mom': {
             'max': 2.554618436876222,
