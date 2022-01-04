@@ -50,7 +50,7 @@ config = dot_dict({
 
 })
 
-wandb.init(project="my-test-project", entity="guylu", config=config)
+wandb.init(project="f", entity="guylu", config=config)
 config = wandb.config
 
 
