@@ -31,7 +31,7 @@ parameters:
     distribution: categorical
   batch_size:
     max: 64
-    min: 1
+    min: 2
     distribution: int_uniform
   scheduler:
     values:
@@ -48,8 +48,8 @@ parameters:
     min: 1
     distribution: int_uniform
   seed:
-    max: 19331.88309125071
-    min: 354.1561390473186
+    max: 19331
+    min: 2
     distribution: uniform
   mom:
     max: 2.554618436876222

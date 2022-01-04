@@ -49,27 +49,19 @@ config = dot_dict({
     'weight_decay': 0.001
 
 })
-
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(f"running on {device}")
 wandb.login()
 wandb.init(project="my-test-project", entity="guylu", config=config, name=str(config))
 config = wandb.config
-# torch.backends.cudnn.deterministic = True
-random.seed(hash("setting random seeds") % config.seed)
-np.random.seed(hash("improves reproducibility") % config.seed)
-torch.manual_seed(hash("by removing stochasticity") % config.seed)
-torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
 
 
 def main():
-    # parser = argparse.ArgumentParser(description='Build Kermany dataset')
-
-    # parser.add_argument('--train', type=str, nargs='+', default="../../../data/kermany/train")
-    # parser.add_argument('--val', type=str, nargs='+', default="../../../data/kermany/val")
-    # parser.add_argument('--test', type=str, nargs='+', default="../../../data/kermany/test")
-
-    # args = parser.parse_args()
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"running on {device}")
+    wandb.name = str(config)
+    random.seed(hash("setting random seeds") % config.seed)
+    np.random.seed(hash("improves reproducibility") % config.seed)
+    torch.manual_seed(hash("by removing stochasticity") % config.seed)
+    torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
 
     def_args = dot_dict({
         "train": ["../../../data/kermany/train"],
