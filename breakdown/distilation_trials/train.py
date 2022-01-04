@@ -184,6 +184,7 @@ def main():
 if __name__ == '__main__':
     sweep_id = wandb.sweep(sweeps.sweeps_config_resnet)
     wandb.agent(sweep_id, function=main)
+    print("hi")
     # main()
 
 # model.to_onnx()
