@@ -119,7 +119,7 @@ def main():
                 correct_arr = [0.0] * 10
                 total = 0.0
                 total_arr = [0.0] * 10
-
+                print("total")
                 # Iterate through test dataset
                 for images, labels in test_loader:
                     images = Variable(images)
