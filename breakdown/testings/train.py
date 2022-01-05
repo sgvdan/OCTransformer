@@ -28,15 +28,15 @@ class dot_dict(dict):
 hyperparameter_defaults = dict(
     batch_size=100,
     learning_rate=0.001,
-    epochs=2,
     res_pretrain=False,
     seed=42,
     optimizer="sgd",
     mom=0.9,
-    weight_decay=0.001
+    weight_decay=0.001,
+    architecture='res18',
 )
 
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany6-val")
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-allres")
 config = wandb.config
 
 
@@ -173,7 +173,19 @@ def main():
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=config.batch_size,
                                              shuffle=False)
-    model = Resnet18(4, pretrained=config.res_pretrain)
+    model = None
+    if config.architecture == "res18":
+        model = Resnet18(4, pretrained=config.res_pretrain)
+    elif config.architecture == "res50":
+        model = Resnet50(4, pretrained=config.res_pretrain)
+    elif config.architecture == "res101":
+        model = Resnet101(4, pretrained=config.res_pretrain)
+    elif config.architecture == "res152":
+        model = Resnet152(4, pretrained=config.res_pretrain)
+    elif config.architecture == "wide_resnet50_2":
+        model = Wide_Resnet50_2(4, pretrained=config.res_pretrain)
+    elif config.architecture == "wide_resnet101_2":
+        model = Wide_Resnet101_2(4, pretrained=config.res_pretrain)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -193,7 +205,7 @@ def main():
                                         weight_decay=config.weight_decay)
 
     iter = 0
-    for epoch in range(config.epochs):
+    for epoch in range(3):
         print(f'epoch: {epoch}')
         for i, (images, labels) in enumerate(train_loader):
 
