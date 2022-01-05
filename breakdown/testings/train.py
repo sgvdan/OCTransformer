@@ -122,7 +122,7 @@ def main():
 
             # Calculate Loss: softmax --> cross entropy loss
             loss = criterion(outputs, labels)
-
+            print(f'loss: {loss}')
             # Getting gradients w.r.t. parameters
             loss.backward()
             # Updating parameters
@@ -131,7 +131,7 @@ def main():
             iter += 1
             if iter % 100 == 0:
                 print(f'iter : {iter}')
-            if iter % 2000 == 0:
+            if iter % 500 == 0:
                 # Calculate Accuracy
                 correct = 0.0
                 correct_arr = [0.0] * 10
