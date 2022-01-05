@@ -131,7 +131,7 @@ def main():
             iter += 1
             if iter % 100 == 0:
                 print(f'iter : {iter}')
-            if iter % 2 == 0:
+            if iter % 2000 == 0:
                 # Calculate Accuracy
                 correct = 0.0
                 correct_arr = [0.0] * 10
