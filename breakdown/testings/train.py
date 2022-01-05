@@ -71,7 +71,7 @@ def main():
 
     train_dataset = Kermany_DataSet(def_args.train[0])
 
-    val_dataset = Kermany_DataSet(def_args.test[0])
+    val_dataset = Kermany_DataSet(def_args.val[0])
 
     label_names = [
         "NORMAL",
@@ -87,8 +87,13 @@ def main():
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=config.batch_size,
                                              shuffle=False)
-
     model = Resnet18(4, pretrained=config.res_pretrain)
+
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        model = nn.DataParallel(model)
+    model.to(device)
+
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()
 
@@ -132,7 +137,7 @@ def main():
                 total = 0.0
                 total_arr = [0.0] * 10
                 # Iterate through test dataset
-                with torch.no_grad:
+                with torch.no_grad():
                     for images, labels in val_loader:
                         images = Variable(images)
 
@@ -157,6 +162,10 @@ def main():
                         metrics['Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
 
                     wandb.log(metrics)
+
+                    # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
+                    # y_true = ground_truth, preds = predictions,
+                    #                                class_names = class_names)})
 
                     # Print Loss
                     print('Iteration: {0} Loss: {1:.2f} Accuracy: {2:.2f}'.format(iter, loss, accuracy))
