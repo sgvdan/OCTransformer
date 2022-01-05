@@ -111,8 +111,8 @@ def main():
         print(f'epoch: {epoch}')
         for i, (images, labels) in enumerate(train_loader):
 
-            images = Variable(images)
-            labels = Variable(labels)
+            images = Variable(images).to(device)
+            labels = Variable(labels).to(device)
 
             # Clear gradients w.r.t. parameters
             optimizer.zero_grad()
