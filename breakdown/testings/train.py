@@ -140,8 +140,8 @@ def main():
                 # Iterate through test dataset
                 with torch.no_grad():
                     for images, labels in val_loader:
-                        images = Variable(images)
-
+                        images = Variable(images).to(device)
+                        # labels = labels.to(device)
                         # Forward pass only to get logits/output
                         outputs = model(images)
 
