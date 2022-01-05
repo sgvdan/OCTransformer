@@ -15,7 +15,7 @@ from fashion_data import Kermany_DataSet
 
 import wandb
 import os
-from torchvision.models import resnet18
+from torchvision.models import resnet18, resnet50, resnet101, resnet152, wide_resnet50_2, wide_resnet101_2
 
 
 class dot_dict(dict):
@@ -35,7 +35,8 @@ hyperparameter_defaults = dict(
     mom=0.9,
     weight_decay=0.001
 )
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany5-val")
+
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany6-val")
 config = wandb.config
 
 
@@ -44,6 +45,91 @@ class Resnet18(torch.nn.Module):
         super().__init__()
         # self.resnet = resnet18(pretrained=pretrained, num_classes=num_classes)
         self.resnet = resnet18(pretrained=pretrained)
+        num_ftrs = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_ftrs, num_classes)
+
+    def forward(self, x):
+        batch_size, channels, height, width = x.shape
+
+        x = x.reshape(batch_size, channels, height, width)
+        x = self.resnet(x)
+        x = x.reshape(batch_size, -1)
+
+        return x
+
+
+class Resnet50(torch.nn.Module):
+    def __init__(self, num_classes, pretrained=False):
+        super().__init__()
+        self.resnet = resnet50(pretrained=pretrained)
+        num_ftrs = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_ftrs, num_classes)
+
+    def forward(self, x):
+        batch_size, channels, height, width = x.shape
+
+        x = x.reshape(batch_size, channels, height, width)
+        x = self.resnet(x)
+        x = x.reshape(batch_size, -1)
+
+        return x
+
+
+class Resnet101(torch.nn.Module):
+    def __init__(self, num_classes, pretrained=False):
+        super().__init__()
+        self.resnet = resnet101(pretrained=pretrained)
+        num_ftrs = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_ftrs, num_classes)
+
+    def forward(self, x):
+        batch_size, channels, height, width = x.shape
+
+        x = x.reshape(batch_size, channels, height, width)
+        x = self.resnet(x)
+        x = x.reshape(batch_size, -1)
+
+        return x
+
+
+class Resnet152(torch.nn.Module):
+    def __init__(self, num_classes, pretrained=False):
+        super().__init__()
+        self.resnet = resnet152(pretrained=pretrained)
+        num_ftrs = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_ftrs, num_classes)
+
+    def forward(self, x):
+        batch_size, channels, height, width = x.shape
+
+        x = x.reshape(batch_size, channels, height, width)
+        x = self.resnet(x)
+        x = x.reshape(batch_size, -1)
+
+        return x
+
+
+class Wide_Resnet50_2(torch.nn.Module):
+    def __init__(self, num_classes, pretrained=False):
+        super().__init__()
+        self.resnet = wide_resnet50_2(pretrained=pretrained)
+        num_ftrs = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_ftrs, num_classes)
+
+    def forward(self, x):
+        batch_size, channels, height, width = x.shape
+
+        x = x.reshape(batch_size, channels, height, width)
+        x = self.resnet(x)
+        x = x.reshape(batch_size, -1)
+
+        return x
+
+
+class Wide_Resnet101_2(torch.nn.Module):
+    def __init__(self, num_classes, pretrained=False):
+        super().__init__()
+        self.resnet = wide_resnet101_2(pretrained=pretrained)
         num_ftrs = self.resnet.fc.in_features
         self.resnet.fc = nn.Linear(num_ftrs, num_classes)
 
@@ -96,7 +182,7 @@ def main():
 
     wandb.watch(model)
     criterion = nn.CrossEntropyLoss()
-
+    optimizer = None
     if config.optimizer == "sgd":
         optimizer = torch.optim.SGD(model.parameters(), lr=config.learning_rate, momentum=config.mom,
                                     weight_decay=config.weight_decay)
@@ -128,9 +214,10 @@ def main():
             optimizer.step()
 
             iter += 1
-            if iter % 100 == 0:
+            if iter % 50 == 0:
                 print(f'iter : {iter}')
                 print(loss)
+                wandb.log({"loss": loss, "epoch": epoch})
             if iter % 500 == 0:
                 # Calculate Accuracy
                 correct = 0.0
@@ -158,7 +245,7 @@ def main():
 
                     accuracy = correct / total
 
-                    metrics = {'accuracy': accuracy, 'loss': loss}
+                    metrics = {'accuracy': accuracy}
                     for label in range(4):
                         metrics['Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
 
