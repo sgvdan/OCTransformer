@@ -130,6 +130,7 @@ def main():
             iter += 1
             if iter % 100 == 0:
                 print(f'iter : {iter}')
+                print(loss)
             if iter % 500 == 0:
                 # Calculate Accuracy
                 correct = 0.0
