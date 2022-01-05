@@ -131,7 +131,7 @@ def main():
             iter += 1
             if iter % 100 == 0:
                 print(f'iter : {iter}')
-            if iter % 2000 == 0:
+            if iter % 2 == 0:
                 # Calculate Accuracy
                 correct = 0.0
                 correct_arr = [0.0] * 10
@@ -141,7 +141,7 @@ def main():
                 with torch.no_grad():
                     for images, labels in val_loader:
                         images = Variable(images).to(device)
-                        # labels = labels.to(device)
+                        labels = labels.to(device)
                         # Forward pass only to get logits/output
                         outputs = model(images)
 
