@@ -38,7 +38,7 @@ hyperparameter_defaults = dict(
     vit_pretrain=False,
 )
 
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-vit")
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-vit_my")
 config = wandb.config
 
 
