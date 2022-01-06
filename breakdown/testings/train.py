@@ -29,7 +29,6 @@ hyperparameter_defaults = dict(
     batch_size=100,
     learning_rate=0.001,
     res_pretrain=False,
-    seed=42,
     optimizer="sgd",
     mom=0.9,
     weight_decay=0.001,
@@ -144,10 +143,11 @@ class Wide_Resnet101_2(torch.nn.Module):
 
 
 def main():
+    seed = 25
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"running on {device}")
-    torch.manual_seed(hash("by removing stochasticity") % config.seed)
-    torch.cuda.manual_seed_all(hash("so runs are repeatable") % config.seed)
+    torch.manual_seed(hash("by removing stochasticity") % seed)
+    torch.cuda.manual_seed_all(hash("so runs are repeatable") % seed)
 
     def_args = dot_dict({
         "train": ["../../../data/kermany/train"],
