@@ -27,7 +27,7 @@ class dot_dict(dict):
 
 
 hyperparameter_defaults = dict(
-    batch_size=100,
+    batch_size=20,
     learning_rate=0.001,
     res_pretrain=False,
     optimizer="sgd",
@@ -35,7 +35,6 @@ hyperparameter_defaults = dict(
     weight_decay=0.001,
     architecture='vit',
     vit_patch_size= 16,
-    vit_num_classes= 4,
     vit_embed_dim= 768,
     vit_depth= 12,
     vit_num_heads= 12,
