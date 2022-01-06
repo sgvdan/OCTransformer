@@ -191,7 +191,8 @@ def main():
         model = Wide_Resnet101_2(4, pretrained=config.res_pretrain)
 
     if config.architecture == 'vit':
-        model = timm.create_model(config.vit_architecture, pretrained=config.vit_pretrain, num_classes=4)
+        model = timm.create_model(config.vit_architecture, pretrained=config.vit_pretrain, num_classes=4,
+                                  img_size=(496, 512))
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
