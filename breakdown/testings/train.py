@@ -159,7 +159,7 @@ class MyViT(torch.nn.Module):
         self.config = config
         # backbone = partial(Backbone)
         self.model = VisionTransformer(img_size=(496, 512), patch_size=(config.vit_patch_size, config.vit_patch_size),
-                                       in_chans=3, num_classes=config.vit_num_classes,
+                                       in_chans=3, num_classes=4,
                                        embed_dim=config.vit_embed_dim, depth=config.vit_depth,
                                        num_heads=config.vit_num_heads, mlp_ratio=config.vit_mlp_ratio,
                                        qkv_bias=True, representation_size=None, distilled=False,
