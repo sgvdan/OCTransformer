@@ -13,7 +13,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from fashion_data import Kermany_DataSet
 from timm.models.vision_transformer import VisionTransformer
-
+import timm
 import wandb
 import os
 from torchvision.models import resnet18, resnet50, resnet101, resnet152, wide_resnet50_2, wide_resnet101_2
@@ -34,14 +34,8 @@ hyperparameter_defaults = dict(
     mom=0.9,
     weight_decay=0.001,
     architecture='vit',
-    vit_patch_size= 16,
-    vit_embed_dim= 768,
-    vit_depth= 12,
-    vit_num_heads= 12,
-    vit_mlp_ratio= 4.,
-    vit_drop_rate= 0.2,
-    vit_num_patches= 64,
-    vit_attn_drop_rate= 0.,
+    vit_architecture='vit_base_patch16_224',
+    vit_pretrain=False,
 )
 
 wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-vit")
@@ -151,25 +145,6 @@ class Wide_Resnet101_2(torch.nn.Module):
         return x
 
 
-class MyViT(torch.nn.Module):
-    def __init__(self, config=None):
-        super().__init__()
-
-        self.config = config
-        # backbone = partial(Backbone)
-        self.model = VisionTransformer(img_size=(496, 512), patch_size=(config.vit_patch_size, config.vit_patch_size),
-                                       in_chans=3, num_classes=4,
-                                       embed_dim=config.vit_embed_dim, depth=config.vit_depth,
-                                       num_heads=config.vit_num_heads, mlp_ratio=config.vit_mlp_ratio,
-                                       qkv_bias=True, representation_size=None, distilled=False,
-                                       drop_rate=config.vit_drop_rate, attn_drop_rate=config.vit_attn_drop_rate,
-                                       drop_path_rate=0., norm_layer=None, act_layer=None,
-                                       weight_init='')
-
-    def forward(self, x):
-        return self.model(x)
-
-
 def main():
     seed = 25
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -216,7 +191,7 @@ def main():
         model = Wide_Resnet101_2(4, pretrained=config.res_pretrain)
 
     if config.architecture == 'vit':
-        model = MyViT(config)
+        model = timm.create_model(config.vit_architecture, pretrained=config.vit_pretrain, num_classes=4)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
