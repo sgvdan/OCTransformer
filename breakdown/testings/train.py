@@ -34,6 +34,15 @@ hyperparameter_defaults = dict(
     mom=0.9,
     weight_decay=0.001,
     architecture='vit',
+    vit_patch_size= 16,
+    vit_num_classes= 4,
+    vit_embed_dim= 768,
+    vit_depth= 12,
+    vit_num_heads= 12,
+    vit_mlp_ratio= 4.,
+    vit_drop_rate= 0.2,
+    vit_num_patches= 64,
+    vit_attn_drop_rate= 0.,
 )
 
 wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-vit")
