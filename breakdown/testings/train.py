@@ -196,7 +196,7 @@ def main():
     train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=config.batch_size,
-                                               shuffle=True,
+                                               #shuffle=True,
                                                sampler=train_sampler)
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=config.batch_size,
