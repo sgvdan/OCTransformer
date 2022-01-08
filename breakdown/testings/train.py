@@ -130,7 +130,7 @@ def main():
 
     Testing(device, label_names, model, test_loader)
 
-    print("finito la musica")
+    print("finita la comedia")
 
 
 if __name__ == '__main__':
