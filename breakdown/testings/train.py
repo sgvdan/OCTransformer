@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-
-"""
-Builds a convolutional neural network on the fashion mnist data set.
-Designed to show wandb integration with pytorch.
-"""
-
 from data import Kermany_DataSet
 import timm
 import wandb
@@ -122,7 +115,7 @@ def main():
 
     optimizer = Get_Optimizer(model)
     #########################################################################################################
-    #                                                 TRAINING
+    #                                                 TRAINING                                              #
     #########################################################################################################
 
     print("starting training:\n\n")
@@ -131,7 +124,7 @@ def main():
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
 
     #########################################################################################################
-    #                                                 TESTING
+    #                                                 TESTING                                               #
     #########################################################################################################
     print("TESTING TIMZZZ")
 
