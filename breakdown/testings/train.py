@@ -159,8 +159,8 @@ def main():
     })
 
     train_dataset = Kermany_DataSet(def_args.train[0])
-
     val_dataset = Kermany_DataSet(def_args.val[0])
+    test_dataset = Kermany_DataSet(def_args.test[0])
 
     label_names = [
         "NORMAL",
@@ -172,10 +172,12 @@ def main():
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=config.batch_size,
                                                shuffle=True)
-
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=config.batch_size,
                                              shuffle=False)
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                              batch_size=config.batch_size,
+                                              shuffle=False)
     model = None
     if config.architecture == "res18":
         model = Resnet18(4, pretrained=config.res_pretrain)
@@ -276,7 +278,53 @@ def main():
 
                     # Print Loss
                     print('Iteration: {0} Loss: {1:.2f} Accuracy: {2:.2f}'.format(iter, loss, accuracy))
+
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
+
+    #########################################################################################################
+    #                                                 TESTING
+    #########################################################################################################
+
+    correct = 0.0
+    correct_arr = [0.0] * 10
+    total = 0.0
+    total_arr = [0.0] * 10
+    predictions = None
+    ground_truth = None
+    # Iterate through test dataset
+    with torch.no_grad():
+        for i, (images, labels) in enumerate(test_loader):
+            images = Variable(images).to(device)
+            labels = labels.to(device)
+            # Forward pass only to get logits/output
+            outputs = model(images)
+
+            # Get predictions from the maximum value
+            _, predicted = torch.max(outputs.data, 1)
+
+            # Total number of labels
+            total += labels.size(0)
+            correct += (predicted == labels).sum()
+
+            for label in range(4):
+                correct_arr[label] += (((predicted == labels) & (labels == label)).sum())
+                total_arr[label] += (labels == label).sum()
+
+            if i == 0:
+                predictions = predicted
+                ground_truth = labels
+            else:
+                predictions = torch.cat((predictions, predicted), 0)
+                ground_truth = torch.cat((ground_truth, labels), 0)
+        accuracy = correct / total
+
+        metrics = {'Test Accuracy': accuracy}
+        for label in range(4):
+            metrics['Test Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
+        wandb.log(metrics)
+        wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
+                                                           y_true=ground_truth, preds=predictions,
+                                                           class_names=label_names)})
 
 
 if __name__ == '__main__':
