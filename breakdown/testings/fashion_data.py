@@ -31,6 +31,7 @@ class Kermany_DataSet(torch.utils.data.Dataset):
         f_3 = lambda x: 2 if "DME" in x else 0
         f_4 = lambda x: 3 if "DRUSEN" in x else 0
         i = 0
+        self.labels = []
         for path2 in Path(path).rglob('*.jpeg'):
             # i += 1
             # if i > 200: break
@@ -42,6 +43,7 @@ class Kermany_DataSet(torch.utils.data.Dataset):
             path2 = str(path2)
             label = f_1(path2) + f_2(path2) + f_3(path2) + f_4(path2)
             self.dataset.append((path2, label))
+            self.labels.append(label)
 
     def __getitem__(self, idx):
         sample = self.dataset[idx]
@@ -52,6 +54,9 @@ class Kermany_DataSet(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.dataset)
+
+    def get_labels(self):
+        return self.labels
 
 
 class fashion(data.Dataset):
