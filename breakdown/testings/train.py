@@ -27,7 +27,7 @@ class dot_dict(dict):
 
 
 hyperparameter_defaults = dict(
-    seed = 25,
+    seed=25,
     batch_size=2,
     learning_rate=1e-4,
     res_pretrain=False,
@@ -196,7 +196,7 @@ def main():
     train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=config.batch_size,
-                                               #shuffle=True,
+                                               # shuffle=True,
                                                sampler=train_sampler)
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=config.batch_size,
@@ -242,10 +242,11 @@ def main():
 
     print("starting training:\n\n")
     iter = 0
-    for epoch in range(1):
+    for epoch in range(3):
         print(f'epoch: {epoch}')
         for i, (images, labels) in enumerate(train_loader):
-
+            if iter == 501:
+                break
             images = Variable(images).to(device)
             labels = Variable(labels).to(device)
 
