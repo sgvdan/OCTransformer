@@ -27,7 +27,8 @@ class dot_dict(dict):
 
 
 hyperparameter_defaults = dict(
-    batch_size=20,
+    seed = 25,
+    batch_size=2,
     learning_rate=1e-4,
     res_pretrain=False,
     optimizer="adam",
@@ -152,27 +153,27 @@ def make_weights_for_balanced_classes(dataset, classes):
 
     # Count # of appearances per each class
     count = [0] * num_classes
-    for label in labels.values():
+    for label in labels:
         count[int(label)] += 1
 
     # Each class receives weight in reverse proportion to its # of appearances
     weight_per_class = [0.] * num_classes
-    for idx in classes.values():
+    for idx in classes:
         weight_per_class[idx] = float(num_scans) / float(count[idx])
 
     # Assign class-corresponding weight for each element
     weights = [0] * num_scans
-    for idx, label in labels.items():
+    for idx, label in enumerate(labels):
         weights[idx] = weight_per_class[int(label)]
 
     return torch.FloatTensor(weights)
 
+
 def main():
-    seed = 25
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"running on {device}")
-    torch.manual_seed(hash("by removing stochasticity") % seed)
-    torch.cuda.manual_seed_all(hash("so runs are repeatable") % seed)
+    torch.manual_seed(hash("by removing stochasticity") % wandb.config.seed)
+    torch.cuda.manual_seed_all(hash("so runs are repeatable") % wandb.config.seed)
 
     def_args = dot_dict({
         "train": ["../../../data/kermany/train"],
@@ -190,7 +191,8 @@ def main():
         "DME",
         "DRUSEN",
     ]
-    train_weights = make_weights_for_balanced_classes(train_dataset, train_dataset.get_labels())
+    print("gettin data")
+    train_weights = make_weights_for_balanced_classes(train_dataset, [i for i in range(4)])
     train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=config.batch_size,
@@ -202,6 +204,7 @@ def main():
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                               batch_size=config.batch_size,
                                               shuffle=False)
+    print("gettin model")
     model = None
     if config.architecture == "res18":
         model = Resnet18(4, pretrained=config.res_pretrain)
@@ -237,6 +240,7 @@ def main():
         optimizer = torch.optim.RMSprop(model.parameters(), lr=config.learning_rate, momentum=config.mom,
                                         weight_decay=config.weight_decay)
 
+    print("starting training:\n\n")
     iter = 0
     for epoch in range(3):
         print(f'epoch: {epoch}')
