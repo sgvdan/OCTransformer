@@ -242,7 +242,7 @@ def main():
 
     print("starting training:\n\n")
     iter = 0
-    for epoch in range(3):
+    for epoch in range(1):
         print(f'epoch: {epoch}')
         for i, (images, labels) in enumerate(train_loader):
 
