@@ -11,7 +11,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as dsets
 from torch.autograd import Variable
 import torch.nn.functional as F
-from fashion_data import Kermany_DataSet
+from data import Kermany_DataSet
 from timm.models.vision_transformer import VisionTransformer
 import timm
 import wandb
@@ -41,6 +41,25 @@ hyperparameter_defaults = dict(
 
 wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany_val_test_new_wights_vit")
 config = wandb.config
+
+
+def init():
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"running on {device}")
+    torch.manual_seed(hash("by removing stochasticity") % wandb.config.seed)
+    torch.cuda.manual_seed_all(hash("so runs are repeatable") % wandb.config.seed)
+    def_args = dot_dict({
+        "train": ["../../../data/kermany/train"],
+        "val": ["../../../data/kermany/val"],
+        "test": ["../../../data/kermany/test"],
+    })
+    label_names = [
+        "NORMAL",
+        "CNV",
+        "DME",
+        "DRUSEN",
+    ]
+    return def_args, device, label_names
 
 
 class Resnet18(torch.nn.Module):
@@ -169,7 +188,7 @@ def make_weights_for_balanced_classes(dataset, classes):
     return torch.FloatTensor(weights)
 
 
-def Get_Model(config):
+def Get_Model(config, device):
     model = None
     if config.architecture == "res18":
         model = Resnet18(4, pretrained=config.res_pretrain)
@@ -186,6 +205,12 @@ def Get_Model(config):
     if config.architecture == 'vit':
         model = timm.create_model(config.vit_architecture, pretrained=config.vit_pretrain, num_classes=4,
                                   img_size=(496, 512))
+
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        model = nn.DataParallel(model)
+    model.to(device)
+    wandb.watch(model)
     return model
 
 
@@ -339,34 +364,13 @@ def Testing(device, label_names, model, test_loader):
 
 
 def main():
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f"running on {device}")
-    torch.manual_seed(hash("by removing stochasticity") % wandb.config.seed)
-    torch.cuda.manual_seed_all(hash("so runs are repeatable") % wandb.config.seed)
-
-    def_args = dot_dict({
-        "train": ["../../../data/kermany/train"],
-        "val": ["../../../data/kermany/val"],
-        "test": ["../../../data/kermany/test"],
-    })
-    label_names = [
-        "NORMAL",
-        "CNV",
-        "DME",
-        "DRUSEN",
-    ]
+    def_args, device, label_names = init()
 
     print("gettin data")
     test_loader, train_loader, val_loader = Handle_Data(def_args)
 
     print("gettin model")
-    model = Get_Model(config)
-
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model = nn.DataParallel(model)
-    model.to(device)
-    wandb.watch(model)
+    model = Get_Model(config, device)
 
     criterion = nn.CrossEntropyLoss()
 
@@ -392,3 +396,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    print("\n\n\n\nWe done did it mates")
