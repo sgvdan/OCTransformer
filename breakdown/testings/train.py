@@ -28,17 +28,17 @@ class dot_dict(dict):
 
 hyperparameter_defaults = dict(
     batch_size=20,
-    learning_rate=0.001,
+    learning_rate=1e-4,
     res_pretrain=False,
-    optimizer="sgd",
+    optimizer="adam",
     mom=0.9,
-    weight_decay=0.001,
+    weight_decay=0,
     architecture='vit',
     vit_architecture='vit_base_patch16_224',
     vit_pretrain=False,
 )
 
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-vit_my")
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-vit_my_new_dan")
 config = wandb.config
 
 
