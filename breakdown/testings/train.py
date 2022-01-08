@@ -39,7 +39,7 @@ hyperparameter_defaults = dict(
     vit_pretrain=False,
 )
 
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany-val-vit_my_new_dan")
+wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany_val_test_new_wights_res")
 config = wandb.config
 
 
@@ -169,42 +169,7 @@ def make_weights_for_balanced_classes(dataset, classes):
     return torch.FloatTensor(weights)
 
 
-def main():
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f"running on {device}")
-    torch.manual_seed(hash("by removing stochasticity") % wandb.config.seed)
-    torch.cuda.manual_seed_all(hash("so runs are repeatable") % wandb.config.seed)
-
-    def_args = dot_dict({
-        "train": ["../../../data/kermany/train"],
-        "val": ["../../../data/kermany/val"],
-        "test": ["../../../data/kermany/test"],
-    })
-
-    train_dataset = Kermany_DataSet(def_args.train[0])
-    val_dataset = Kermany_DataSet(def_args.val[0])
-    test_dataset = Kermany_DataSet(def_args.test[0])
-
-    label_names = [
-        "NORMAL",
-        "CNV",
-        "DME",
-        "DRUSEN",
-    ]
-    print("gettin data")
-    train_weights = make_weights_for_balanced_classes(train_dataset, [i for i in range(4)])
-    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                               batch_size=config.batch_size,
-                                               # shuffle=True,
-                                               sampler=train_sampler)
-    val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
-                                             batch_size=config.batch_size,
-                                             shuffle=False)
-    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                              batch_size=config.batch_size,
-                                              shuffle=False)
-    print("gettin model")
+def Get_Model(config):
     model = None
     if config.architecture == "res18":
         model = Resnet18(4, pretrained=config.res_pretrain)
@@ -218,18 +183,33 @@ def main():
         model = Wide_Resnet50_2(4, pretrained=config.res_pretrain)
     elif config.architecture == "wide_resnet101_2":
         model = Wide_Resnet101_2(4, pretrained=config.res_pretrain)
-
     if config.architecture == 'vit':
         model = timm.create_model(config.vit_architecture, pretrained=config.vit_pretrain, num_classes=4,
                                   img_size=(496, 512))
+    return model
 
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model = nn.DataParallel(model)
-    model.to(device)
 
-    wandb.watch(model)
-    criterion = nn.CrossEntropyLoss()
+def Handle_Data(def_args):
+    train_dataset = Kermany_DataSet(def_args.train[0])
+    val_dataset = Kermany_DataSet(def_args.val[0])
+    test_dataset = Kermany_DataSet(def_args.test[0])
+
+    train_weights = make_weights_for_balanced_classes(train_dataset, [i for i in range(4)])
+    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                               batch_size=config.batch_size,
+                                               # shuffle=True,
+                                               sampler=train_sampler)
+    val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
+                                             batch_size=config.batch_size,
+                                             shuffle=False)
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                              batch_size=config.batch_size,
+                                              shuffle=False)
+    return test_loader, train_loader, val_loader
+
+
+def Get_Optimizer(model):
     optimizer = None
     if config.optimizer == "sgd":
         optimizer = torch.optim.SGD(model.parameters(), lr=config.learning_rate, momentum=config.mom,
@@ -239,14 +219,16 @@ def main():
     elif config.optimizer == "rmsprop":
         optimizer = torch.optim.RMSprop(model.parameters(), lr=config.learning_rate, momentum=config.mom,
                                         weight_decay=config.weight_decay)
+    return optimizer
 
-    print("starting training:\n\n")
+
+def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader):
     iter = 0
     for epoch in range(3):
         print(f'epoch: {epoch}')
         for i, (images, labels) in enumerate(train_loader):
-            if iter == 501:
-                break
+            # if iter == 501:
+            #     break
             images = Variable(images).to(device)
             labels = Variable(labels).to(device)
 
@@ -269,51 +251,51 @@ def main():
                 print(loss)
                 wandb.log({"loss": loss, "epoch": epoch})
             if iter % 500 == 0:
-                # Calculate Accuracy
-                correct = 0.0
-                correct_arr = [0.0] * 10
-                total = 0.0
-                total_arr = [0.0] * 10
-                # Iterate through test dataset
-                with torch.no_grad():
-                    for images, labels in val_loader:
-                        images = Variable(images).to(device)
-                        labels = labels.to(device)
-                        # Forward pass only to get logits/output
-                        outputs = model(images)
+                Validation(device, iter, label_names, loss, model, val_loader)
 
-                        # Get predictions from the maximum value
-                        _, predicted = torch.max(outputs.data, 1)
 
-                        # Total number of labels
-                        total += labels.size(0)
-                        correct += (predicted == labels).sum()
+def Validation(device, iter, label_names, loss, model, val_loader):
+    # Calculate Accuracy
+    correct = 0.0
+    correct_arr = [0.0] * 10
+    total = 0.0
+    total_arr = [0.0] * 10
+    # Iterate through test dataset
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images = Variable(images).to(device)
+            labels = labels.to(device)
+            # Forward pass only to get logits/output
+            outputs = model(images)
 
-                        for label in range(4):
-                            correct_arr[label] += (((predicted == labels) & (labels == label)).sum())
-                            total_arr[label] += (labels == label).sum()
+            # Get predictions from the maximum value
+            _, predicted = torch.max(outputs.data, 1)
 
-                    accuracy = correct / total
+            # Total number of labels
+            total += labels.size(0)
+            correct += (predicted == labels).sum()
 
-                    metrics = {'accuracy': accuracy}
-                    for label in range(4):
-                        metrics['Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
+            for label in range(4):
+                correct_arr[label] += (((predicted == labels) & (labels == label)).sum())
+                total_arr[label] += (labels == label).sum()
 
-                    wandb.log(metrics)
+        accuracy = correct / total
 
-                    # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
-                    # y_true = ground_truth, preds = predictions,
-                    #                                class_names = class_names)})
+        metrics = {'val accuracy': accuracy}
+        for label in range(4):
+            metrics['Val Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
 
-                    # Print Loss
-                    print('Iteration: {0} Loss: {1:.2f} Accuracy: {2:.2f}'.format(iter, loss, accuracy))
+        wandb.log(metrics)
 
-    torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
+        # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
+        # y_true = ground_truth, preds = predictions,
+        #                                class_names = class_names)})
 
-    #########################################################################################################
-    #                                                 TESTING
-    #########################################################################################################
+        # Print Loss
+        print('Iteration: {0} Loss: {1:.2f} Accuracy: {2:.2f}'.format(iter, loss, accuracy))
 
+
+def Testing(device, label_names, model, test_loader):
     correct = 0.0
     correct_arr = [0.0] * 10
     total = 0.0
@@ -351,9 +333,61 @@ def main():
         for label in range(4):
             metrics['Test Accuracy ' + label_names[label]] = correct_arr[label] / total_arr[label]
         wandb.log(metrics)
-        wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
-                                                           y_true=ground_truth, preds=predictions,
-                                                           class_names=label_names)})
+        # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
+        #                                                    y_true=ground_truth, preds=predictions,
+        #                                                    class_names=label_names)})
+
+
+def main():
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"running on {device}")
+    torch.manual_seed(hash("by removing stochasticity") % wandb.config.seed)
+    torch.cuda.manual_seed_all(hash("so runs are repeatable") % wandb.config.seed)
+
+    def_args = dot_dict({
+        "train": ["../../../data/kermany/train"],
+        "val": ["../../../data/kermany/val"],
+        "test": ["../../../data/kermany/test"],
+    })
+    label_names = [
+        "NORMAL",
+        "CNV",
+        "DME",
+        "DRUSEN",
+    ]
+
+    print("gettin data")
+    test_loader, train_loader, val_loader = Handle_Data(def_args)
+
+    print("gettin model")
+    model = Get_Model(config)
+
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        model = nn.DataParallel(model)
+    model.to(device)
+    wandb.watch(model)
+
+    criterion = nn.CrossEntropyLoss()
+
+    optimizer = Get_Optimizer(model)
+    #########################################################################################################
+    #                                                 TRAINING
+    #########################################################################################################
+
+    print("starting training:\n\n")
+    Train(criterion, device, label_names, model, optimizer, train_loader, val_loader)
+
+    torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
+
+    #########################################################################################################
+    #                                                 TESTING
+    #########################################################################################################
+    print("TESTING TIMZZZ")
+
+    Testing(device, label_names, model, test_loader)
+
+    print("finito la musica")
 
 
 if __name__ == '__main__':
