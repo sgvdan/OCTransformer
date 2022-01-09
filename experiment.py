@@ -1,9 +1,12 @@
+import pickle
 from functools import partial
 
 import torch
 import wandb
 
 import util
+from data.hadassah.hadassah_builder2 import *
+from data.hadassah.hadassah_data2 import HadassahDataset
 from data.kermany.kermany_data import KermanyDataset, get_kermany_transform
 from models.bank import ModelsBank
 from config import default_config
@@ -31,7 +34,7 @@ class Experiment:
         self.logger = Logger(self.config)
 
         # Set up Data
-        self.train_loader, self.eval_loader, self.test_loader = self.setup_data()
+        self.train_loader, self.eval_loader, self.test_loader = self.setup_data2()
 
         # Set up Model Bank
         self.model_bank = ModelsBank(self.config)
@@ -43,17 +46,37 @@ class Experiment:
         # Set up Model Environment
         self.model, self.criterion, self.optimizer = self.model_bank.get_environment()
 
-    def setup_data(self):
-        # TODO: First, see that HadassahDataset Actually works!
-
+    def setup_data2(self):
         """
-        TODO: patients = read into Records instance
-        TODO: Ignore all those with END != START
-        TODO: slice patients to control & study according to configuration
         TODO: split by patients into train/eval/test
-        TODO: create datasets - log NUMBERS.
-        :return:
         """
+        with open(self.config.records_path, 'rb') as file:
+            records = pickle.load(file)
+
+        control, study = records.slice_patients('DME', 'DME-END', 1)
+
+        control_dataset = HadassahDataset(control, transformations=get_hadassah_transform(self.config.input_size))
+        study_dataset = HadassahDataset(study, transformations=get_hadassah_transform(self.config.input_size))
+
+        fixed_size_count = 0
+        overall_count = 0
+        for volume, label in study_dataset:
+            overall_count += 1
+            if volume.shape[0] == 37:
+                fixed_size_count += 1
+
+        print('Study: Overall {}/{} volumes of size 37'.format(fixed_size_count, overall_count))
+
+        fixed_size_count = 0
+        overall_count = 0
+        for volume, label in control_dataset:
+            overall_count += 1
+            if volume.shape[0] == 37:
+                fixed_size_count += 1
+
+        print('Control: Overall {}/{} volumes of size 37'.format(fixed_size_count, overall_count))
+
+    def setup_data(self):
         if self.config.dataset == 'hadassah':
             dataset = partial(E2EVolumeDataset, samples_num=self.config.num_slices)
             transform = get_hadassah_transform(self.config.input_size)

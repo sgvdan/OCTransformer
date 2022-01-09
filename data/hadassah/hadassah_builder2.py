@@ -27,6 +27,32 @@ class Records:
     def get_patients(self):
         return self.patients
 
+    def slice_patients(self, start_label, end_label, value):
+        control, study = [], []
+        for patient in self.patients:
+            if not patient.is_consistent_left_and_right([start_label, end_label]):
+                print('Patient {} is inconsistent on right & left (either start/end). Ignored'.format(patient.name))
+                continue
+
+            # if not patient.is_time_consistent([start_label], [end_label]):
+            #     print('Patient {} is inconsistent throughout time for start/end labels. Ignored'.format(patient.name))
+            #     continue
+
+            correspondence = True
+            if patient.right_label is not None:
+                correspondence &= patient.right_label[start_label] == value
+            if patient.left_label is not None:
+                correspondence &= patient.left_label[start_label] == value
+
+            if correspondence:
+                study.append(patient)
+                print('Patient {} was added to study group'.format(patient.name))
+            else:
+                control.append(patient)
+                print('Patient {} was added to control group'.format(patient.name))
+
+        return control, study
+
 
 class Patient:
 
@@ -61,11 +87,33 @@ class Patient:
         else:
             raise NotImplementedError
 
+    def is_consistent_left_and_right(self, labels_key):
+        if self.left_label is None or self.right_label is None:
+            return True
+
+        consistency = True
+        for label_key in labels_key:
+            consistency &= (self.left_label[label_key] == self.right_label[label_key])
+        return consistency
+
+    def is_time_consistent(self, start_labels, end_labels):
+        consistency = True
+        for start_label, end_label in zip(start_labels, end_labels):
+            if self.left_label is not None:
+                consistency &= (self.left_label[start_label] == self.left_label[end_label])
+            if self.right_label is not None:
+                consistency &= (self.right_label[start_label] == self.right_label[end_label])
+
+        return consistency
+
     def add_volume(self, volume):
         self.volumes.append(volume)
 
     def get_volumes(self):
         return self.volumes
+
+    def __len__(self):
+        return len(self.volumes)
 
 
 class Volume:
@@ -170,20 +218,21 @@ def build(data_root, annotations_file, labels_to_extract, dataset_root, records_
     records_path = dataset_root / records_file
 
     records = build_records(annotations_path, labels_to_extract)
-    os.makedirs(records_path.parent, exist_ok=True)
-    with open(records_path, 'wb+') as file:
-        pickle.dump(records, file)
 
     for patient in records.get_patients():
         dest_path = dataset_root / patient.name
         build_patient_dataset(patient, dest_path)
+
+    os.makedirs(records_path.parent, exist_ok=True)
+    with open(records_path, 'wb+') as file:
+        pickle.dump(records, file)
 
 
 def main():
     build(data_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/original',
           annotations_file='annotations.xlsx',
           labels_to_extract=['DME', 'IRF', 'SRF', 'DME-END', 'IRF-END', 'SRF-END'],
-          dataset_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/temp2',
+          dataset_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/full2',
           records_file='records.pkl')
 
 

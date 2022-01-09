@@ -5,7 +5,7 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': True,
+                           'log': False,
                            'log_group': 'hadassah/variable_slices',
                            'log_frequency': 10,
 
@@ -25,6 +25,8 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'train_cache': '37-slices/train',
                            'eval_cache': '37-slices/eval',
                            'test_cache': '37-slices/test',
+
+                           'records_path': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/full2/records.pkl',
                            'input_size': (496, 1024),
                            'num_slices': 37,
                            'batch_size': 5,
@@ -35,8 +37,8 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'model_name': None,
 
                            # Models Bank
-                           'keep_best_model': True,  # Whether to sync best model bank
-                           'load_best_model': True,  # True to always load the best possible model, False for nominal
+                           'keep_best_model': False,  # Whether to sync best model bank
+                           'load_best_model': False,  # True to always load the best possible model, False for nominal
 
                            # Train Parameters
                            'optimizer': 'adam',
