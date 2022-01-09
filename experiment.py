@@ -47,10 +47,11 @@ class Experiment:
         # TODO: First, see that HadassahDataset Actually works!
 
         """
-        TODO: patients = read records.pkl
+        TODO: patients = read into Records instance
+        TODO: Ignore all those with END != START
         TODO: slice patients to control & study according to configuration
         TODO: split by patients into train/eval/test
-        TODO: create datasets
+        TODO: create datasets - log NUMBERS.
         :return:
         """
         if self.config.dataset == 'hadassah':
