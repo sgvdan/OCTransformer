@@ -8,6 +8,7 @@ from res_models import *
 from model_running import *
 
 hyperparameter_defaults = dict(
+    epochs=10,
     seed=25,
     batch_size=2,
     learning_rate=1e-4,
@@ -119,7 +120,7 @@ def main():
     #########################################################################################################
 
     print("starting training:\n\n")
-    Train(criterion, device, label_names, model, optimizer, train_loader, val_loader)
+    Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs)
 
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
 

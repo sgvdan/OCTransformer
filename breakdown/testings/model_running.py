@@ -2,9 +2,10 @@ import torch
 from torch.autograd import Variable
 import wandb
 
-def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader):
+
+def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs):
     iter = 0
-    for epoch in range(3):
+    for epoch in range(epochs):
         print(f'epoch: {epoch}')
         for i, (images, labels) in enumerate(train_loader):
             # if iter == 501:
@@ -116,4 +117,3 @@ def Testing(device, label_names, model, test_loader):
         # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
         #                                                    y_true=ground_truth, preds=predictions,
         #                                                    class_names=label_names)})
-
