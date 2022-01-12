@@ -1,8 +1,8 @@
+from torch.utils.data import Dataset
 from torchvision import transforms
-from data.data import CachedDataset
 
 
-class KermanyDataset(CachedDataset):
+class KermanyDataset(Dataset):
     def __init__(self, cache, transformations=None):
         super().__init__(cache)
         self.transformations = transformations
