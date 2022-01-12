@@ -23,26 +23,24 @@ class CachedDataset(Dataset):
         return self.cache[idx]
 
 
-def get_balance_weights(dataset):
-    classes = dataset.get_classes()
+def get_balance_weights(dataset, num_classes):
     labels = dataset.get_labels()
-    num_classes = len(classes)
     num_scans = len(dataset)
     assert num_scans > 0 and num_classes > 0
 
     # Count # of appearances per each class
     count = [0] * num_classes
-    for label in labels.values():  # TODO: If one_hot handling required - take `label.argmax(-1)`
+    for label in labels:  # TODO: If one_hot handling required - take `label.argmax(-1)`
         count[int(label)] += 1
 
     # Each class receives weight in reverse proportion to its # of appearances
     weight_per_class = [0.] * num_classes
-    for idx in classes.values():
+    for idx in range(num_classes):
         weight_per_class[idx] = float(num_scans) / float(count[idx])
 
     # Assign class-corresponding weight for each element
     weights = [0] * num_scans
-    for idx, label in labels.items():
+    for idx, label in enumerate(labels):
         weights[idx] = weight_per_class[int(label)]
 
     return torch.FloatTensor(weights)

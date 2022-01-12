@@ -27,22 +27,38 @@ class Records:
     def get_patients(self):
         return self.patients
 
-    def slice_patients(self, start_label, end_label, value):
+    def slice_patients(self, start_label, end_label, value, lr_consistency=True, time_consistency=True):
+        """
+        Performs a cut of the patients according to labels & consistency requirements
+
+        :param start_label: The name of the start label
+        :param end_label: The name of the end label
+        :param value: The value of both start & end labels
+        :param lr_consistency: Whether to constrain label values to be the same in both left and right eye
+        :param time_consistency: Whether to constrain label values to be the same in start_label and end_label
+        :return: Patients sliced according to their correspondence to start_label, and with required consistency
+        """
         control, study = [], []
         for patient in self.patients:
-            if not patient.is_consistent_left_and_right([start_label, end_label]):
+            if lr_consistency and not patient.is_consistent_left_and_right([start_label, end_label]):
                 print('Patient {} is inconsistent on right & left (either start/end). Ignored'.format(patient.name))
                 continue
 
-            # if not patient.is_time_consistent([start_label], [end_label]):
-            #     print('Patient {} is inconsistent throughout time for start/end labels. Ignored'.format(patient.name))
-            #     continue
+            if time_consistency and not patient.is_time_consistent([start_label], [end_label]):
+                print('Patient {} is inconsistent throughout time for start/end labels. Ignored'.format(patient.name))
+                continue
 
-            correspondence = True
-            if patient.right_label is not None:
-                correspondence &= patient.right_label[start_label] == value
-            if patient.left_label is not None:
-                correspondence &= patient.left_label[start_label] == value
+            if lr_consistency:
+                if patient.right_label is not None:
+                    correspondence = patient.right_label[start_label] == value
+                else:
+                    correspondence = patient.left_label[start_label] == value
+            else:
+                correspondence = False
+                if patient.right_label is not None:
+                    correspondence |= patient.right_label[start_label] == value
+                if patient.left_label is not None:
+                    correspondence |= patient.left_label[start_label] == value
 
             if correspondence:
                 study.append(patient)
@@ -142,6 +158,9 @@ def build_patient_dataset(patient, dest_path):
                 if not all(validity):
                     tqdm.write('Invalid volume: {}/{}. Ignored.'.format(sample, volume_obj.patient_id))
                     continue
+                if len(validity) != 37:  # TODO: REMOVE / PUT IN CONFIG!!
+                    tqdm.write('Taking 37-slice volumes only. {}/{} Ignored.'.format(sample, volume_obj.patient_id))
+                    continue
 
                 # Fix oct-reader bug appending first image to last
                 volume_data.insert(0, volume_data.pop())
@@ -232,7 +251,7 @@ def main():
     build(data_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/original',
           annotations_file='annotations.xlsx',
           labels_to_extract=['DME', 'IRF', 'SRF', 'DME-END', 'IRF-END', 'SRF-END'],
-          dataset_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/full2',
+          dataset_root='/home/projects/ronen/sgvdan/workspace/projects/OCTransformer/datasets/temp',
           records_file='records.pkl')
 
 

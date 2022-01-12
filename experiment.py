@@ -47,34 +47,36 @@ class Experiment:
         self.model, self.criterion, self.optimizer = self.model_bank.get_environment()
 
     def setup_data2(self):
-        """
-        TODO: split by patients into train/eval/test
-        """
         with open(self.config.records_path, 'rb') as file:
             records = pickle.load(file)
 
-        control, study = records.slice_patients('DME', 'DME-END', 1)
+        control, study = records.slice_patients('DME', 'DME-END', 1, False, False)
 
-        control_dataset = HadassahDataset(control, transformations=get_hadassah_transform(self.config.input_size))
-        study_dataset = HadassahDataset(study, transformations=get_hadassah_transform(self.config.input_size))
+        train_size = 0.65
+        eval_size = 0.1
+        test_size = 0.25
+        train_control, eval_control, test_control = util.split_list(control, [train_size, eval_size, test_size])
+        train_study, eval_study, test_study = util.split_list(study, [train_size, eval_size, test_size])
 
-        fixed_size_count = 0
-        overall_count = 0
-        for volume, label in study_dataset:
-            overall_count += 1
-            if volume.shape[0] == 37:
-                fixed_size_count += 1
+        # Test Loader
+        test_dataset = HadassahDataset([*test_control, *test_study], label_name='DME',
+                                       transformations=get_hadassah_transform(self.config.input_size))
+        test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=self.config.batch_size)
 
-        print('Study: Overall {}/{} volumes of size 37'.format(fixed_size_count, overall_count))
+        # Evaluation Loader
+        eval_dataset = HadassahDataset([*eval_control, *eval_study], label_name='DME',
+                                       transformations=get_hadassah_transform(self.config.input_size))
+        eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset, batch_size=self.config.batch_size)
 
-        fixed_size_count = 0
-        overall_count = 0
-        for volume, label in control_dataset:
-            overall_count += 1
-            if volume.shape[0] == 37:
-                fixed_size_count += 1
+        # Train Loader
+        train_dataset = HadassahDataset([*train_control, *train_study], label_name='DME',
+                                        transformations=get_hadassah_transform(self.config.input_size))
+        train_weights = get_balance_weights(train_dataset, num_classes=self.config.num_classes)
+        train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
+        train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=self.config.batch_size,
+                                                   sampler=train_sampler)
 
-        print('Control: Overall {}/{} volumes of size 37'.format(fixed_size_count, overall_count))
+        return train_loader, eval_loader, test_loader
 
     def setup_data(self):
         if self.config.dataset == 'hadassah':

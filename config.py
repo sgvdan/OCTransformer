@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': False,
-                           'log_group': 'hadassah/variable_slices',
+                           'log_group': 'hadassah/dme-classification',
                            'log_frequency': 10,
 
                            # Kermany Dataset
@@ -19,14 +19,14 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # 'batch_size': 35,
                            # 'num_classes': 4,
 
-
                            # Hadassah Dataset
-                           'dataset': 'hadassah',
-                           'train_cache': '37-slices/train',
-                           'eval_cache': '37-slices/eval',
-                           'test_cache': '37-slices/test',
+                           # 'dataset': 'hadassah',
+                           # 'train_cache': '37-slices/train',
+                           # 'eval_cache': '37-slices/eval',
+                           # 'test_cache': '37-slices/test',
 
-                           'records_path': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/full2/records.pkl',
+                           'records_path': '/home/projects/ronen/sgvdan/workspace/projects/OCTransformer/datasets/'
+                                           'full-37/records.pkl',
                            'input_size': (496, 1024),
                            'num_slices': 37,
                            'batch_size': 5,
@@ -37,13 +37,13 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'model_name': None,
 
                            # Models Bank
-                           'keep_best_model': False,  # Whether to sync best model bank
-                           'load_best_model': False,  # True to always load the best possible model, False for nominal
+                           'keep_best_model': True,  # Whether to sync best model bank
+                           'load_best_model': True,  # True to always load the best possible model, False for nominal
 
                            # Train Parameters
                            'optimizer': 'adam',
                            'criterion': 'cross_entropy',
-                           'epochs': 10,
+                           'epochs': 5,
                            'lr': 1e-4,
 
                            # Model
