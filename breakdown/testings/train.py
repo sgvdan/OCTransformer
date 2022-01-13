@@ -16,7 +16,7 @@ hyperparameter_defaults = dict(
     optimizer="adam",
     mom=0.9,
     weight_decay=0,
-    architecture='swin4',
+    architecture='efficientnetv2_s',
     pretrain=False,
 )
 
