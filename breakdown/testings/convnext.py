@@ -162,10 +162,14 @@ model_urls = {
 @register_model
 def convnext_tiny(pretrained=False, **kwargs):
     model = ConvNeXt(depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], **kwargs)
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 1000)
     if pretrained:
         url = model_urls['convnext_tiny_1k']
         checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu", check_hash=True)
         model.load_state_dict(checkpoint["model"])
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 4)
     return model
 
 
@@ -182,10 +186,14 @@ def convnext_small(pretrained=False, **kwargs):
 @register_model
 def convnext_base(pretrained=False, in_22k=False, **kwargs):
     model = ConvNeXt(depths=[3, 3, 27, 3], dims=[128, 256, 512, 1024], **kwargs)
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 1000)
     if pretrained:
         url = model_urls['convnext_base_22k'] if in_22k else model_urls['convnext_base_1k']
         checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu", check_hash=True)
         model.load_state_dict(checkpoint["model"])
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 4)
     return model
 
 
