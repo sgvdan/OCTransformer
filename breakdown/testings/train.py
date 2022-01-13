@@ -84,11 +84,9 @@ def Get_Model(config, device):
         model = convnext_base(pretrained=config.pretrain, num_classes=4
                               )
     elif config.architecture == 'convnext_large':
-        model = convnext_base(pretrained=config.pretrain, num_classes=4, in_chans=1,
-                              img_size=(496, 512))
+        model = convnext_base(pretrained=config.pretrain, num_classes=4)
     elif config.architecture == 'convnext_xlarge':
-        model = convnext_base(pretrained=config.pretrain, num_classes=4, in_chans=1,
-                              img_size=(496, 512))
+        model = convnext_base(pretrained=config.pretrain, num_classes=4)
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)
