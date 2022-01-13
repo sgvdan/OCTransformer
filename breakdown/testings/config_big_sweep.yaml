@@ -49,7 +49,7 @@ parameters:
     distribution: uniform
     max: 0.16
     min: 0
-  early_terminate:
-    type: hyperband
-    min_iter: 2
+early_terminate:
+  type: hyperband
+  min_iter: 2
 program: train.py
