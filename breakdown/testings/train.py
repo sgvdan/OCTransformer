@@ -20,7 +20,7 @@ hyperparameter_defaults = dict(
     pretrain=False,
 )
 
-wandb.init(config=hyperparameter_defaults, project="Big Test")
+wandb.init(config=hyperparameter_defaults, project="Big_Test")
 config = wandb.config
 
 

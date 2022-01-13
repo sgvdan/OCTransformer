@@ -40,8 +40,6 @@ parameters:
       - convmixer_1536_20
       - convmixer_768_32
       - convmixer_1024_20_ks9_p14
-      - swin4
-      - swin8
   pretrain:
     distribution: categorical
     values:
