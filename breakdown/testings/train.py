@@ -23,7 +23,6 @@ hyperparameter_defaults = dict(
 wandb.init(config=hyperparameter_defaults, project="Big Test")
 config = wandb.config
 
-
 def init():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"running on {device}")
@@ -140,6 +139,7 @@ def main():
     test_loader, train_loader, val_loader = Handle_Data(def_args)
 
     print("gettin model")
+    print(f'architecture:{config.architecture}"')
     model = Get_Model(config, device)
 
     criterion = nn.CrossEntropyLoss()
