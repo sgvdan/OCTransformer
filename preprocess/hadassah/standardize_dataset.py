@@ -17,7 +17,8 @@ def build_patient_dataset(patient_path, dest_path):
     # Iterate through patient's samples
     for e2e_path in tqdm(list(Path(patient_path).rglob("*.E2E"))):
         if e2e_path.is_file():
-            volumes = E2E(e2e_path).read_oct_volume()
+            e2e = E2E(e2e_path)
+            volumes = e2e.read_oct_volume()
 
             for volume_obj in volumes:
                 sample_dst_path = dest_path / volume_obj.patient_id
@@ -54,7 +55,7 @@ def build_patient_dataset(patient_path, dest_path):
                 fundus_dst_path = sample_dst_path / 'fundus'
                 os.makedirs(fundus_dst_path, exist_ok=True)
                 # with open(fundus_dst_path / 'fundus.npy', 'wb+') as file:
-                #     np.save(file, fundus)
+                #     np.save(file, e2e.fundus)
 
                 # Also save fundus image for debugging-ease
                 # TODO save fundus as image
@@ -66,5 +67,11 @@ def build_patient_dataset(patient_path, dest_path):
     tqdm.write('Saved patient\'s data {} to {}.'.format(patient_path, dest_path))
 
 
-def build():
-    # TODO: run through all subdirectories of patients and feed it to the above directory
+def build(rootdir, destdir):
+    rootdir = Path(rootdir)
+    destdir = Path(destdir)
+
+    # Iterate through all subdirectories and standardize them in destdir
+    for path in rootdir.iterdir():
+        if path.is_dir():
+            build_patient_dataset(path, destdir / path.name)
