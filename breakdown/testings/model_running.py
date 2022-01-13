@@ -2,11 +2,14 @@ import torch
 from torch.autograd import Variable
 import wandb
 import os
+import time
+
 
 
 def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader):
     iter = 0
     for epoch in range(epochs):
+        t0 = time.time()
         print(f'epoch: {epoch}')
         for i, (images, labels) in enumerate(train_loader):
             # if iter == 501:
@@ -34,7 +37,10 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 wandb.log({"loss": loss, "epoch": epoch})
             if iter % 500 == 0:
                 Validation(device, iter, label_names, loss, model, val_loader)
+        t1 = time.time()
 
+        time_per_epoch = t1 - t0
+        wandb.log({"time_per_epoch": time_per_epoch})
         # save model:
         torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
 
