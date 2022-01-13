@@ -23,6 +23,7 @@ hyperparameter_defaults = dict(
 wandb.init(config=hyperparameter_defaults, project="Big Test")
 config = wandb.config
 
+
 def init():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"running on {device}")
@@ -70,7 +71,7 @@ def Get_Model(config, device):
 
     if config.architecture[:4] == 'effi':
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4,
-                                  img_size=(496, 512))
+                                  input_size=(496, 512), test_input_size=(496, 512))
 
     if config.architecture == ' convmixer_1536_20':
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
