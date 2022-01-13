@@ -73,13 +73,13 @@ def Get_Model(config, device):
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4,
                                   )
 
-    if config.architecture == ' convmixer_1536_20':
+    if config.architecture == 'convmixer_1536_20':
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
                                   img_size=(496, 512))
-    elif config.architecture == ' convmixer_768_32':
+    elif config.architecture == 'convmixer_768_32':
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
                                   img_size=(496, 512))
-    elif config.architecture == ' convmixer_1024_20_ks9_p14':
+    elif config.architecture == 'convmixer_1024_20_ks9_p14':
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
                                   img_size=(496, 512))
 
