@@ -148,7 +148,7 @@ def main():
     print("starting training:\n\n")
     Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs, test_loader)
 
-    print("finita la comedia")
+    print("finita la comedia ")
 
 
 if __name__ == '__main__':
