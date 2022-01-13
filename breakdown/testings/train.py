@@ -2,26 +2,25 @@ from data import Kermany_DataSet
 import timm
 import wandb
 import os
-
+from timm.models.swin_transformer import SwinTransformer
 from utils import *
 from res_models import *
 from model_running import *
+from convnext import convnext_base, convnext_large, convnext_xlarge
 
 hyperparameter_defaults = dict(
-    epochs=10,
+    epochs=5,
     seed=25,
     batch_size=2,
     learning_rate=1e-4,
-    res_pretrain=False,
     optimizer="adam",
     mom=0.9,
     weight_decay=0,
-    architecture='vit',
-    vit_architecture='vit_base_patch16_224',
-    vit_pretrain=False,
+    architecture='swin4',
+    pretrain=False,
 )
 
-wandb.init(config=hyperparameter_defaults, project="pytorch-cnn-fashion-kermany_val_test_new_wights_res")
+wandb.init(config=hyperparameter_defaults, project="Big Test")
 config = wandb.config
 
 
@@ -47,21 +46,52 @@ def init():
 def Get_Model(config, device):
     model = None
     if config.architecture == "res18":
-        model = Resnet18(4, pretrained=config.res_pretrain)
+        model = Resnet18(4, pretrained=config.pretrain)
     elif config.architecture == "res50":
-        model = Resnet50(4, pretrained=config.res_pretrain)
+        model = Resnet50(4, pretrained=config.pretrain)
     elif config.architecture == "res101":
-        model = Resnet101(4, pretrained=config.res_pretrain)
+        model = Resnet101(4, pretrained=config.pretrain)
     elif config.architecture == "res152":
-        model = Resnet152(4, pretrained=config.res_pretrain)
+        model = Resnet152(4, pretrained=config.pretrain)
     elif config.architecture == "wide_resnet50_2":
-        model = Wide_Resnet50_2(4, pretrained=config.res_pretrain)
+        model = Wide_Resnet50_2(4, pretrained=config.pretrain)
     elif config.architecture == "wide_resnet101_2":
-        model = Wide_Resnet101_2(4, pretrained=config.res_pretrain)
-    if config.architecture == 'vit':
-        model = timm.create_model(config.vit_architecture, pretrained=config.vit_pretrain, num_classes=4,
+        model = Wide_Resnet101_2(4, pretrained=config.pretrain)
+
+    if config.architecture[:3] == 'vit' or config.architecture[:4] == 'deit':
+        model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4,
                                   img_size=(496, 512))
 
+    if config.architecture[:4] == 'swin':
+        w = int(config.architecture[4:])
+        SwinTransformer(img_size=(496, 512), patch_size=4, in_chans=1, num_classes=4,
+                        embed_dim=96, depths=(2, 2, 6, 2), num_heads=(3, 6, 12, 24),
+                        window_size=w, mlp_ratio=4., qkv_bias=True,
+                        drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1, )
+
+    if config.architecture[:4] == 'effi':
+        model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4,
+                                  img_size=(496, 512))
+
+    if config.architecture == ' convmixer_1536_20':
+        model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
+                                  img_size=(496, 512))
+    elif config.architecture == ' convmixer_768_32':
+        model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
+                                  img_size=(496, 512))
+    elif config.architecture == ' convmixer_1024_20_ks9_p14':
+        model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
+                                  img_size=(496, 512))
+
+    if config.architecture == 'convnext_base':
+        model = convnext_base(pretrained=config.pretrain, num_classes=4, in_chans=1,
+                              img_size=(496, 512))
+    elif config.architecture == 'convnext_large':
+        model = convnext_base(pretrained=config.pretrain, num_classes=4, in_chans=1,
+                              img_size=(496, 512))
+    elif config.architecture == 'convnext_xlarge':
+        model = convnext_base(pretrained=config.pretrain, num_classes=4, in_chans=1,
+                              img_size=(496, 512))
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)
@@ -120,16 +150,7 @@ def main():
     #########################################################################################################
 
     print("starting training:\n\n")
-    Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs)
-
-    torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
-
-    #########################################################################################################
-    #                                                 TESTING                                               #
-    #########################################################################################################
-    print("TESTING TIMZZZ")
-
-    Testing(device, label_names, model, test_loader)
+    Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs, test_loader)
 
     print("finita la comedia")
 

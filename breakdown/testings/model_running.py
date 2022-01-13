@@ -1,9 +1,10 @@
 import torch
 from torch.autograd import Variable
 import wandb
+import os
 
 
-def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs):
+def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader):
     iter = 0
     for epoch in range(epochs):
         print(f'epoch: {epoch}')
@@ -33,6 +34,16 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 wandb.log({"loss": loss, "epoch": epoch})
             if iter % 500 == 0:
                 Validation(device, iter, label_names, loss, model, val_loader)
+
+        # save model:
+        torch.save(model.state_dict(), os.path.join(wandb.run.dir, "model.pt"))
+
+        #########################################################################################################
+        #                                                 TESTING                                               #
+        #########################################################################################################
+        print("TESTING TIMZZZ")
+
+        Testing(device, label_names, model, test_loader)
 
 
 def Validation(device, iter, label_names, loss, model, val_loader):
