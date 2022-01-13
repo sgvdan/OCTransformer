@@ -71,7 +71,7 @@ def Get_Model(config, device):
 
     if config.architecture[:4] == 'effi':
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4,
-                                  input_size=(496, 512), test_input_size=(496, 512))
+                                  )
 
     if config.architecture == ' convmixer_1536_20':
         model = timm.create_model(config.architecture, pretrained=config.pretrain, num_classes=4, in_chans=1,
