@@ -16,7 +16,7 @@ hyperparameter_defaults = dict(
     optimizer="adam",
     mom=0.9,
     weight_decay=0,
-    architecture='convnext_base',
+    architecture='convmixer_1536_20',
     pretrain=False,
 )
 
