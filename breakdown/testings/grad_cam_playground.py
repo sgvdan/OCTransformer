@@ -21,7 +21,7 @@ os.environ['PYTHONHASHSEED'] = str(seed)
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-def grad_cam_model(res_model, input_tensor, label):
+def grad_cam_model(res_model, input_tensor, label=0):
     res_model.eval()
     target_layers = [res_model.resnet.layer4[-1]]
     out = res_model(input_tensor)
