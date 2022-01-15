@@ -99,7 +99,7 @@ cat = generate_visualization(dog_cat_image)
 
 # dog
 # generate visualization for class 243: 'bull mastiff'
-dog = generate_visualization(dog_cat_image, class_index=243)
+dog = generate_visualization(dog_cat_image, class_index=1)
 
 axs[1].imshow(cat);
 axs[1].axis('off');
