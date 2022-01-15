@@ -43,9 +43,9 @@ random.seed(seed)
 os.environ['PYTHONHASHSEED'] = str(seed)
 
 def_args = dot_dict({
-    "train": ["../../../data/kermany/train"],
-    "val": ["../../../data/kermany/val"],
-    "test": ["../../../data/kermany/test"],
+    "train": ["../../../../data/kermany/train"],
+    "val": ["../../../../data/kermany/val"],
+    "test": ["../../../../data/kermany/test"],
 })
 
 label_names_dict = {
