@@ -6,7 +6,6 @@ from pathlib import Path
 import cv2 as cv
 
 
-
 class Kermany_DataSet(torch.utils.data.Dataset):
     def __init__(self, path):
         # load your dataset (how every you want, this example has the dataset stored in a json file
@@ -25,8 +24,8 @@ class Kermany_DataSet(torch.utils.data.Dataset):
         i = 0
         self.labels = []
         for path2 in Path(path).rglob('*.jpeg'):
-            # i += 1
-            # if i > 200: break
+            i += 1
+            if i > 3: break
             # path2 = str(path2)
             # image = self.t(cv.imread(path2))
             # label = f_1(path2) + f_2(path2) + f_3(path2) + f_4(path2)
