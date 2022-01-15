@@ -48,7 +48,7 @@ def generate_visualization(original_image, class_index=None):
     transformer_attribution = attribution_generator.generate_LRP(original_image.unsqueeze(0).to(device),
                                                                  method="transformer_attribution",
                                                                  index=class_index).detach()
-    transformer_attribution = transformer_attribution.reshape(1, 1, 14, 14)
+    transformer_attribution = transformer_attribution.reshape(1, 1, 31, 32)
     transformer_attribution = torch.nn.functional.interpolate(transformer_attribution, scale_factor=16, mode='bilinear')
     transformer_attribution = transformer_attribution.reshape(224, 224).to(device).data.cpu().numpy()
     transformer_attribution = (transformer_attribution - transformer_attribution.min()) / (
