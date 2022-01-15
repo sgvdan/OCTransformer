@@ -81,11 +81,11 @@ def print_top_classes(predictions, **kwargs):
         print(output_string)
 
 
-# %%
+#
 # image = Image.open('t.jpeg')
 image = cv2.imread("t.jpeg")
 transform = transforms.Compose([transforms.ToTensor(), transforms.RandomResizedCrop((496, 512))])
-dog_cat_image = transform(image)
+dog_cat_image = transform(image).to(device)
 
 fig, axs = plt.subplots(1, 3)
 axs[0].imshow(image);
