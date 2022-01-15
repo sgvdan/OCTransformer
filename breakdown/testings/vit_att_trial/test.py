@@ -8,60 +8,14 @@ import os
 
 from baselines.ViT.ViT_LRP import vit_base_patch16_224 as vit_LRP
 from baselines.ViT.ViT_explanation_generator import LRP
-import wandb
-import random
 
-
-from data import Kermany_DataSet
-import timm
-import wandb
-import os
-from timm.models.swin_transformer import SwinTransformer
-from utils2 import *
-from model_running import *
-import numpy as np
-import random
-from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
-from pytorch_grad_cam.utils.image import show_cam_on_image
-import torch
-import matplotlib.pyplot as plt
-from torchvision import transforms as transforms
-import cv2 as cv
-
-
-
-wandb.init(project="test_attention")
-
-seed = 25
-torch.manual_seed(hash("by removing stochasticity") % seed)
-torch.cuda.manual_seed_all(hash("so runs are repeatable") % seed)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(seed)
-random.seed(seed)
-os.environ['PYTHONHASHSEED'] = str(seed)
-
-def_args = dot_dict({
-    "train": ["../../../../data/kermany/train"],
-    "val": ["../../../../data/kermany/val"],
-    "test": ["../../../../data/kermany/test"],
-})
-
-label_names_dict = {
+label_names = {
     0: "NORMAL",
     1: "CNV",
     2: "DME",
     3: "DRUSEN",
 }
-
-label_names = [
-    "NORMAL",
-    "CNV",
-    "DME",
-    "DRUSEN",
-]
-CLS2IDX = label_names_dict
+CLS2IDX = label_names
 normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 transform = transforms.Compose([
     transforms.Resize(256),
@@ -127,72 +81,30 @@ def print_top_classes(predictions, **kwargs):
         print(output_string)
 
 
-test_dataset = Kermany_DataSet(def_args.test[0])
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                          batch_size=1,
-                                          shuffle=False)
+#
+# image = Image.open('t.jpeg')
+image = cv2.imread("t.jpeg")
+transform = transforms.Compose([transforms.ToTensor(), transforms.RandomResizedCrop((496, 512))])
+dog_cat_image = transform(image).to(device)
 
-model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
-model = model.to(device)
-correct = 0.0
-correct_arr = [0.0] * 10
-total = 0.0
-total_arr = [0.0] * 10
-predictions = None
-ground_truth = None
-# Iterate through test dataset
+fig, axs = plt.subplots(1, 3)
+axs[0].imshow(image);
+axs[0].axis('off');
 
-columns = ["id", "Original Image", "Predicted", "Truth", "Attention_Map"]
-# for a in label_names:
-#     columns.append("score_" + a)
-test_dt = wandb.Table(columns=columns)
+output = model(dog_cat_image.unsqueeze(0))
+print_top_classes(output)
 
-for i, (images, labels) in enumerate(test_loader):
+# cat - the predicted class
+cat = generate_visualization(dog_cat_image)
 
-    if i % 10 == 0:
-        print(f'image : {i}\n\n\n')
-    images = Variable(images).to(device)
-    labels = labels.to(device)
-    # Forward pass only to get logits/output
-    outputs = model(images.unsqueeze(0))
+# dog
+# generate visualization for class 243: 'bull mastiff'
+dog = generate_visualization(dog_cat_image, class_index=1)
 
-    # Get predictions from the maximum value
-    _, predicted = torch.max(outputs.data, 1)
+axs[1].imshow(cat);
+axs[1].axis('off');
+axs[2].imshow(dog);
+axs[2].axis('off');
 
-    # Total number of labels
-    total += labels.size(0)
-    correct += (predicted == labels).sum()
-
-    for label in range(4):
-        correct_arr[label] += (((predicted == labels) & (labels == label)).sum())
-        total_arr[label] += (labels == label).sum()
-
-    if i == 0:
-        predictions = predicted
-        ground_truth = labels
-    else:
-        predictions = torch.cat((predictions, predicted), 0)
-        ground_truth = torch.cat((ground_truth, labels), 0)
-
-    cat = generate_visualization(images)
-
-
-    row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
-           wandb.Image(cat)]
-    test_dt.add_data(*row)
-
-    # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
-    #                                                    y_true=ground_truth, preds=predictions,
-    #                                                    class_names=label_names)})
-
-accuracy = correct / total
-metrics = {f'Test Accuracy_{name}': accuracy}
-for label in range(4):
-    metrics[f'Test Accuracy_{name}' + label_names[label]] = correct_arr[label] / total_arr[label]
-wandb.log(metrics)
-wandb.log({f"Grads_{name}": test_dt})
-
-
-
-
-
+plt.imshow(cat)
+plt.savefig('foo.png')
