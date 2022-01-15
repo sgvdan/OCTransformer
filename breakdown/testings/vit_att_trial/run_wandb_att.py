@@ -91,7 +91,7 @@ attribution_generator = LRP(model)
 
 
 def generate_visualization(original_image, class_index=None):
-    transformer_attribution = attribution_generator.generate_LRP(original_image.to(device),
+    transformer_attribution = attribution_generator.generate_LRP(original_image.unsqueeze(0).to(device),
                                                                  method="transformer_attribution",
                                                                  index=class_index).detach()
     transformer_attribution = transformer_attribution.reshape(1, 1, 31, 32)
@@ -151,9 +151,10 @@ for i, (images, labels) in enumerate(test_loader):
         print(f'image : {i}\n\n\n')
     images = Variable(images).to(device)
     labels = labels.to(device)
+    images = images.squeeze()
     # Forward pass only to get logits/output
     # print(images.shape)
-    outputs = model(images)
+    outputs = model(images.unsqueeze(0))
 
     # Get predictions from the maximum value
     _, predicted = torch.max(outputs.data, 1)
