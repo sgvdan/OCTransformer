@@ -64,6 +64,8 @@ columns = ["id", "Original Image", "Predicted", "Truth", "GradCAM", 'ScoreCAM', 
 test_dt = wandb.Table(columns=columns)
 
 for i, (images, labels) in enumerate(test_loader):
+    if i == 10:
+        break
     images = Variable(images).to(device)
     labels = labels.to(device)
     # Forward pass only to get logits/output
