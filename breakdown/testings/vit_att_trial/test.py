@@ -90,7 +90,7 @@ dog_cat_image = transform(image).to(device)
 fig, axs = plt.subplots(1, 3)
 axs[0].imshow(image);
 axs[0].axis('off');
-
+print(dog_cat_image.unsqueeze(0).shape)
 output = model(dog_cat_image.unsqueeze(0))
 print_top_classes(output)
 
