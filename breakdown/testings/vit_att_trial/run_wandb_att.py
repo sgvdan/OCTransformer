@@ -155,7 +155,7 @@ for i, (images, labels) in enumerate(test_loader):
     labels = labels.to(device)
     # Forward pass only to get logits/output
     print(images.shape)
-    outputs = model(images.unsqueeze(0))
+    outputs = model(images)
 
     # Get predictions from the maximum value
     _, predicted = torch.max(outputs.data, 1)
