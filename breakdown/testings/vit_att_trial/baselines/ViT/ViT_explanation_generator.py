@@ -32,7 +32,8 @@ class LRP:
         one_hot[0, index] = 1
         one_hot_vector = one_hot
         one_hot = torch.from_numpy(one_hot).requires_grad_(True)
-        one_hot = torch.sum(one_hot * output)
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        one_hot = torch.sum(one_hot.to(device) * output)
 
         self.model.zero_grad()
         one_hot.backward(retain_graph=True)
