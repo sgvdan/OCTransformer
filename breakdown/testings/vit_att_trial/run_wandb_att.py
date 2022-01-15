@@ -151,7 +151,7 @@ for i, (images, labels) in enumerate(test_loader):
 
     if i % 10 == 0:
         print(f'image : {i}\n\n\n')
-    images = Variable(images).to(device)
+    images = images.to(device)
     labels = labels.to(device)
     # Forward pass only to get logits/output
     print(images.shape)
