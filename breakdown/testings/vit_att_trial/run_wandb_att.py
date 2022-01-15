@@ -154,7 +154,7 @@ for i, (images, labels) in enumerate(test_loader):
     images = Variable(images).to(device)
     labels = labels.to(device)
     # Forward pass only to get logits/output
-    print(images.unsqueeze(0).shape)
+    print(images.shape)
     outputs = model(images.unsqueeze(0))
 
     # Get predictions from the maximum value
