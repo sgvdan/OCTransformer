@@ -106,4 +106,5 @@ axs[1].axis('off');
 axs[2].imshow(dog);
 axs[2].axis('off');
 
+plt.imshow(cat)
 plt.savefig('foo.png')
