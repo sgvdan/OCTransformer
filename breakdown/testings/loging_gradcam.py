@@ -45,8 +45,8 @@ test_dataset = Kermany_DataSet(def_args.test[0])
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=False)
-names = ["res18", "res101", "res152"]
-models = [Resnet18(4), Resnet101(4), Resnet152(4)]
+names = ["res18", "res50", "res101", "res152"]
+models = [Resnet18(4), Resnet50(4), Resnet101(4), Resnet152(4)]
 for name, model in zip(names, models):
     model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
     model = model.to(device)
@@ -65,6 +65,9 @@ for name, model in zip(names, models):
     test_dt = wandb.Table(columns=columns)
 
     for i, (images, labels) in enumerate(test_loader):
+
+        if i % 10 == 0:
+            print(f'image : {i}/n/n/n')
         images = Variable(images).to(device)
         labels = labels.to(device)
         # Forward pass only to get logits/output
