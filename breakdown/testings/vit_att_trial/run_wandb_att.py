@@ -91,7 +91,7 @@ attribution_generator = LRP(model)
 
 
 def generate_visualization(original_image, class_index=None):
-    transformer_attribution = attribution_generator.generate_LRP(original_image.unsqueeze(0).to(device),
+    transformer_attribution = attribution_generator.generate_LRP(original_image.to(device),
                                                                  method="transformer_attribution",
                                                                  index=class_index).detach()
     transformer_attribution = transformer_attribution.reshape(1, 1, 31, 32)
