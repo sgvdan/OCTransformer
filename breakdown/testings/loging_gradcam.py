@@ -101,7 +101,7 @@ for i, (images, labels) in enumerate(test_loader):
 
         heatmap = np.uint8(255 * grayscale_cam)
         heatmap = cv.applyColorMap(heatmap, cv.COLORMAP_JET)
-        superimposed_img = heatmap * 0.01 + images.squeeze().permute(1, 2, 0).cpu().detach().numpy()
+        superimposed_img = heatmap * 0.001 + images.squeeze().permute(1, 2, 0).cpu().detach().numpy()
         superimposed_img *= 255.0 / superimposed_img.max()
         res.append(superimposed_img / 255)
     gradcam = res
