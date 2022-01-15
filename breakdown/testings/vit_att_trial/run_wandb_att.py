@@ -132,8 +132,6 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=False)
 
-model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
-model = model.to(device)
 correct = 0.0
 correct_arr = [0.0] * 10
 total = 0.0
@@ -151,10 +149,10 @@ for i, (images, labels) in enumerate(test_loader):
 
     if i % 10 == 0:
         print(f'image : {i}\n\n\n')
-    images = images.to(device)
+    images = Variable(images).to(device)
     labels = labels.to(device)
     # Forward pass only to get logits/output
-    print(images.shape)
+    # print(images.shape)
     outputs = model(images)
 
     # Get predictions from the maximum value
