@@ -45,7 +45,7 @@ test_dataset = Kermany_DataSet(def_args.test[0])
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=False)
-names = ["res18", "res101", "res1152"]
+names = ["res18", "res101", "res152"]
 models = [Resnet18(4), Resnet101(4), Resnet152(4)]
 for name, model in zip(names, models):
     model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
