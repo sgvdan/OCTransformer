@@ -24,6 +24,7 @@ import os
 
 from baselines.ViT.ViT_LRP import vit_base_patch16_224 as vit_LRP
 from baselines.ViT.ViT_explanation_generator import LRP
+from pytorch_grad_cam.ablation_layer import AblationLayerVit
 
 label_names = {
     0: "NORMAL",
@@ -169,12 +170,14 @@ for i, (images, labels) in enumerate(test_loader):
         ground_truth = torch.cat((ground_truth, labels), 0)
 
     target_layers = [model.blocks[-1].norm1]
+
     cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad]
     res = []
     images = images.unsqueeze(0)
     for cam_algo in cams:
+        print(images.shape)
         cam = cam_algo(model=model, target_layers=target_layers,
-                       use_cuda=True if torch.cuda.is_available() else False)
+                       use_cuda=True if torch.cuda.is_available() else False, ablation_layer=AblationLayerVit)
         target_category = labels.item()
         grayscale_cam = cam(input_tensor=images)
         grayscale_cam = grayscale_cam[0, :]
