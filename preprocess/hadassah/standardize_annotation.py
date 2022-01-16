@@ -1,3 +1,4 @@
+import argparse
 from zipfile import Path
 import pandas
 
@@ -23,13 +24,18 @@ def standardize_annotation(annotations):
     annotations.insert(3, 'E.I.D', None)
 
     annotations = annotations.iloc[:, :LAST_COLUMN]
-    
+
     return annotations.sort_index().reset_index(drop=True)
 
 
 if __name__ == '__main__':
-    annotations_path = '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/original/annotations.xlsx'
-    dest_path = '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/original/std_annotations.xlsx'
+    parser = argparse.ArgumentParser(description='Standardize Hadassah Annotations')
+    parser.add_argument('-i', '--input', type=str, required=True,
+                        help='Input annotations path (.xlsx)')
+    parser.add_argument('-o', '--output', type=str, required=True,
+                        help='Output (standardized) annotations path (.xlsx)')
 
-    annotations = pandas.read_excel(annotations_path)
-    standardize_annotation(annotations).to_excel(dest_path)
+    args = parser.parse_args()
+
+    annotations = pandas.read_excel(args.input)
+    standardize_annotation(annotations).to_excel(args.output)

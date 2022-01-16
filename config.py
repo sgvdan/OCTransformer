@@ -5,8 +5,8 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': False,
-                           'log_group': 'hadassah/dme-classification',
+                           'log': True,
+                           'log_group': 'hadassah/straight-forward',
                            'log_frequency': 10,
 
                            # Kermany Dataset
