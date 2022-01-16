@@ -177,7 +177,7 @@ for i, (images, labels) in enumerate(test_loader):
 
     target_layers = [model_timm.blocks[-1].norm1]
 
-    cams = [GradCAM, ScoreCAM]
+    cams = [GradCAMPlusPlus, ScoreCAM]#, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad]
     res = []
     images = images.unsqueeze(0)
 
