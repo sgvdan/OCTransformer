@@ -1,17 +1,3 @@
-from PIL import Image
-import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
-import torch
-import numpy as np
-import cv2
-import os
-
-from baselines.ViT.ViT_LRP import vit_base_patch16_224 as vit_LRP
-from baselines.ViT.ViT_explanation_generator import LRP
-import wandb
-import random
-
-
 from attn_data import Kermany_DataSet
 import timm
 import wandb
@@ -28,40 +14,24 @@ import torch
 import matplotlib.pyplot as plt
 from torchvision import transforms as transforms
 import cv2 as cv
+from PIL import Image
+import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
+import torch
+import numpy as np
+import cv2
+import os
 
+from baselines.ViT.ViT_LRP import vit_base_patch16_224 as vit_LRP
+from baselines.ViT.ViT_explanation_generator import LRP
 
-
-wandb.init(project="test_attention")
-
-seed = 25
-torch.manual_seed(hash("by removing stochasticity") % seed)
-torch.cuda.manual_seed_all(hash("so runs are repeatable") % seed)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(seed)
-random.seed(seed)
-os.environ['PYTHONHASHSEED'] = str(seed)
-
-def_args = dot_dict({
-    "train": ["../../../../data/kermany/train"],
-    "val": ["../../../../data/kermany/val"],
-    "test": ["../../../../data/kermany/test"],
-})
-
-label_names_dict = {
+label_names = {
     0: "NORMAL",
     1: "CNV",
     2: "DME",
     3: "DRUSEN",
 }
-
-label_names = [
-    "NORMAL",
-    "CNV",
-    "DME",
-    "DRUSEN",
-]
-CLS2IDX = label_names_dict
+CLS2IDX = label_names
 normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 transform = transforms.Compose([
     transforms.Resize(256),
@@ -75,7 +45,7 @@ transform = transforms.Compose([
 def show_cam_on_image(img, mask):
     heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
     heatmap = np.float32(heatmap) / 255
-    cam = heatmap + np.float32(img)
+    cam = heatmap * 0.4 + np.float32(img)
     cam = cam / np.max(cam)
     return cam
 
@@ -127,11 +97,34 @@ def print_top_classes(predictions, **kwargs):
         print(output_string)
 
 
+wandb.init(project="test_attn_plus_gradcam")
+
+seed = 25
+torch.manual_seed(hash("by removing stochasticity") % seed)
+torch.cuda.manual_seed_all(hash("so runs are repeatable") % seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+np.random.seed(seed)
+random.seed(seed)
+os.environ['PYTHONHASHSEED'] = str(seed)
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+def_args = dot_dict({
+    "train": ["../../../data/kermany/train"],
+    "val": ["../../../data/kermany/val"],
+    "test": ["../../../../data/kermany/test"],
+})
+
+label_names = [
+    "NORMAL",
+    "CNV",
+    "DME",
+    "DRUSEN",
+]
 test_dataset = Kermany_DataSet(def_args.test[0])
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=False)
-
 correct = 0.0
 correct_arr = [0.0] * 10
 total = 0.0
@@ -140,13 +133,14 @@ predictions = None
 ground_truth = None
 # Iterate through test dataset
 
-columns = ["id", "Original Image", "Predicted", "Truth", "Attention_Map"]
+columns = ["id", "Original Image", "Predicted", "Truth", "Attention", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus',
+           'AblationCAM',
+           'XGradCAM', 'EigenCAM', 'FullGrad']
 # for a in label_names:
 #     columns.append("score_" + a)
 test_dt = wandb.Table(columns=columns)
 
 for i, (images, labels) in enumerate(test_loader):
-
     if i % 10 == 0:
         print(f'image : {i}\n\n\n')
     images = Variable(images).to(device)
@@ -174,11 +168,26 @@ for i, (images, labels) in enumerate(test_loader):
         predictions = torch.cat((predictions, predicted), 0)
         ground_truth = torch.cat((ground_truth, labels), 0)
 
+    target_layers = [model.blocks[-1].norm1]
+    cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad]
+    res = []
+    for cam_algo in cams:
+        cam = cam_algo(model=model, target_layers=target_layers,
+                       use_cuda=True if torch.cuda.is_available() else False)
+        target_category = labels.item()
+        grayscale_cam = cam(input_tensor=images)
+        grayscale_cam = grayscale_cam[0, :]
+
+        heatmap = np.uint8(255 * grayscale_cam)
+        heatmap = cv.applyColorMap(heatmap, cv.COLORMAP_JET)
+        superimposed_img = heatmap * 0.01 + images.squeeze().permute(1, 2, 0).cpu().detach().numpy() * 5
+        superimposed_img *= 255.0 / superimposed_img.max()
+        res.append(superimposed_img / 255)
+    gradcam = res
     cat = generate_visualization(images)
-
-
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
-           wandb.Image(cat)]
+           wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
+           wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[5]), wandb.Image(gradcam[6])]
     test_dt.add_data(*row)
 
     # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
@@ -191,8 +200,3 @@ for label in range(4):
     metrics[f'Test Accuracy_{name}' + label_names[label]] = correct_arr[label] / total_arr[label]
 wandb.log(metrics)
 wandb.log({f"Grads_{name}": test_dt})
-
-
-
-
-
