@@ -176,7 +176,7 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.unsqueeze(0)
 
 
-    def reshape_transform(tensor, height=14, width=14):
+    def reshape_transform(tensor, height=31, width=32):
         result = tensor[:, 1:, :].reshape(tensor.size(0),
                                           height, width, tensor.size(2))
 
