@@ -171,6 +171,7 @@ for i, (images, labels) in enumerate(test_loader):
     target_layers = [model.blocks[-1].norm1]
     cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad]
     res = []
+    images = images.unsqueeze(0)
     for cam_algo in cams:
         cam = cam_algo(model=model, target_layers=target_layers,
                        use_cuda=True if torch.cuda.is_available() else False)
@@ -184,6 +185,7 @@ for i, (images, labels) in enumerate(test_loader):
         superimposed_img *= 255.0 / superimposed_img.max()
         res.append(superimposed_img / 255)
     gradcam = res
+    images = images.squeeze()
     cat = generate_visualization(images)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
