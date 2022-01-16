@@ -138,10 +138,10 @@ predictions = None
 ground_truth = None
 # Iterate through test dataset
 
-columns = ["id", "Original Image", "Predicted", "Truth", "Attention", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus']\
+columns = ["id", "Original Image", "Predicted", "Truth", "Attention", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus'] \
     # , 'GradCAMPlusPlus',
-    #        'AblationCAM',
-    #        'XGradCAM', 'EigenCAM', 'FullGrad']
+#        'AblationCAM',
+#        'XGradCAM', 'EigenCAM', 'FullGrad']
 # for a in label_names:
 #     columns.append("score_" + a)
 test_dt = wandb.Table(columns=columns)
@@ -177,7 +177,7 @@ for i, (images, labels) in enumerate(test_loader):
 
     target_layers = [model_timm.blocks[-1].norm1]
 
-    cams = [GradCAM, ScoreCAM, GradCAMPlusPlus]#, AblationCAM, XGradCAM, EigenCAM, FullGrad]
+    cams = [GradCAM, ScoreCAM, GradCAMPlusPlus]  # , AblationCAM, XGradCAM, EigenCAM, FullGrad]
     res = []
     images = images.unsqueeze(0)
 
@@ -209,7 +209,7 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.squeeze()
     cat = generate_visualization(images)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
-           wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1])  , wandb.Image(gradcam[2])],
+           wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2])]
     # wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[5]), wandb.Image(gradcam[6])]
     test_dt.add_data(*row)
 
