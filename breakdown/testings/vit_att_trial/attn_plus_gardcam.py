@@ -218,6 +218,8 @@ for i, (images, labels) in enumerate(test_loader):
     print()
     print()
     print(gradcam[0])
+    wandb.log(sum)
+    wandb.log(gradcam[0])
     # print(type(cat))
     # print(cat.shape)
     # print(type(gradcam[0]))
