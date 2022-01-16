@@ -220,6 +220,7 @@ for i, (images, labels) in enumerate(test_loader):
     print(gradcam[0])
     wandb.log({"sum": sum})
     wandb.log({"gradcam[0]": gradcam[0]})
+    sum.tofile("sum.dat")
     # print(type(cat))
     # print(cat.shape)
     # print(type(gradcam[0]))
@@ -228,6 +229,8 @@ for i, (images, labels) in enumerate(test_loader):
     # print((gradcam[0].min(), gradcam[0].max()))
     for j in range(len(gradcam)):
         sum = sum + gradcam[j]
+        gradcam[j].tofile(f"gradcam_{j}.dat")
+
         # print(f'i:{j} range:{(sum.min(), sum.max())}')
     # print((sum.min(), sum.max()))
     # sum = sum / 7
