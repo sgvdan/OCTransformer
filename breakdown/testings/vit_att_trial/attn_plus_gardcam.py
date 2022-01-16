@@ -138,9 +138,10 @@ predictions = None
 ground_truth = None
 # Iterate through test dataset
 
-columns = ["id", "Original Image", "Predicted", "Truth", "Attention", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus',
-           'AblationCAM',
-           'XGradCAM', 'EigenCAM', 'FullGrad']
+columns = ["id", "Original Image", "Predicted", "Truth", "Attention", "GradCAM", 'ScoreCAM']\
+    # , 'GradCAMPlusPlus',
+    #        'AblationCAM',
+    #        'XGradCAM', 'EigenCAM', 'FullGrad']
 # for a in label_names:
 #     columns.append("score_" + a)
 test_dt = wandb.Table(columns=columns)
