@@ -196,7 +196,7 @@ for i, (images, labels) in enumerate(test_loader):
                        use_cuda=True if torch.cuda.is_available() else False, reshape_transform=reshape_transform,
                        )
         target_category = labels.item()
-        grayscale_cam = cam(input_tensor=images, aug_smooth=True, eigen_smooth=True)
+        grayscale_cam = cam(input_tensor=images)  # , aug_smooth=True, eigen_smooth=True)
 
         image_transformer_attribution = images.squeeze().permute(1, 2, 0).data.cpu().numpy()
         image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
@@ -204,31 +204,25 @@ for i, (images, labels) in enumerate(test_loader):
         vis = show_cam_on_image(image_transformer_attribution, grayscale_cam[0, :])
         vis = np.uint8(255 * vis)
         vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
-        grayscale_cam = grayscale_cam[0, :]
-
-        heatmap = np.uint8(255 * grayscale_cam)
-        heatmap = cv.applyColorMap(heatmap, cv.COLORMAP_JET)
-        superimposed_img = heatmap * 0.01 + images.squeeze().permute(1, 2, 0).cpu().detach().numpy() * 5
-        superimposed_img *= 255.0 / superimposed_img.max()
         res.append(vis)  # superimposed_img / 255)
     gradcam = res
     images = images.squeeze()
     cat = generate_visualization(images)
 
-    sum = cat.copy()
-    print(type(cat))
-    print(cat.shape)
-    print(type(gradcam[0]))
-    print(gradcam[0].shape)
-    print((cat.min(), cat.max()))
-    print((gradcam[0].min(), gradcam[0].max()))
+    sum = cat
+    # print(type(cat))
+    # print(cat.shape)
+    # print(type(gradcam[0]))
+    # print(gradcam[0].shape)
+    # print((cat.min(), cat.max()))
+    # print((gradcam[0].min(), gradcam[0].max()))
     for j in range(len(gradcam)):
-        sum += gradcam[j].copy()
-        print(f'i:{j} range:{(sum.min(), sum.max())}')
-    print((sum.min(), sum.max()))
+        sum = sum + gradcam[j]
+    #     print(f'i:{j} range:{(sum.min(), sum.max())}')
+    # print((sum.min(), sum.max()))
     # sum = sum / 7
-    print((sum.min(), sum.max()))
-    print(sum.shape)
+    # print((sum.min(), sum.max()))
+    # print(sum.shape)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(sum)]
