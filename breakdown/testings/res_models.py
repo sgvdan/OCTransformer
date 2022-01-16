@@ -19,7 +19,6 @@ class Resnet18(torch.nn.Module):
 
         return x
 
-
 class Resnet50(torch.nn.Module):
     def __init__(self, num_classes, pretrained=False):
         super().__init__()

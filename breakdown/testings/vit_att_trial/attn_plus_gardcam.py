@@ -54,11 +54,15 @@ def show_cam_on_image(img, mask):
 name = 'vit_base_patch16_224'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # initialize ViT pretrained
-model = vit_LRP(num_classes=4, img_size=(496, 512))
-model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
-model = model.to(device)
-model.eval()
-attribution_generator = LRP(model)
+model_timm = timm.create_model(name, num_classes=4, img_size=(496, 512))
+model_timm.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
+model_timm = model_timm.to(device)
+
+model_attn = vit_LRP(num_classes=4, img_size=(496, 512))
+model_attn.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
+model_attn = model_attn.to(device)
+model_attn.eval()
+attribution_generator = LRP(model_attn)
 
 
 def generate_visualization(original_image, class_index=None):
@@ -149,10 +153,11 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.squeeze()
     # Forward pass only to get logits/output
     # print(images.shape)
-    outputs = model(images.unsqueeze(0))
+    outputs_attn = model_attn(images.unsqueeze(0))
+    outputs_timm = model_attn(images.unsqueeze(0))
 
     # Get predictions from the maximum value
-    _, predicted = torch.max(outputs.data, 1)
+    _, predicted = torch.max(outputs_attn.data, 1)
 
     # Total number of labels
     total += labels.size(0)
@@ -169,7 +174,7 @@ for i, (images, labels) in enumerate(test_loader):
         predictions = torch.cat((predictions, predicted), 0)
         ground_truth = torch.cat((ground_truth, labels), 0)
 
-    target_layers = [model.blocks[-1].norm1]
+    target_layers = [model_timm.blocks[-1].norm1]
 
     cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad]
     res = []
@@ -188,7 +193,7 @@ for i, (images, labels) in enumerate(test_loader):
 
     for cam_algo in cams:
         print(images.shape)
-        cam = cam_algo(model=model, target_layers=target_layers,
+        cam = cam_algo(model=model_timm, target_layers=target_layers,
                        use_cuda=True if torch.cuda.is_available() else False, reshape_transform=reshape_transform)
         target_category = labels.item()
         grayscale_cam = cam(input_tensor=images)
