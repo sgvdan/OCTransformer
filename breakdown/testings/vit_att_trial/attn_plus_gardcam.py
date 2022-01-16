@@ -217,13 +217,16 @@ for i, (images, labels) in enumerate(test_loader):
 
     sum = cat.copy()
     print(type(cat))
+    print(cat.shape)
     print(type(gradcam[0]))
+    print(gradcam[0].shape)
     print((cat.min(), cat.max()))
     print((gradcam[0].min(), gradcam[0].max()))
     for j in range(len(gradcam)):
         sum += gradcam[j].copy()
     sum = sum / 7
     print((sum.min(), sum.max()))
+    print(sum.shape)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(sum)]
