@@ -196,7 +196,7 @@ for i, (images, labels) in enumerate(test_loader):
                        use_cuda=True if torch.cuda.is_available() else False, reshape_transform=reshape_transform,
                        )
         target_category = labels.item()
-        grayscale_cam = cam(input_tensor=images)  # , aug_smooth=True, eigen_smooth=True)
+        grayscale_cam = cam(input_tensor=images, aug_smooth=True, eigen_smooth=True)
 
         image_transformer_attribution = images.squeeze().permute(1, 2, 0).data.cpu().numpy()
         image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
@@ -210,32 +210,10 @@ for i, (images, labels) in enumerate(test_loader):
     cat = generate_visualization(images)
 
     sum = cat.copy()
-    print(sum)
-    print()
-    print()
-    print()
-    print()
-    print()
-    print()
-    print(gradcam[0])
-    wandb.log({"sum": sum})
-    wandb.log({"gradcam[0]": gradcam[0]})
-    np.save(f'sum.npy', sum)
-    # print(type(cat))
-    # print(cat.shape)
-    # print(type(gradcam[0]))
-    # print(gradcam[0].shape)
-    # print((cat.min(), cat.max()))
-    # print((gradcam[0].min(), gradcam[0].max()))
-    for j in range(len(gradcam)):
-        sum = sum + gradcam[j]
-        np.save(f'gradcam_{j}.npy', gradcam[j])
-
-        # print(f'i:{j} range:{(sum.min(), sum.max())}')
-    # print((sum.min(), sum.max()))
-    # sum = sum / 7
-    # print((sum.min(), sum.max()))
-    # print(sum.shape)
+    for i in range(len(gradcam)):
+        sum = sum + gradcam[i].astype(np.float32)
+    sum *= 255.0 / sum.max()
+    sum = sum.astype(np.uint8)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(sum)]
