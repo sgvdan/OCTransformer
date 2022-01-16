@@ -226,7 +226,7 @@ for i, (images, labels) in enumerate(test_loader):
         sum += gradcam[j].copy()
         print(f'i:{j} range:{(sum.min(), sum.max())}')
     print((sum.min(), sum.max()))
-    sum = sum / 7
+    # sum = sum / 7
     print((sum.min(), sum.max()))
     print(sum.shape)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
