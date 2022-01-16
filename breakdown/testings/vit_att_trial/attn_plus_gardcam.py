@@ -7,7 +7,7 @@ from utils2 import *
 from model_running import *
 import numpy as np
 import random
-from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
+from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad, EigenGradCAM
 from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from pytorch_grad_cam.utils.image import show_cam_on_image
 import torch
@@ -139,7 +139,7 @@ ground_truth = None
 # Iterate through test dataset
 
 columns = ["id", "Original Image", "Predicted", "Truth", "Attention", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus',
-           'XGradCAM', 'EigenCAM']
+           'XGradCAM', 'EigenCAM', 'EigenGradCAM']
 # for a in label_names:
 #     columns.append("score_" + a)
 test_dt = wandb.Table(columns=columns)
@@ -175,7 +175,7 @@ for i, (images, labels) in enumerate(test_loader):
 
     target_layers = [model_timm.blocks[-1].norm1]
 
-    cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, XGradCAM, EigenCAM]
+    cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, XGradCAM, EigenCAM, EigenGradCAM]
     res = []
     images = images.unsqueeze(0)
 
@@ -191,7 +191,7 @@ for i, (images, labels) in enumerate(test_loader):
 
 
     for cam_algo in cams:
-        print(images.shape)
+        # print(images.shape)
         cam = cam_algo(model=model_timm, target_layers=target_layers,
                        use_cuda=True if torch.cuda.is_available() else False, reshape_transform=reshape_transform)
         target_category = labels.item()
@@ -208,7 +208,7 @@ for i, (images, labels) in enumerate(test_loader):
     cat = generate_visualization(images)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
-           wandb.Image(gradcam[3]), wandb.Image(gradcam[4])]
+           wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4])]
     test_dt.add_data(*row)
 
     # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
