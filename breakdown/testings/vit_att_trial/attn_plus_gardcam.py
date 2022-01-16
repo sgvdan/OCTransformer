@@ -218,8 +218,8 @@ for i, (images, labels) in enumerate(test_loader):
     sum = cat.copy()
     print(type(cat))
     print(type(gradcam[0]))
-    print((cat.min, cat.max))
-    print((gradcam[0].min, gradcam[0].max))
+    print((cat.min(), cat.max()))
+    print((gradcam[0].min(), gradcam[0].max()))
     for j in range(len(gradcam)):
         sum += gradcam[j].copy()
     sum = sum / 7
