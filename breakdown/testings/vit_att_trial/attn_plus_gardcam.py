@@ -216,11 +216,11 @@ for i, (images, labels) in enumerate(test_loader):
     cat = generate_visualization(images)
 
     sum = cat.copy()
+    print(type(cat))
+    print(type(gradcam[0]))
     for j in range(len(gradcam)):
         sum += gradcam[j].copy()
     sum = sum / 7
-
-
 
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
