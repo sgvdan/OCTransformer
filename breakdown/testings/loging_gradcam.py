@@ -65,8 +65,9 @@ for name, model in zip(names, models):
     test_dt = wandb.Table(columns=columns)
 
     for i, (images, labels) in enumerate(test_loader):
-
-        if i % 10 == 0:
+        if i % 2 == 0 or i % 3 == 0:
+            continue
+        if i % 7 == 0:
             print(f'image : {i}/n/n/n')
         images = Variable(images).to(device)
         labels = labels.to(device)
