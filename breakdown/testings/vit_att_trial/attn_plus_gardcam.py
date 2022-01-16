@@ -174,10 +174,22 @@ for i, (images, labels) in enumerate(test_loader):
     cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad]
     res = []
     images = images.unsqueeze(0)
+
+
+    def reshape_transform(tensor, height=14, width=14):
+        result = tensor[:, 1:, :].reshape(tensor.size(0),
+                                          height, width, tensor.size(2))
+
+        # Bring the channels to the first dimension,
+        # like in CNNs.
+        result = result.transpose(2, 3).transpose(1, 2)
+        return result
+
+
     for cam_algo in cams:
         print(images.shape)
         cam = cam_algo(model=model, target_layers=target_layers,
-                       use_cuda=True if torch.cuda.is_available() else False, ablation_layer=AblationLayerVit)
+                       use_cuda=True if torch.cuda.is_available() else False, reshape_transform=reshape_transform)
         target_category = labels.item()
         grayscale_cam = cam(input_tensor=images)
         grayscale_cam = grayscale_cam[0, :]
