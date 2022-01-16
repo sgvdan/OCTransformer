@@ -197,13 +197,20 @@ for i, (images, labels) in enumerate(test_loader):
                        )
         target_category = labels.item()
         grayscale_cam = cam(input_tensor=images, aug_smooth=True, eigen_smooth=True)
+
+        image_transformer_attribution = images.squeeze().permute(1, 2, 0).data.cpu().numpy()
+        image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
+                image_transformer_attribution.max() - image_transformer_attribution.min())
+        vis = show_cam_on_image(image_transformer_attribution, grayscale_cam[0, :])
+        vis = np.uint8(255 * vis)
+        vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
         grayscale_cam = grayscale_cam[0, :]
 
         heatmap = np.uint8(255 * grayscale_cam)
         heatmap = cv.applyColorMap(heatmap, cv.COLORMAP_JET)
         superimposed_img = heatmap * 0.01 + images.squeeze().permute(1, 2, 0).cpu().detach().numpy() * 5
         superimposed_img *= 255.0 / superimposed_img.max()
-        res.append(superimposed_img / 255)
+        res.append(vis)  # superimposed_img / 255)
     gradcam = res
     images = images.squeeze()
     cat = generate_visualization(images)
