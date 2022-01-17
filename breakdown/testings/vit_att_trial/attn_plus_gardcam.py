@@ -42,6 +42,16 @@ transform = transforms.Compose([
 ])
 
 
+def reshape_transform(tensor, height=31, width=32):
+    result = tensor[:, 1:, :].reshape(tensor.size(0),
+                                      height, width, tensor.size(2))
+
+    # Bring the channels to the first dimension,
+    # like in CNNs.
+    result = result.transpose(2, 3).transpose(1, 2)
+    return result
+
+
 # create heatmap from mask on image
 def show_cam_on_image(img, mask):
     heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
@@ -83,7 +93,7 @@ def generate_visualization(original_image, class_index=None):
     vis = show_cam_on_image(image_transformer_attribution, transformer_attribution)
     vis = np.uint8(255 * vis)
     vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
-    return vis
+    return vis, transformer_attribution
 
 
 def print_top_classes(predictions, **kwargs):
@@ -180,18 +190,8 @@ for i, (images, labels) in enumerate(test_loader):
 
     cams = [GradCAM, ScoreCAM, GradCAMPlusPlus, XGradCAM, EigenCAM, EigenGradCAM]
     res = []
+    just_grads = []
     images = images.unsqueeze(0)
-
-
-    def reshape_transform(tensor, height=31, width=32):
-        result = tensor[:, 1:, :].reshape(tensor.size(0),
-                                          height, width, tensor.size(2))
-
-        # Bring the channels to the first dimension,
-        # like in CNNs.
-        result = result.transpose(2, 3).transpose(1, 2)
-        return result
-
 
     for cam_algo in cams:
         # print(images.shape)
@@ -200,7 +200,7 @@ for i, (images, labels) in enumerate(test_loader):
                        )
         target_category = labels.item()
         grayscale_cam = cam(input_tensor=images, aug_smooth=True, eigen_smooth=True)
-
+        just_grads.append(grayscale_cam[0, :])
         image_transformer_attribution = images.squeeze().permute(1, 2, 0).data.cpu().numpy()
         image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
                 image_transformer_attribution.max() - image_transformer_attribution.min())
@@ -210,22 +210,16 @@ for i, (images, labels) in enumerate(test_loader):
         res.append(vis)  # superimposed_img / 255)
     gradcam = res
     images = images.squeeze()
-    cat = generate_visualization(images)
+    cat, attn_map = generate_visualization(images)
 
-    np.save(f'images.npy', images.permute(1, 2, 0).cpu().numpy().astype(np.float32))
-    sum = cat.copy() - images.permute(1, 2, 0).cpu().numpy().astype(np.float32)
-    sum = sum * 40
-    for i in range(len(gradcam)):
-        only_grad = (gradcam[i].astype(np.float32) - images.permute(1, 2, 0).cpu().numpy().astype(np.float32))
-        m = only_grad.max()
-        only_grad[only_grad < m / 5] = 0
-        sum = sum + only_grad
-    sum *= 255.0 / sum.max()
-    sum = sum.astype(np.uint8)
-    sum = show_cam_on_image(image_transformer_attribution, sum)
+    # np.save(f'images.npy', images.permute(1, 2, 0).cpu().numpy().astype(np.float32))
+    avg = attn_map
+    for grad in just_grads:
+        avg += grad
+    avg = show_cam_on_image(image_transformer_attribution, avg)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
-           wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(sum)]
+           wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(avg)]
     test_dt.add_data(*row)
 
     # wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
