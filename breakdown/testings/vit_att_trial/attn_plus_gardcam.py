@@ -212,6 +212,7 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.squeeze()
     cat = generate_visualization(images)
 
+    np.save(f'images.npy', images.permute(1, 2, 0).cpu().numpy().astype(np.float32))
     sum = cat.copy() - images.permute(1, 2, 0).cpu().numpy().astype(np.float32)
     sum = sum * 40
     for i in range(len(gradcam)):
