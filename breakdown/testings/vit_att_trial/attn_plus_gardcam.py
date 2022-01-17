@@ -212,9 +212,12 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.squeeze()
     cat, attn_map = generate_visualization(images)
 
-    # np.save(f'images.npy', images.permute(1, 2, 0).cpu().numpy().astype(np.float32))
+    np.save(f'image_transformer_attribution.npy', image_transformer_attribution)
     avg = attn_map
-    for grad in just_grads:
+    np.save(f'attn_map.npy', attn_map)
+
+    for j, grad in enumerate(just_grads):
+        np.save(f'grad[{j}.npy', grad)
         avg += grad
     avg = show_cam_on_image(image_transformer_attribution, avg)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
