@@ -213,7 +213,7 @@ for i, (images, labels) in enumerate(test_loader):
     cat = generate_visualization(images)
 
     sum = cat.copy() - images.permute(1, 2, 0).cpu().numpy().astype(np.float32)
-    sum = sum * 4
+    sum = sum * 40
     for i in range(len(gradcam)):
         only_grad = (gradcam[i].astype(np.float32) - images.permute(1, 2, 0).cpu().numpy().astype(np.float32))
         m = only_grad.max()
