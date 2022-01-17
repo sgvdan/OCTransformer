@@ -26,6 +26,18 @@ from baselines.ViT.ViT_LRP import vit_base_patch16_224 as vit_LRP
 from baselines.ViT.ViT_explanation_generator import LRP
 from pytorch_grad_cam.ablation_layer import AblationLayerVit
 
+seed = 25
+torch.manual_seed(hash("by removing stochasticity") % seed)
+torch.cuda.manual_seed_all(hash("so runs are repeatable") % seed)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+np.random.seed(seed)
+random.seed(seed)
+os.environ['PYTHONHASHSEED'] = str(seed)
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+wandb.init(project="test_attn_plus_gradcam")
+
 label_names = {
     0: "NORMAL",
     1: "CNV",
@@ -33,13 +45,6 @@ label_names = {
     3: "DRUSEN",
 }
 CLS2IDX = label_names
-normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-transform = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    normalize,
-])
 
 
 def reshape_transform(tensor, height=31, width=32):
@@ -62,7 +67,6 @@ def show_cam_on_image(img, mask):
 
 
 name = 'vit_base_patch16_224'
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # initialize ViT pretrained
 model_timm = timm.create_model(name, num_classes=4, img_size=(496, 512))
 model_timm.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
@@ -76,6 +80,8 @@ attribution_generator = LRP(model_attn)
 
 pytorch_total_params = sum(p.numel() for p in model_timm.parameters())
 pytorch_total_params_train = sum(p.numel() for p in model_timm.parameters() if p.requires_grad)
+wandb.log({"Total Params": pytorch_total_params})
+wandb.log({"Trainable Params": pytorch_total_params_train})
 
 
 def generate_visualization(original_image, class_index=None):
@@ -95,37 +101,6 @@ def generate_visualization(original_image, class_index=None):
     vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
     return vis, transformer_attribution
 
-
-def print_top_classes(predictions, **kwargs):
-    # Print Top-5 predictions
-    prob = torch.softmax(predictions, dim=1)
-    class_indices = predictions.data.topk(4, dim=1)[1][0].tolist()
-    max_str_len = 0
-    class_names = []
-    for cls_idx in class_indices:
-        class_names.append(CLS2IDX[cls_idx])
-        if len(CLS2IDX[cls_idx]) > max_str_len:
-            max_str_len = len(CLS2IDX[cls_idx])
-
-    print('Top 5 classes:')
-    for cls_idx in class_indices:
-        output_string = '\t{} : {}'.format(cls_idx, CLS2IDX[cls_idx])
-        output_string += ' ' * (max_str_len - len(CLS2IDX[cls_idx])) + '\t\t'
-        output_string += 'value = {:.3f}\t prob = {:.1f}%'.format(predictions[0, cls_idx], 100 * prob[0, cls_idx])
-        print(output_string)
-
-
-wandb.init(project="test_attn_plus_gradcam")
-
-seed = 25
-torch.manual_seed(hash("by removing stochasticity") % seed)
-torch.cuda.manual_seed_all(hash("so runs are repeatable") % seed)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-np.random.seed(seed)
-random.seed(seed)
-os.environ['PYTHONHASHSEED'] = str(seed)
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def_args = dot_dict({
     "train": ["../../../data/kermany/train"],
@@ -213,7 +188,7 @@ for i, (images, labels) in enumerate(test_loader):
     cat, attn_map = generate_visualization(images)
 
     avg = attn_map.copy() * 5
-    print(avg.max())
+    # print(avg.max())
     for j, grad in enumerate(just_grads):
         g = grad.copy()
         # plt.imshow(g)
