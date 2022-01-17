@@ -212,7 +212,7 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.squeeze()
     cat, attn_map = generate_visualization(images)
 
-    avg = attn_map.copy() * 10
+    avg = attn_map.copy() * 2
     for j, grad in enumerate(just_grads):
         g = grad.copy()
         g[[g > g.max() / 5]] = 0
