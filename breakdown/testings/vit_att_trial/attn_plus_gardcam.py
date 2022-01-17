@@ -64,6 +64,9 @@ model_attn = model_attn.to(device)
 model_attn.eval()
 attribution_generator = LRP(model_attn)
 
+pytorch_total_params = sum(p.numel() for p in model_timm.parameters())
+pytorch_total_params_train = sum(p.numel() for p in model_timm.parameters() if p.requires_grad)
+
 
 def generate_visualization(original_image, class_index=None):
     transformer_attribution = attribution_generator.generate_LRP(original_image.unsqueeze(0).to(device),
@@ -209,11 +212,12 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.squeeze()
     cat = generate_visualization(images)
 
-    sum = cat.copy()
+    sum = cat.copy() - images.cpu().numpy().astype(np.float32)
     for i in range(len(gradcam)):
-        sum = sum + gradcam[i].astype(np.float32)
+        sum = sum + (gradcam[i].astype(np.float32) - images.cpu().numpy().astype(np.float32))
     sum *= 255.0 / sum.max()
     sum = sum.astype(np.uint8)
+    sum = show_cam_on_image(images, sum)
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(sum)]
