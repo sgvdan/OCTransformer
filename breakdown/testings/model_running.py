@@ -5,7 +5,6 @@ import os
 import time
 
 
-
 def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader):
     iter = 0
     for epoch in range(epochs):
@@ -24,6 +23,8 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             outputs = model(images)
 
             # Calculate Loss: softmax --> cross entropy loss
+            print(outputs.shape)
+            print(labels.shape)
             loss = criterion(outputs, labels)
             # Getting gradients w.r.t. parameters
             loss.backward()
