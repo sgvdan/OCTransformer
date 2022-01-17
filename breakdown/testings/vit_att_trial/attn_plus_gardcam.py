@@ -83,7 +83,6 @@ pytorch_total_params_train = sum(p.numel() for p in model_timm.parameters() if p
 wandb.log({"Total Params": pytorch_total_params})
 wandb.log({"Trainable Params": pytorch_total_params_train})
 
-
 def generate_visualization(original_image, class_index=None):
     transformer_attribution = attribution_generator.generate_LRP(original_image.unsqueeze(0).to(device),
                                                                  method="transformer_attribution",
