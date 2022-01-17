@@ -212,14 +212,16 @@ for i, (images, labels) in enumerate(test_loader):
     images = images.squeeze()
     cat, attn_map = generate_visualization(images)
 
-    np.save(f'image_transformer_attribution.npy', image_transformer_attribution)
-    avg = attn_map
-    np.save(f'attn_map.npy', attn_map)
-
+    avg = attn_map.copy() * 10
     for j, grad in enumerate(just_grads):
-        np.save(f'grad[{j}.npy', grad)
-        avg += grad
-    avg = show_cam_on_image(image_transformer_attribution, avg)
+        g = grad.copy()
+        g[[g > g.max() / 5]] = 0
+        avg += g
+    avg = avg / avg.max()
+    vis = show_cam_on_image(image_transformer_attribution, avg)
+    vis = np.uint8(255 * vis)
+    vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
+    avg = vis
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
            wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(avg)]
