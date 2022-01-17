@@ -7,7 +7,7 @@ class dino(torch.nn.Module):
         super().__init__()
 
         self.model = ViT(
-            image_size=(496, 512),
+            image_size=496,
             patch_size=16,
             num_classes=num_classes,
             dim=1024,
@@ -20,7 +20,7 @@ class dino(torch.nn.Module):
 
         self.learner = Dino(
             self.model,
-            image_size=(496, 512),
+            image_size=496,
             hidden_layer='to_latent',  # hidden layer name or index, from which to extract the embedding
             projection_hidden_size=256,  # projector network hidden dimension
             projection_layers=4,  # number of layers in projection network

@@ -105,9 +105,9 @@ def Get_Model(config, device):
 
 
 def Handle_Data(def_args):
-    train_dataset = Kermany_DataSet(def_args.train[0])
-    val_dataset = Kermany_DataSet(def_args.val[0])
-    test_dataset = Kermany_DataSet(def_args.test[0])
+    train_dataset = Kermany_DataSet(def_args.train[0], size=(496, 496))
+    val_dataset = Kermany_DataSet(def_args.val[0], size=(496, 496))
+    test_dataset = Kermany_DataSet(def_args.test[0], size=(496, 496))
 
     train_weights = make_weights_for_balanced_classes(train_dataset, [i for i in range(4)])
     train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))

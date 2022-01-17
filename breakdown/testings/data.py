@@ -7,10 +7,10 @@ import cv2 as cv
 
 
 class Kermany_DataSet(torch.utils.data.Dataset):
-    def __init__(self, path):
+    def __init__(self, path, size=(496, 512)):
         # load your dataset (how every you want, this example has the dataset stored in a json file
         # path = "C:/Users/guylu/Desktop/prev_files/Weizmann/OCT/test/AIA 03346 OS 13.01.2020.E2E"
-        self.t = transforms.Compose([transforms.ToTensor(), transforms.RandomResizedCrop((496, 512))])
+        self.t = transforms.Compose([transforms.ToTensor(), transforms.RandomResizedCrop(size)])
         self.dataset = []
         label = 0
         label_dict = {"NORMAL": 0,
