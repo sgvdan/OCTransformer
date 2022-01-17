@@ -8,7 +8,7 @@ class dino(torch.nn.Module):
 
         self.model = ViT(
             image_size=(496, 512),
-            patch_size=32,
+            patch_size=16,
             num_classes=num_classes,
             dim=1024,
             depth=6,
