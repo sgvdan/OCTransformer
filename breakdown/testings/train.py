@@ -7,20 +7,21 @@ from utils import *
 from res_models import *
 from model_running import *
 from convnext import convnext_base, convnext_large, convnext_xlarge
+from dino_class import dino
 
 hyperparameter_defaults = dict(
-    epochs=5,
+    epochs=1,
     seed=25,
     batch_size=2,
     learning_rate=1e-4,
     optimizer="adam",
     mom=0.9,
     weight_decay=0,
-    architecture='convmixer_1536_20',
-    pretrain=True,
+    architecture='dino',
+    pretrain=False,
 )
 
-wandb.init(config=hyperparameter_defaults, project="Big_Test")
+wandb.init(config=hyperparameter_defaults, project="Dino_Test")
 config = wandb.config
 
 
@@ -87,11 +88,19 @@ def Get_Model(config, device):
         model = convnext_base(pretrained=config.pretrain, num_classes=4)
     elif config.architecture == 'convnext_xlarge':
         model = convnext_base(pretrained=config.pretrain, num_classes=4)
+
+    if config.architecture == 'dino':
+        model = dino(4, pretrained=config.pretrain)
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)
     model.to(device)
     wandb.watch(model)
+    pytorch_total_params = sum(p.numel() for p in model.parameters())
+    pytorch_total_params_train = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    wandb.log({"Total Params": pytorch_total_params})
+    wandb.log({"Trainable Params": pytorch_total_params_train})
+
     return model
 
 
