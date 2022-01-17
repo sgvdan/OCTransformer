@@ -213,8 +213,12 @@ for i, (images, labels) in enumerate(test_loader):
     cat = generate_visualization(images)
 
     sum = cat.copy() - images.cpu().numpy().astype(np.float32)
+    sum = sum * 4
     for i in range(len(gradcam)):
-        sum = sum + (gradcam[i].astype(np.float32) - images.cpu().numpy().astype(np.float32))
+        only_grad = (gradcam[i].astype(np.float32) - images.cpu().numpy().astype(np.float32))
+        m = only_grad.max()
+        only_grad[only_grad < m / 5] = 0
+        sum = sum + only_grad
     sum *= 255.0 / sum.max()
     sum = sum.astype(np.uint8)
     sum = show_cam_on_image(images, sum)
