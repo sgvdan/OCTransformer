@@ -21,7 +21,8 @@ import torch
 import numpy as np
 import cv2
 import os
-
+import io
+from PIL import Image
 from baselines.ViT.ViT_LRP import vit_base_patch16_224 as vit_LRP
 from baselines.ViT.ViT_explanation_generator import LRP
 from pytorch_grad_cam.ablation_layer import AblationLayerVit
@@ -218,9 +219,13 @@ for i, (images, labels) in enumerate(test_loader):
     T = predicted.item() == labels.item()
     out = outputs_timm
 
-
     plt.bar(label_names, out.cpu().detach().numpy()[0])
-    row = [i, wandb.Image(images), label_names[predicted.item()], plt, label_names[labels.item()], T,
+    # plt.xlabel(label_names)
+    img_buf = io.BytesIO()
+    plt.savefig(img_buf, format='png')
+    im = Image.open(img_buf)
+
+    row = [i, wandb.Image(images), label_names[predicted.item()], wandb.Image(im), label_names[labels.item()], T,
            wandb.Image(attn_diff_cls[0]), wandb.Image(attn_diff_cls[1]), wandb.Image(attn_diff_cls[2]),
            wandb.Image(attn_diff_cls[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(avg)]
