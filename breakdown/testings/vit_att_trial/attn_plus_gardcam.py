@@ -126,7 +126,7 @@ predictions = None
 ground_truth = None
 # Iterate through test dataset
 
-columns = ["id", "Original Image", "Predicted", "Truth", "Attention NORMAL", "Attention CNV", "Attention DME",
+columns = ["id", "Original Image", "Predicted", "Truth", "Correct" "Attention NORMAL", "Attention CNV", "Attention DME",
            "Attention DRUSEN", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus', 'XGradCAM', 'EigenCAM', 'EigenGradCAM', 'Avg']
 # for a in label_names:
 #     columns.append("score_" + a)
@@ -214,7 +214,8 @@ for i, (images, labels) in enumerate(test_loader):
     # plt.imshow(vis)
     # plt.show()
     avg = vis
-    row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
+    T = predicted.item() == labels.item()
+    row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()], T,
            wandb.Image(attn_diff_cls[0]), wandb.Image(attn_diff_cls[1]), wandb.Image(attn_diff_cls[2]),
            wandb.Image(attn_diff_cls[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(avg)]
