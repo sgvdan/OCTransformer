@@ -83,6 +83,7 @@ pytorch_total_params_train = sum(p.numel() for p in model_timm.parameters() if p
 wandb.log({"Total Params": pytorch_total_params})
 wandb.log({"Trainable Params": pytorch_total_params_train})
 
+
 def generate_visualization(original_image, class_index=None):
     transformer_attribution = attribution_generator.generate_LRP(original_image.unsqueeze(0).to(device),
                                                                  method="transformer_attribution",
@@ -125,8 +126,8 @@ predictions = None
 ground_truth = None
 # Iterate through test dataset
 
-columns = ["id", "Original Image", "Predicted", "Truth", "Attention", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus',
-           'XGradCAM', 'EigenCAM', 'EigenGradCAM', 'Avg']
+columns = ["id", "Original Image", "Predicted", "Truth", "Attention NORMAL", "Attention CNV", "Attention DME",
+           "Attention DRUSEN", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus', 'XGradCAM', 'EigenCAM', 'EigenGradCAM', 'Avg']
 # for a in label_names:
 #     columns.append("score_" + a)
 test_dt = wandb.Table(columns=columns)
@@ -166,7 +167,7 @@ for i, (images, labels) in enumerate(test_loader):
     res = []
     just_grads = []
     images = images.unsqueeze(0)
-
+    image_transformer_attribution = None
     for cam_algo in cams:
         # print(images.shape)
         cam = cam_algo(model=model_timm, target_layers=target_layers,
@@ -185,8 +186,10 @@ for i, (images, labels) in enumerate(test_loader):
     gradcam = res
     images = images.squeeze()
     cat, attn_map = generate_visualization(images)
-
-    avg = attn_map.copy() * 5
+    attn_diff_cls = []
+    for j in range(4):
+        attn_diff_cls.append(generate_visualization(images, class_index=j)[0])
+    avg = attn_map.copy() * 6
     # print(avg.max())
     for j, grad in enumerate(just_grads):
         g = grad.copy()
@@ -212,7 +215,8 @@ for i, (images, labels) in enumerate(test_loader):
     # plt.show()
     avg = vis
     row = [i, wandb.Image(images), label_names[predicted.item()], label_names[labels.item()],
-           wandb.Image(cat), wandb.Image(gradcam[0]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
+           wandb.Image(attn_diff_cls[0]), wandb.Image(attn_diff_cls[1]), wandb.Image(attn_diff_cls[2]),
+           wandb.Image(attn_diff_cls[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(avg)]
     test_dt.add_data(*row)
 
