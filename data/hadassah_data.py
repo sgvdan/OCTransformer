@@ -7,6 +7,8 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 
+import util
+
 
 class HadassahDataset(Dataset):
     def __init__(self, samples, chosen_label, transformations):
@@ -32,7 +34,7 @@ class HadassahDataset(Dataset):
         return [sample.get_label()[self.chosen_label] for sample in self.samples]
 
     def get_classes(self):
-        # TODO: REMOVE THIS! SOMEHOW TREAT IT WITH LABEL NAME
+        # TODO: REMOVE THIS! TREAT IT WITH LABEL NAME
         return {'DME_HEALTHY': 0, 'DME_SICK': 1}
 
 
@@ -161,5 +163,49 @@ def build_hadassah_dataset(dataset_root, annotations_path):
     return records
 
 
-def get_hadassah_transform(image_size):
-    return transforms.Compose([transforms.ToTensor(), transforms.Resize(image_size)])
+def get_hadassah_transform(config):
+    return transforms.Compose([transforms.ToTensor(), transforms.Resize(config.input_size),
+                               SubsetSamplesTransform(config.num_slices)])
+
+
+def setup_hadassah(config):
+    records = build_hadassah_dataset(dataset_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std',
+                                     annotations_path='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std/std_annotations.xlsx')
+
+    control, study = records.slice_samples({'DME': 1})
+
+    train_control, eval_control, test_control = util.split_list(control, [config.train_size,
+                                                                          config.eval_size,
+                                                                          config.test_size])
+    train_study, eval_study, test_study = util.split_list(study, [config.train_size,
+                                                                  config.eval_size,
+                                                                  config.test_size])
+
+    transform = get_hadassah_transform(config)
+
+    # Test Loader
+    test_dataset = HadassahDataset([*test_control, *test_study], chosen_label='DME', transformations=transform)
+    test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=config.batch_size)
+
+    # Evaluation Loader
+    eval_dataset = HadassahDataset([*eval_control, *eval_study], chosen_label='DME', transformations=transform)
+    eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset, batch_size=config.batch_size)
+
+    # Train Loader
+    train_dataset = HadassahDataset([*train_control, *train_study], chosen_label='DME', transformations=transform)
+    train_weights = util.get_balance_weights(train_dataset.get_labels(), num_classes=config.num_classes)
+    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size,
+                                               sampler=train_sampler)
+
+    return train_loader, eval_loader, test_loader
+
+
+class SubsetSamplesTransform(object):
+    def __init__(self, num_slices):
+        self.num_slices = num_slices
+
+    def __call__(self, sample):
+        indices = torch.tensor(range(18-self.num_slices//2, 18 + self.num_slices//2+1))
+        new_sample = sample.index_select(dim=0, index=indices)
+        return new_sample

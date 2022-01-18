@@ -35,9 +35,8 @@ def split_list(input_list, chunks, random_split=True):
     return breakdown
 
 
-def get_balance_weights(dataset, num_classes):
-    labels = dataset.get_labels()
-    num_scans = len(dataset)
+def get_balance_weights(labels, num_classes):
+    num_scans = len(labels)
     assert num_scans > 0 and num_classes > 0
 
     # Count # of appearances per each class

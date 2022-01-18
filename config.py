@@ -6,30 +6,25 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'hadassah/straight-forward',
+                           'log_group': 'hadassah/slices-num-sweep2',
                            'log_frequency': 10,
 
-                           # Kermany Dataset
+                           # # Kermany Dataset
                            # 'dataset': 'kermany',
-                           # 'train_cache': 'kermany/train',
-                           # 'eval_cache': 'kermany/eval',
-                           # 'test_cache': 'kermany/test',
+                           # 'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/train',
+                           # 'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/val',
+                           # 'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/test',
+                           # 'kermany_labels': ['DME', 'CNV', 'DRUSEN', 'NORMAL'],
                            # 'input_size': (256, 256),
                            # 'num_slices': 1,
                            # 'batch_size': 35,
-                           # 'num_classes': 4,
+                           # 'num_classes': 4,  # TODO: CHANGE THIS TO len(kermany_labels)
 
                            # Hadassah Dataset
-                           # 'dataset': 'hadassah',
-                           # 'train_cache': '37-slices/train',
-                           # 'eval_cache': '37-slices/eval',
-                           # 'test_cache': '37-slices/test',
-
-                           'records_path': '/home/projects/ronen/sgvdan/workspace/projects/OCTransformer/datasets/'
-                                           'full-37/records.pkl',
+                           'dataset': 'hadassah',
                            'input_size': (496, 1024),
-                           'num_slices': 37,
-                           'batch_size': 5,
+                           'num_slices': 3,
+                           'batch_size': 1,
                            'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
                            # Environment
@@ -43,8 +38,13 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # Train Parameters
                            'optimizer': 'adam',
                            'criterion': 'cross_entropy',
-                           'epochs': 5,
-                           'lr': 1e-4,
+                           'scheduler': None,
+                           'epochs': 1,
+                           'lr': 1e-5,
+
+                           'train_size': 0.65,
+                           'eval_size': 0.1,
+                           'test_size': 0.25,
 
                            # Model
                            'embedding_dim': 768,

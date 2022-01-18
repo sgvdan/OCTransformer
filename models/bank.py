@@ -6,6 +6,8 @@ import random
 import torch
 from pathlib import Path
 
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
 from models.vit import MyViT
 
 
@@ -40,6 +42,14 @@ class ModelsBank:
         else:
             raise NotImplementedError
 
+        # Choose Scheduler
+        if self.config.scheduler == 'ReduceLROnPlateau':
+            scheduler = ReduceLROnPlateau(optimizer, 'min')
+        elif self.config.scheduler is None:
+            scheduler = None
+        else:
+            raise NotImplementedError
+
         # Choose Criterion
         if self.config.criterion == 'cross_entropy':
             criterion = torch.nn.functional.cross_entropy
@@ -47,11 +57,11 @@ class ModelsBank:
             raise NotImplementedError
 
         if self.config.load_best_model:
-            self.load_best(model, optimizer)
+            self.load_best(model, optimizer, scheduler)
 
-        return model, criterion, optimizer
+        return model, criterion, optimizer, scheduler
 
-    def sync_model(self, model, optimizer, avg_accuracy):
+    def sync_model(self, model, optimizer, scheduler, avg_accuracy):
         if not self.config.keep_best_model:
             return
 
@@ -67,6 +77,7 @@ class ModelsBank:
             torch.save({
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
             }, os.path.join(self.bank_path, model.name, 'best.tar'))
             self.bank_record[model.name]['accuracy'] = avg_accuracy
             print("Best model updated.", "Model: {0}, Avg. Accuracy: {1}".format(model.name, avg_accuracy))
@@ -75,7 +86,7 @@ class ModelsBank:
         with open(self.bank_record_path, 'wb+') as file:
             pickle.dump(self.bank_record, file)
 
-    def load_best(self, model, optimizer):
+    def load_best(self, model, optimizer, scheduler):
         best_model_path = os.path.join(self.bank_path, model.name, 'best.tar')
         if not os.path.exists(best_model_path):
             print("Model {model_name} does not exist.".format(model_name=model.name))
@@ -85,3 +96,5 @@ class ModelsBank:
         states_dict = torch.load(best_model_path)
         model.load_state_dict(states_dict['model_state_dict'])
         optimizer.load_state_dict(states_dict['optimizer_state_dict'])
+        if scheduler is not None and states_dict['scheduler_state_dict'] is not None:
+            scheduler.load_state_dict(states_dict['scheduler_state_dict'])

@@ -13,7 +13,7 @@ class Trainer:
         self.models_bank = models_bank
         self.logger = logger
 
-    def train(self, model, criterion, optimizer, epochs):
+    def train(self, model, criterion, optimizer, scheduler, epochs):
         for epoch in range(epochs):
             tqdm.write("Epoch {epoch}/{epochs}".format(epoch=epoch, epochs=epochs))
 
@@ -22,7 +22,7 @@ class Trainer:
             self.logger.scratch()
             for images, labels in tqdm(self.train_loader):
                 pred, loss = self._feed_forward(model, images, labels, mode='train',
-                                                criterion=criterion, optimizer=optimizer)
+                                                criterion=criterion, optimizer=optimizer, scheduler=scheduler)
                 self.logger.accumulate(pred=pred, gt=labels, loss=loss)
                 self.logger.log_train_periodic(classes=self.train_loader.dataset.get_classes())
             self.logger.log_train(epoch=epoch, classes=self.train_loader.dataset.get_classes())
@@ -37,7 +37,7 @@ class Trainer:
 
             # Sync Model Bank
             accuracy = self.logger.get_current_accuracy(classes=self.eval_loader.dataset.get_classes())
-            self.models_bank.sync_model(model, optimizer, accuracy)
+            self.models_bank.sync_model(model, optimizer, scheduler, accuracy)
 
     def test(self, model):
         tqdm.write("\nTest:")
@@ -53,7 +53,7 @@ class Trainer:
 
         return accuracy
 
-    def _feed_forward(self, model, images, labels, mode, criterion=None, optimizer=None):
+    def _feed_forward(self, model, images, labels, mode, criterion=None, optimizer=None, scheduler=None):
         # Make sure mode is as expected
         if mode == 'train' and not model.training:
             model.train()
@@ -82,5 +82,8 @@ class Trainer:
             optimizer.step()
 
             loss_value = loss.item()
+
+            if scheduler is not None:
+                scheduler.step(loss_value)
 
         return pred, loss_value
