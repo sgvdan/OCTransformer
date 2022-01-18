@@ -117,7 +117,7 @@ label_names = [
 test_dataset = Kermany_DataSet(def_args.test[0])
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
-                                          shuffle=False)
+                                          shuffle=True)
 correct = 0.0
 correct_arr = [0.0] * 10
 total = 0.0
@@ -126,7 +126,8 @@ predictions = None
 ground_truth = None
 # Iterate through test dataset
 
-columns = ["id", "Original Image", "Predicted", "Truth", "Correct" ,"Attention NORMAL", "Attention CNV", "Attention DME",
+columns = ["id", "Original Image", "Predicted", "Truth", "Correct", "Attention NORMAL", "Attention CNV",
+           "Attention DME",
            "Attention DRUSEN", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus', 'XGradCAM', 'EigenCAM', 'EigenGradCAM', 'Avg']
 # for a in label_names:
 #     columns.append("score_" + a)
