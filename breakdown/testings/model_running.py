@@ -5,7 +5,7 @@ import os
 import time
 
 
-def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader):
+def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader, isdino):
     iter = 0
     for epoch in range(epochs):
         t0 = time.time()
@@ -21,11 +21,15 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
 
             # Forward pass to get output/logits
             outputs = model(images)
+            if not isdino:
+                # Calculate Loss: softmax --> cross entropy loss
+                print(outputs.shape)
+                print(labels.shape)
+                loss = criterion(outputs, labels)
+            else:
+                loss = outputs
+                model.learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
 
-            # Calculate Loss: softmax --> cross entropy loss
-            print(outputs.shape)
-            print(labels.shape)
-            loss = criterion(outputs, labels)
             # Getting gradients w.r.t. parameters
             loss.backward()
             # Updating parameters
@@ -37,20 +41,20 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 print(loss)
                 wandb.log({"loss": loss, "epoch": epoch})
             if iter % 500 == 0:
-                Validation(device, iter, label_names, loss, model, val_loader)
+                Validation(device, iter, label_names, loss, model.model, val_loader)
         t1 = time.time()
 
         time_per_epoch = t1 - t0
         wandb.log({"time_per_epoch": time_per_epoch})
         # save model:
-        torch.save(model.state_dict(), os.path.join(wandb.run.dir, f'model_epoch_{epoch}_.pt'))
+        torch.save(model.model.state_dict(), os.path.join(wandb.run.dir, f'model_epoch_{epoch}_.pt'))
 
         #########################################################################################################
         #                                                 TESTING                                               #
         #########################################################################################################
         print("TESTING TIMZZZ")
 
-        Testing(device, label_names, model, test_loader)
+        Testing(device, label_names, model.model, test_loader)
 
 
 def Validation(device, iter, label_names, loss, model, val_loader):

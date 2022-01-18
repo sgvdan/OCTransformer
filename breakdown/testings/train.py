@@ -159,7 +159,8 @@ def main():
     #########################################################################################################
 
     print("starting training:\n\n")
-    Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs, test_loader)
+    Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs, test_loader,
+          config.architecture == "dino")
 
     print("finita la comedia ")
 
