@@ -10,13 +10,13 @@ from convnext import convnext_base, convnext_large, convnext_xlarge
 from dino_class import dino
 
 hyperparameter_defaults = dict(
-    epochs=1,
+    epochs=5,
     seed=25,
-    batch_size=2,
-    learning_rate=1e-4,
-    optimizer="adam",
-    mom=0.9,
-    weight_decay=0,
+    batch_size=6,
+    learning_rate=0.0001186,
+    optimizer="sgd",
+    mom=0.7885,
+    weight_decay=0.001071,
     architecture='dino',
     pretrain=False,
 )
@@ -91,6 +91,8 @@ def Get_Model(config, device):
 
     if config.architecture == 'dino':
         model = dino(4, pretrained=config.pretrain)
+        model.model = timm.create_model('vit_base_patch32_384', pretrained=False, num_classes=4,
+                                        img_size=(496, 496))
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)

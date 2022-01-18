@@ -23,8 +23,6 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             outputs = model(images)
             if not isdino:
                 # Calculate Loss: softmax --> cross entropy loss
-                print(outputs.shape)
-                print(labels.shape)
                 loss = criterion(outputs, labels)
             else:
                 loss = outputs
