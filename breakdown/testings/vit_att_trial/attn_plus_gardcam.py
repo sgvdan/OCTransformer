@@ -217,7 +217,7 @@ for i, (images, labels) in enumerate(test_loader):
     avg = vis
     T = predicted.item() == labels.item()
     out = outputs_timm
-    row = [i, wandb.Image(images), label_names[predicted.item()], out.cpu().numpy(), label_names[labels.item()], T,
+    row = [i, wandb.Image(images), label_names[predicted.item()], out.cpu().detach().numpy(), label_names[labels.item()], T,
            wandb.Image(attn_diff_cls[0]), wandb.Image(attn_diff_cls[1]), wandb.Image(attn_diff_cls[2]),
            wandb.Image(attn_diff_cls[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[1]), wandb.Image(gradcam[2]),
            wandb.Image(gradcam[3]), wandb.Image(gradcam[4]), wandb.Image(gradcam[4]), wandb.Image(avg)]
