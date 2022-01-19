@@ -91,7 +91,7 @@ def Get_Model(config, device):
 
     if config.architecture == 'dino':
         model = dino(4, pretrained=config.pretrain)
-        model.model = timm.create_model('vit_base_patch32_384', pretrained=False, num_classes=4,
+        model.model = timm.create_model('vit_base_patch32_384', pretrained=config.pretrain, num_classes=4,
                                         img_size=(496, 496))
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
