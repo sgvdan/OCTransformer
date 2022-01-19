@@ -39,7 +39,8 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 print(loss)
                 wandb.log({"loss": loss, "epoch": epoch})
             if iter % 500 == 0:
-                Validation(device, iter, label_names, loss, model.model, val_loader)
+                pass_model = model.model if isdino else model
+                Validation(device, iter, label_names, loss, pass_model, val_loader)
         t1 = time.time()
 
         time_per_epoch = t1 - t0
@@ -51,8 +52,8 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
         #                                                 TESTING                                               #
         #########################################################################################################
         print("TESTING TIMZZZ")
-
-        Testing(device, label_names, model.model, test_loader)
+        pass_model = model.model if isdino else model
+        Testing(device, label_names, pass_model, test_loader)
 
 
 def Validation(device, iter, label_names, loss, model, val_loader):
