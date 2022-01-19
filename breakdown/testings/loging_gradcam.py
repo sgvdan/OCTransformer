@@ -29,6 +29,15 @@ def reshape_transform(tensor, height=31, width=32):
     return result
 
 
+# create heatmap from mask on image
+def show_cam_on_image(img, mask):
+    heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
+    heatmap = np.float32(heatmap) / 255
+    cam = heatmap * 0.4 + np.float32(img)
+    cam = cam / np.max(cam)
+    return cam
+
+
 wandb.init(project="test_gradcam")
 
 seed = 25
@@ -109,7 +118,7 @@ for name, model in zip(names, models):
         for cam_algo in cams:
             # print(images.shape)
             cam = cam_algo(model=model, target_layers=target_layers,
-                           use_cuda=True if torch.cuda.is_available() else False, reshape_transform=reshape_transform,
+                           use_cuda=True if torch.cuda.is_available() else False,
                            )
             target_category = labels.item()
             grayscale_cam = cam(input_tensor=images, aug_smooth=True, eigen_smooth=True)
