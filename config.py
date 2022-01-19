@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'hadassah/slices-num-sweep2',
+                           'log_group': 'hadassah/DeepSet_Model',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -22,13 +22,13 @@ default_config = dot_dict({'project': 'OCTransformer',
 
                            # Hadassah Dataset
                            'dataset': 'hadassah',
-                           'input_size': (496, 1024),
-                           'num_slices': 3,
+                           'input_size': (256, 256),  # TODO : Change this back to 496,1024
+                           'num_slices': 7,
                            'batch_size': 1,
                            'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
                            # Environment
-                           'model': 'vit',
+                           'model': 'deepset',
                            'model_name': None,
 
                            # Models Bank
@@ -39,7 +39,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'cross_entropy',
                            'scheduler': None,
-                           'epochs': 1,
+                           'epochs': 30,
                            'lr': 1e-5,
 
                            'train_size': 0.65,

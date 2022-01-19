@@ -8,6 +8,8 @@ from pathlib import Path
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
+from models.deepset import DeepSet
+from models.slivernet import SliverNet2
 from models.vit import MyViT
 
 
@@ -25,8 +27,18 @@ class ModelsBank:
 
     def get_environment(self):
         # Choose Model
-        if self.config.model == 'vit':
+        model_name = self.config.model.lower()
+        if model_name == 'vit':
             model = MyViT(self.config).to(self.config.device)
+        elif model_name == 'slivernet':
+            assert self.config.batch_size == 1  # Only supports batch_size of 1
+            torch.use_deterministic_algorithms(mode=False)
+            print('IMPORTANT: Working in undeterminstic manner - so as to support SliverNet\'s max_pool operation')
+            model = SliverNet2(n_out=self.config.num_classes)
+            if self.config.device == 'cuda':
+                model = model.cuda()
+        elif model_name == 'deepset':
+            model = DeepSet(self.config.embedding_dim, self.config.num_classes).to(self.config.device)
         else:
             raise NotImplementedError
 
