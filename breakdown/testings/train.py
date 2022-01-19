@@ -131,14 +131,15 @@ def Handle_Data(def_args):
 
 
 def Get_Optimizer(model):
+    params = model.learner.parameters() if config.architecture == 'dino' else model.parameters()
     optimizer = None
     if config.optimizer == "sgd":
-        optimizer = torch.optim.SGD(model.parameters(), lr=config.learning_rate, momentum=config.mom,
+        optimizer = torch.optim.SGD(params, lr=config.learning_rate, momentum=config.mom,
                                     weight_decay=config.weight_decay)
     elif config.optimizer == "adam":
-        optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
+        optimizer = torch.optim.Adam(params, lr=config.learning_rate, weight_decay=config.weight_decay)
     elif config.optimizer == "rmsprop":
-        optimizer = torch.optim.RMSprop(model.parameters(), lr=config.learning_rate, momentum=config.mom,
+        optimizer = torch.optim.RMSprop(params, lr=config.learning_rate, momentum=config.mom,
                                         weight_decay=config.weight_decay)
     return optimizer
 
