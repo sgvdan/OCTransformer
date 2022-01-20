@@ -46,7 +46,8 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
         time_per_epoch = t1 - t0
         wandb.log({"time_per_epoch": time_per_epoch})
         # save model:
-        torch.save(model.model.state_dict(), os.path.join(wandb.run.dir, f'model_epoch_{epoch}_.pt'))
+        pass_model = model.model if isdino else model
+        torch.save(pass_model.state_dict(), os.path.join(wandb.run.dir, f'model_epoch_{epoch}_.pt'))
 
         #########################################################################################################
         #                                                 TESTING                                               #
