@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'hadassah/DeepSet_Model',
+                           'log_group': 'hadassah/SliverNet+Imagenet',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -28,7 +28,8 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
                            # Environment
-                           'model': 'deepset',
+                           'backbone': 'imagenet_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
+                           'model': 'slivernet',
                            'model_name': None,
 
                            # Models Bank

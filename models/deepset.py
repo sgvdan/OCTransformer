@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-import torchvision.models as tmodels
 
 # Obtained from: https://github.com/manzilzaheer/DeepSets/blob/master/PointClouds/classifier.py#L58
 class PermEqui1_mean(nn.Module):
@@ -15,15 +14,17 @@ class PermEqui1_mean(nn.Module):
 
 
 class DeepSet(nn.Module):
-    def __init__(self, d_dim, num_classes, backbone=None):
+    def __init__(self, backbone, x_dim, d_dim, num_classes):
+        """
+
+        :param backbone:
+        :param x_dim: backbone's output dim
+        :param d_dim: the intermediate dim
+        :param num_classes: number of classes to classify for
+        """
         super().__init__()
 
-        assert backbone is None  # TODO: Allow flexible backbones (pretrained ones)
-
-        if backbone is None:
-            backbone = tmodels.resnet18(pretrained=False, num_classes=num_classes)
-            self.backbone = torch.nn.Sequential(*list(backbone.children())[:-2]).eval()
-            x_dim = 1024  # TODO: Make this config?
+        self.backbone = backbone
 
         self.phi = self.phi = nn.Sequential(
             PermEqui1_mean(x_dim, d_dim),

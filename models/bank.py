@@ -11,6 +11,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from models.deepset import DeepSet
 from models.slivernet import SliverNet2
 from models.vit import MyViT
+import torchvision.models as tmodels
 
 
 class ModelsBank:
@@ -26,19 +27,41 @@ class ModelsBank:
             self.bank_record = {}
 
     def get_environment(self):
+        # Choose Backbone
+        backbone_name = self.config.backbone.lower()
+        if backbone_name == 'resnet18':
+            backbone = tmodels.resnet18(pretrained=False).to(self.config.device)
+        elif backbone_name == 'imagenet_resnet18':
+            backbone = tmodels.resnet18(pretrained=True).to(self.config.device)
+        elif backbone_name == 'kermany_resnet18':
+            backbone = tmodels.resnet18(pretrained=False, num_classes=4).to(self.config.device)
+            kermany_path = '.models_bank/kermany_resnet18/resnet18.tar'
+            states_dict = torch.load(kermany_path)
+            backbone.load_state_dict(states_dict['model_state_dict'])
+        else:
+            raise NotImplementedError
+
         # Choose Model
         model_name = self.config.model.lower()
         if model_name == 'vit':
-            model = MyViT(self.config).to(self.config.device)
+            backbone.fc = torch.nn.Linear(in_features=512, out_features=self.config.embedding_dim,
+                                          device=self.config.device)
+            model = MyViT(backbone, self.config).to(self.config.device)
+
         elif model_name == 'slivernet':
             assert self.config.batch_size == 1  # Only supports batch_size of 1
-            torch.use_deterministic_algorithms(mode=False)
             print('IMPORTANT: Working in undeterminstic manner - so as to support SliverNet\'s max_pool operation')
-            model = SliverNet2(n_out=self.config.num_classes)
+            torch.use_deterministic_algorithms(mode=False)
+
+            backbone = torch.nn.Sequential(*list(backbone.children())[:-2])
+            model = SliverNet2(backbone=backbone, n_out=self.config.num_classes)
             if self.config.device == 'cuda':
                 model = model.cuda()
+
         elif model_name == 'deepset':
-            model = DeepSet(self.config.embedding_dim, self.config.num_classes).to(self.config.device)
+            backbone = torch.nn.Sequential(*list(backbone.children())[:-2])
+            model = DeepSet(backbone=backbone, x_dim=1024, d_dim=self.config.embedding_dim,
+                            num_classes=self.config.num_classes).to(self.config.device)
         else:
             raise NotImplementedError
 

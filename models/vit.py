@@ -6,11 +6,11 @@ from torchvision.models import resnet18
 
 
 class MyViT(torch.nn.Module):
-    def __init__(self, config):
+    def __init__(self, backbone, config):
         super().__init__()
 
         self.config = config
-        backbone = partial(Backbone, num_patches=self.config.num_slices)
+        backbone = partial(BackboneWrapper, backbone=backbone, num_patches=self.config.num_slices)
         self.model = VisionTransformer(img_size=self.config.input_size, patch_size=(self.config.embedding_dim, 1),
                                        in_chans=3, num_classes=self.config.num_classes,
                                        embed_dim=self.config.embedding_dim, depth=12, num_heads=12, mlp_ratio=4., qkv_bias=True,
@@ -22,17 +22,17 @@ class MyViT(torch.nn.Module):
         return self.model(x)
 
 
-class Backbone(torch.nn.Module):
-    def __init__(self, embed_dim, num_patches, **kwargs):
+class BackboneWrapper(torch.nn.Module):
+    def __init__(self, backbone, num_patches, **kwargs):
         super().__init__()
-        self.resnet = resnet18(pretrained=False, num_classes=embed_dim)  # TODO: pretrained on ImageNet?
-        self.num_patches = num_patches  # TODO: Should be flexible # of slices per volume
+        self.backbone = backbone
+        self.num_patches = num_patches
 
     def forward(self, x):
         batch_size, slices, channels, height, width = x.shape
 
         x = x.reshape(batch_size * slices, channels, height, width)
-        x = self.resnet(x)
+        x = self.backbone(x)
         x = x.reshape(batch_size, slices, -1)
 
         return x
