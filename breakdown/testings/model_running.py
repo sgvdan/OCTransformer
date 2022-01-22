@@ -42,11 +42,11 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                             # Forward pass only to get logits/output
                             outputs2 = model.forward2(images2)
 
-                            embds.append(outputs2.flatten().cpu().detach().numpy())
-                            colors.append(labels2.item())
+                            embds.append(outputs2.view(outputs2.shape[0],-1).cpu().detach().numpy())
+                            colors.append(labels2.cpu().detach().numpy())
 
-                        embds = np.array(embds)
-                        colors = np.array(colors)
+                        embds = np.vstack(embds)
+                        colors = np.vstack(colors)
                         embedding = umap.UMAP().fit_transform(embds)
                         plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
                         plt.title(str(i))
