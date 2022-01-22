@@ -33,7 +33,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 model.learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
             if vis:
                 with torch.no_grad():
-                    if iter % 50 == 0:
+                    if iter % 300 == 0:
                         embds = []
                         colors = []
                         for l, (images2, labels2) in enumerate(test_loader):
@@ -52,7 +52,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                         embedding = umap.UMAP().fit_transform(embds)
                         plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
                         plt.title(str(i))
-                        plt.savefig("gif_res/" + str(i) + ".png")
+                        plt.savefig(f"gif_res/{epoch}__{i}.png")
 
             # Getting gradients w.r.t. parameters
             loss.backward()
