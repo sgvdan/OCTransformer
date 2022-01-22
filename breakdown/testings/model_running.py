@@ -52,7 +52,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                         embedding = umap.UMAP().fit_transform(embds)
                         plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
                         plt.title(str(i))
-                        plt.savefig(f"gif_res2/{epoch}__{i}.png")
+                        plt.savefig(f"gif_res3/{epoch}__{i}.png")
                         plt.show()
 
             # Getting gradients w.r.t. parameters
