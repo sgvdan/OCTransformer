@@ -24,7 +24,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             optimizer.zero_grad()
 
             # Forward pass to get output/logits
-            outputs = model(images)
+            outputs = model.forward(images)
             if not isdino:
                 # Calculate Loss: softmax --> cross entropy loss
                 loss = criterion(outputs, labels)

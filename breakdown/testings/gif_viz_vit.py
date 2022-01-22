@@ -52,7 +52,7 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         return x
 
 
-# timm.models.vision_transformer.VisionTransformer = VisionTransformer
+timm.models.vision_transformer.VisionTransformer = VisionTransformer
 
 hyperparameter_defaults = dict(
     epochs=5,
