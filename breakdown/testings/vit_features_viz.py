@@ -20,7 +20,7 @@ import cv2
 import umap
 import torch
 import timm.models.vision_transformer
-
+from sklearn.decomposition import PCA
 
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
 
@@ -132,7 +132,8 @@ for name, model in zip(names, models):
 
     embds = np.array(embds)
     colors = np.array(colors)
-    embedding = umap.UMAP().fit_transform(embds)
+    pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
+    embedding = umap.UMAP().fit_transform(pca)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
     plt.title(f'Feature Map of {name} Network')
     plt.show()
