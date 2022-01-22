@@ -44,11 +44,11 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
 
                             embds.append(outputs2.view(outputs2.shape[0], -1).cpu().detach().numpy())
                             colors.append(labels2.cpu().detach().numpy())
-                            print(embds[-1].shape)
-                            print(colors[-1].shape)
+                            # print(embds[-1].shape)
+                            # print(colors[-1].shape)
 
                         embds = np.vstack(embds)
-                        colors = np.stack(colors)
+                        colors = np.hstack(colors)
                         embedding = umap.UMAP().fit_transform(embds)
                         plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
                         plt.title(str(i))
