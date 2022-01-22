@@ -20,15 +20,6 @@ import cv2
 import umap
 
 
-# create heatmap from mask on image
-def show_cam_on_image(img, mask):
-    heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
-    heatmap = np.float32(heatmap) / 255
-    cam = heatmap * 0.4 + np.float32(img)
-    cam = cam / np.max(cam)
-    return cam
-
-
 wandb.init(project="featureViz")
 
 seed = 25

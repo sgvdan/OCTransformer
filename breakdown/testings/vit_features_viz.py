@@ -59,6 +59,7 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
             x = self.head(x)
         return x
         """
+
         x = self.forward_features(x)
         return x
 

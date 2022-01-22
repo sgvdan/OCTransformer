@@ -3,9 +3,13 @@ from torch.autograd import Variable
 import wandb
 import os
 import time
+import numpy as np
+import matplotlib.pyplot as plt
+import umap
 
 
-def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader, isdino):
+def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader, isdino=False,
+          vis=False):
     iter = 0
     for epoch in range(epochs):
         t0 = time.time()
@@ -27,6 +31,26 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             else:
                 loss = outputs
                 model.learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
+            if vis:
+                with torch.no_grad():
+                    if iter % 50 == 0:
+                        embds = []
+                        colors = []
+                        for l, (images2, labels2) in enumerate(test_loader):
+                            images2 = Variable(images2).to(device)
+                            labels2 = labels2.to(device)
+                            # Forward pass only to get logits/output
+                            outputs2 = model.forward2(images2)
+
+                            embds.append(outputs2.flatten().cpu().detach().numpy())
+                            colors.append(labels2.item())
+
+                        embds = np.array(embds)
+                        colors = np.array(colors)
+                        embedding = umap.UMAP().fit_transform(embds)
+                        plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
+                        plt.title(str(i))
+                        plt.savefig(str(i))
 
             # Getting gradients w.r.t. parameters
             loss.backward()
