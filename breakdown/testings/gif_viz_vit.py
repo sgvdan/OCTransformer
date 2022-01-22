@@ -12,7 +12,7 @@ from dino_class import dino
 
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
 
-    def forward_features(self, x):
+    def forward_features2(self, x):
         x = self.patch_embed(x)
         cls_token = self.cls_token.expand(x.shape[0], -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
         if self.dist_token is None:
@@ -48,7 +48,7 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
         return x
         """
 
-        x = self.forward_features(x)
+        x = self.forward_features2(x)
         return x
 
 
