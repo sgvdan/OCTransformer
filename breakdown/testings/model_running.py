@@ -84,7 +84,7 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader):
             embedding = umap.UMAP().fit_transform(embds)
             plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
             plt.title(str(i))
-            plt.savefig(f"gif_res3/{epoch}__{i}.png")
+            plt.savefig(f"gif_res4/{epoch}__{i}.png")
             plt.show()
             plt.close()
 
