@@ -48,7 +48,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                             print(colors[-1].shape)
 
                         embds = np.vstack(embds)
-                        colors = np.vstack(colors)
+                        colors = np.stack(colors)
                         embedding = umap.UMAP().fit_transform(embds)
                         plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
                         plt.title(str(i))
