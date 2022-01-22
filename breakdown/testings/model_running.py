@@ -32,28 +32,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 loss = outputs
                 model.learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
             if vis:
-                with torch.no_grad():
-                    if iter % 300 == 0:
-                        embds = []
-                        colors = []
-                        for l, (images2, labels2) in enumerate(test_loader):
-                            images2 = Variable(images2).to(device)
-                            labels2 = labels2.to(device)
-                            # Forward pass only to get logits/output
-                            outputs2 = model.forward2(images2)
-
-                            embds.append(outputs2.view(outputs2.shape[0], -1).cpu().detach().numpy())
-                            colors.append(labels2.cpu().detach().numpy())
-                            # print(embds[-1].shape)
-                            # print(colors[-1].shape)
-
-                        embds = np.vstack(embds)
-                        colors = np.hstack(colors)
-                        embedding = umap.UMAP().fit_transform(embds)
-                        plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
-                        plt.title(str(i))
-                        plt.savefig(f"gif_res4/{epoch}__{i}.png")
-                        plt.show()
+                vis_feature_map_vit(device, epoch, i, iter, model, test_loader)
 
             # Getting gradients w.r.t. parameters
             loss.backward()
@@ -82,6 +61,32 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
         print("TESTING TIMZZZ")
         pass_model = model.model if isdino else model
         Testing(device, label_names, pass_model, test_loader)
+
+
+def vis_feature_map_vit(device, epoch, i, iter, model, test_loader):
+    with torch.no_grad():
+        if iter % 300 == 0:
+            embds = []
+            colors = []
+            for l, (images2, labels2) in enumerate(test_loader):
+                images2 = Variable(images2).to(device)
+                labels2 = labels2.to(device)
+                # Forward pass only to get logits/output
+                outputs2 = model.forward2(images2)
+
+                embds.append(outputs2.view(outputs2.shape[0], -1).cpu().detach().numpy())
+                colors.append(labels2.cpu().detach().numpy())
+                # print(embds[-1].shape)
+                # print(colors[-1].shape)
+
+            embds = np.vstack(embds)
+            colors = np.hstack(colors)
+            embedding = umap.UMAP().fit_transform(embds)
+            plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
+            plt.title(str(i))
+            plt.savefig(f"gif_res4/{epoch}__{i}.png")
+            plt.show()
+            plt.close()
 
 
 def Validation(device, iter, label_names, loss, model, val_loader):
