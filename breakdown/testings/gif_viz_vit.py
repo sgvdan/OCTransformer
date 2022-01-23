@@ -71,6 +71,12 @@ wandb.init(config=hyperparameter_defaults, project="gif")
 config = wandb.config
 
 
+def worker_init_fn(worker_id):
+    torch_seed = wandb.config.seed
+    random.seed(wandb.config.seed)
+    np.random.seed(wandb.config.seed)
+
+
 def init():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"running on {device}")
@@ -172,13 +178,19 @@ def Handle_Data(def_args):
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=config.batch_size,
                                                # shuffle=True,
-                                               sampler=train_sampler)
+                                               sampler=train_sampler,
+                                               num_workers=0,
+                                               worker_init_fn=worker_init_fn)
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=config.batch_size,
-                                             shuffle=False)
+                                             shuffle=False,
+                                             num_workers=0,
+                                             worker_init_fn=worker_init_fn)
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                               batch_size=config.batch_size,
-                                              shuffle=False)
+                                              shuffle=False,
+                                              num_workers=0,
+                                              worker_init_fn=worker_init_fn)
     return test_loader, train_loader, val_loader
 
 

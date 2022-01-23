@@ -9,6 +9,7 @@ from model_running import *
 from convnext import convnext_base, convnext_large, convnext_xlarge
 from dino_class import dino
 import random
+
 hyperparameter_defaults = dict(
     epochs=5,
     seed=25,
@@ -23,6 +24,12 @@ hyperparameter_defaults = dict(
 
 wandb.init(config=hyperparameter_defaults, project="Dino_Test")
 config = wandb.config
+
+
+def worker_init_fn(worker_id):
+    torch_seed = wandb.config.seed
+    random.seed(wandb.config.seed)
+    np.random.seed(wandb.config.seed)
 
 
 def init():
@@ -127,15 +134,18 @@ def Handle_Data(def_args):
                                                batch_size=config.batch_size,
                                                # shuffle=True,
                                                sampler=train_sampler,
-                                               num_workers=0)
+                                               num_workers=0,
+                                               worker_init_fn=worker_init_fn)
     val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
                                              batch_size=config.batch_size,
                                              shuffle=False,
-                                             num_workers=0)
+                                             num_workers=0,
+                                             worker_init_fn=worker_init_fn)
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                               batch_size=config.batch_size,
                                               shuffle=False,
-                                              num_workers=0)
+                                              num_workers=0,
+                                              worker_init_fn=worker_init_fn)
     return test_loader, train_loader, val_loader
 
 
