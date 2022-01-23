@@ -228,7 +228,7 @@ def main():
     print("starting training:\n\n")
     # print(config.architecture == "dino")
     Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs, test_loader,
-          config.architecture == "dino", vis=True)
+          config.architecture == "dino", vis=True, isvit=True)
 
     print("finita la comedia ")
 
