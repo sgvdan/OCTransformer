@@ -143,7 +143,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             func=animate,
             frames=num_frames,
             interval=40)
-        anim.save("aligned_umap_pendigits_anim.gif", writer="pillow")
+        anim.save("aligned_umap_pendigits_anim2.gif", writer="pillow")
         plt.close(anim._fig)
 
 

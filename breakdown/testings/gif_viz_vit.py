@@ -57,12 +57,12 @@ timm.models.vision_transformer.VisionTransformer = VisionTransformer
 hyperparameter_defaults = dict(
     epochs=1,
     seed=25,
-    batch_size=6,
-    learning_rate=0.0001186,
+    batch_size=8,
+    learning_rate=0.0001272,
     optimizer="sgd",
-    mom=0.7885,
-    weight_decay=0.001071,
-    architecture='vit_base_patch32_384',
+    mom=0.06346,
+    weight_decay=0.01513,
+    architecture='vit_base_patch16_224',
     pretrain=False,
 )
 
