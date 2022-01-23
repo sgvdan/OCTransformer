@@ -171,11 +171,11 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapp
             else:
                 umap_viz(embds, aligned_mapper)
             embedding = umap.UMAP(random_state=42).fit_transform(embds)
-            plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
-            plt.title(str(i))
-            plt.savefig(f"gif_res5/{epoch}__{i}.png")
-            plt.show()
-            plt.close()
+            # plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
+            # plt.title(str(i))
+            # plt.savefig(f"gif_res5/{epoch}__{i}.png")
+            # plt.show()
+            # plt.close()
     return embds, colors
 
 

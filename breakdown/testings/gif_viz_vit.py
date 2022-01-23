@@ -55,7 +55,7 @@ class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
 timm.models.vision_transformer.VisionTransformer = VisionTransformer
 
 hyperparameter_defaults = dict(
-    epochs=5,
+    epochs=1,
     seed=25,
     batch_size=6,
     learning_rate=0.0001186,
