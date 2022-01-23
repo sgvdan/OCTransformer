@@ -170,7 +170,7 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapp
                 aligned_mapper = umap.AlignedUMAP().fit([embds, embds], relations=relation_dicts)
             else:
                 umap_viz(embds, aligned_mapper)
-            embedding = umap.UMAP(random_state=42).fit_transform(embds)
+            # embedding = umap.UMAP(random_state=42).fit_transform(embds)
             # plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
             # plt.title(str(i))
             # plt.savefig(f"gif_res5/{epoch}__{i}.png")
