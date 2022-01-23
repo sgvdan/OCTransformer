@@ -132,9 +132,9 @@ for name, model in zip(names, models):
     # pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
     embedding = umap.UMAP(n_components=3).fit_transform(embds)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
-    plt.title(f'Feature Map of {name} Network')
+    plt.title(f'Feature Map of {name} Network 2')
     plt.show()
-    plt.savefig(f'Feature Map of {name} Network')
+    plt.savefig(f'Feature Map of {name} Network 2')
     wandb.log(
         {
             "3d point cloud": wandb.Object3D(
