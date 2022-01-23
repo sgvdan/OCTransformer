@@ -135,12 +135,5 @@ for name, model in zip(names, models):
     plt.title(f'Feature Map of {name} Network 2')
     plt.show()
     plt.savefig(f'Feature Map of {name} Network 2')
-    wandb.log(
-        {
-            "3d point cloud": wandb.Object3D(
-                {
-                    "type": "lidar/beta",
-                    "points": embedding,
-                }
-            )
-        })
+    point_cloud = np.stack([embedding, colors])
+    wandb.log({"point_cloud": wandb.Object3D(point_cloud)})
