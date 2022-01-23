@@ -176,7 +176,7 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapp
             # plt.savefig(f"gif_res5/{epoch}__{i}.png")
             # plt.show()
             # plt.close()
-    return embds, colors
+        return embds, colors
 
 
 def umap_viz(embds, aligned_mapper):
