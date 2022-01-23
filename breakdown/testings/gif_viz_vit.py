@@ -8,6 +8,7 @@ from res_models import *
 from model_running import *
 from convnext import convnext_base, convnext_large, convnext_xlarge
 from dino_class import dino
+import random
 
 
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
@@ -74,7 +75,13 @@ def init():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"running on {device}")
     torch.manual_seed(hash("by removing stochasticity") % wandb.config.seed)
+    torch.cuda.manual_seed(wandb.config.seed)
     torch.cuda.manual_seed_all(hash("so runs are repeatable") % wandb.config.seed)
+    np.random.seed(wandb.config.seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    random.seed(wandb.config.seed)
+    os.environ['PYTHONHASHSEED'] = str(wandb.config.seed)
     def_args = dot_dict({
         "train": ["../../../data/kermany/train"],
         "val": ["../../../data/kermany/val"],
