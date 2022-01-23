@@ -1,7 +1,7 @@
 from data_for_tests import Kermany_DataSet
 import timm
 import wandb
-import os
+import random
 from timm.models.swin_transformer import SwinTransformer
 from utils import *
 from res_models import *

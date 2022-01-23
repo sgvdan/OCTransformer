@@ -47,7 +47,8 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 model.learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
             if vis:
                 if iter % 300 == 0:
-                    embds, colors = vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapper)
+                    embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
+                                                                        aligned_mapper)
 
             # Getting gradients w.r.t. parameters
             loss.backward()
@@ -176,7 +177,7 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapp
         # plt.savefig(f"gif_res5/{epoch}__{i}.png")
         # plt.show()
         # plt.close()
-    return embds, colors
+    return embds, colors, aligned_mapper
 
 
 def umap_viz(embds, aligned_mapper):
