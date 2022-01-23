@@ -135,5 +135,5 @@ for name, model in zip(names, models):
     plt.title(f'Feature Map of {name} Network 2')
     plt.show()
     plt.savefig(f'Feature Map of {name} Network 2')
-    point_cloud = np.stack([embedding, colors])
+    point_cloud = np.hstack([embedding, colors.reshape(-1, 1)])
     wandb.log({"point_cloud": wandb.Object3D(point_cloud)})
