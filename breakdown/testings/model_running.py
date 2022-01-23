@@ -22,7 +22,7 @@ def axis_bounds(embedding):
 
 
 def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader, isdino=False,
-          vis=False):
+          vis=False, isvit=False, isnext=False):
     aligned_mapper = None
     iter = 0
     for epoch in range(epochs):
@@ -52,9 +52,12 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
 
             if vis:
                 if iter % 300 == 0:
-                    embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
-                                                                        aligned_mapper)
-
+                    if isvit:
+                        embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
+                                                                            aligned_mapper)
+                    elif isnext:
+                        embds, colors, aligned_mapper = vis_feature_map_next(device, epoch, i, iter, model, test_loader,
+                                                                             aligned_mapper)
             iter += 1
             if iter % 50 == 0:
                 print(f'iter : {iter}')
@@ -158,6 +161,38 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapp
             labels2 = labels2.to(device)
             # Forward pass only to get logits/output
             outputs2 = model.forward2(images2)
+
+            embds.append(outputs2.view(outputs2.shape[0], -1).cpu().detach().numpy())
+            colors.append(labels2.cpu().detach().numpy())
+            # print(embds[-1].shape)
+            # print(colors[-1].shape)
+
+        embds = np.vstack(embds)
+        colors = np.hstack(colors)
+        if i == 0 and epoch == 0:
+            relation_dict = {i: i for i in range(embds.shape[0])}
+            relation_dicts = [relation_dict.copy() for i in range(2 - 1)]
+            aligned_mapper = umap.AlignedUMAP().fit([embds, embds], relations=relation_dicts)
+        else:
+            umap_viz(embds, aligned_mapper)
+        # embedding = umap.UMAP(random_state=42).fit_transform(embds)
+        # plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
+        # plt.title(str(i))
+        # plt.savefig(f"gif_res5/{epoch}__{i}.png")
+        # plt.show()
+        # plt.close()
+    return embds, colors, aligned_mapper
+
+
+def vis_feature_map_next(device, epoch, i, iter, model, test_loader, aligned_mapper):
+    with torch.no_grad():
+        embds = []
+        colors = []
+        for l, (images2, labels2) in enumerate(test_loader):
+            images2 = Variable(images2).to(device)
+            labels2 = labels2.to(device)
+            # Forward pass only to get logits/output
+            outputs2 = model.forward_features(images2)
 
             embds.append(outputs2.view(outputs2.shape[0], -1).cpu().detach().numpy())
             colors.append(labels2.cpu().detach().numpy())
