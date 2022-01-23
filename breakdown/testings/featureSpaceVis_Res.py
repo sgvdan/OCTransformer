@@ -19,7 +19,6 @@ import cv2 as cv
 import cv2
 import umap
 
-
 wandb.init(project="featureViz")
 
 seed = 25
@@ -142,15 +141,19 @@ for name, model in zip(names, models):
             #     plt.axis("off")
             # print(f"Saving layer {num_layer} feature maps...")
             # plt.show()
+
     embds = np.array(embds)
     colors = np.array(colors)
-    embedding = umap.UMAP().fit_transform(embds)
+    embedding = umap.UMAP(n_components=3).fit_transform(embds)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
-    plt.title(f'Feature Map of {name} Network')
+    plt.gca().legend(tuple(label_names))
+    plt.title(f'Feature Map of {name} Network 2_')
     plt.show()
-    plt.savefig(f'Feature Map of {name} Network')
-    plt.show()
+    plt.savefig(f'Feature Map of {name} Network 2_')
     plt.close()
+
+    point_cloud = np.hstack([embedding, colors.reshape(-1, 1)])
+    wandb.log({f"3D_UMAP_FeatureMap_{name}": wandb.Object3D(point_cloud)})
     metrics = {f'Test Accuracy_{name}': accuracy}
     for label in range(4):
         metrics[f'Test Accuracy_{name}' + label_names[label]] = correct_arr[label] / total_arr[label]
