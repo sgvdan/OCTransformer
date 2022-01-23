@@ -22,6 +22,7 @@ import torch
 import timm.models.vision_transformer
 from sklearn.decomposition import PCA
 
+
 class VisionTransformer(timm.models.vision_transformer.VisionTransformer):
 
     def forward_features(self, x):
@@ -115,11 +116,6 @@ for name, model in zip(names, models):
     ground_truth = None
     # Iterate through test dataset
 
-    columns = ["id", "Original Image", "Predicted", "Truth", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus', 'AblationCAM',
-               'XGradCAM', 'EigenCAM', 'FullGrad']
-    # for a in label_names:
-    #     columns.append("score_" + a)
-
     for i, (images, labels) in enumerate(test_loader):
         if i % 10 == 0:
             print(f'image : {i}\n\n\n')
@@ -133,9 +129,18 @@ for name, model in zip(names, models):
 
     embds = np.array(embds)
     colors = np.array(colors)
-    pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
-    embedding = umap.UMAP().fit_transform(pca)
+    # pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
+    embedding = umap.UMAP(n_components=3).fit_transform(embds)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
     plt.title(f'Feature Map of {name} Network')
     plt.show()
     plt.savefig(f'Feature Map of {name} Network')
+    wandb.log(
+        {
+            "3d point cloud": wandb.Object3D(
+                {
+                    "type": "lidar/beta",
+                    "points": embedding,
+                }
+            )
+        })
