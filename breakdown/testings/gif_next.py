@@ -185,7 +185,7 @@ def main():
     Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, config.epochs, test_loader,
           config.architecture == "dino", vis=True, isvit=False, isnext=True)
 
-    print("finita la comedia ")
+    print("finita la comedia")
 
 
 if __name__ == '__main__':
