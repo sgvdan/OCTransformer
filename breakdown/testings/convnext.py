@@ -200,18 +200,26 @@ def convnext_base(pretrained=False, in_22k=False, **kwargs):
 @register_model
 def convnext_large(pretrained=False, in_22k=False, **kwargs):
     model = ConvNeXt(depths=[3, 3, 27, 3], dims=[192, 384, 768, 1536], **kwargs)
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 1000)
     if pretrained:
         url = model_urls['convnext_large_22k'] if in_22k else model_urls['convnext_large_1k']
         checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu", check_hash=True)
         model.load_state_dict(checkpoint["model"])
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 4)
     return model
 
 
 @register_model
 def convnext_xlarge(pretrained=False, in_22k=False, **kwargs):
     model = ConvNeXt(depths=[3, 3, 27, 3], dims=[256, 512, 1024, 2048], **kwargs)
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 1000)
     if pretrained:
         url = model_urls['convnext_xlarge_22k'] if in_22k else model_urls['convnext_xlarge_1k']
         checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu", check_hash=True)
         model.load_state_dict(checkpoint["model"])
+    num_ftrs = model.head.in_features
+    model.head = nn.Linear(num_ftrs, 4)
     return model
