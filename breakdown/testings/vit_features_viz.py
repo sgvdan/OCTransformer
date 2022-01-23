@@ -136,4 +136,4 @@ for name, model in zip(names, models):
     plt.show()
     plt.savefig(f'Feature Map of {name} Network 2')
     point_cloud = np.hstack([embedding, colors.reshape(-1, 1)])
-    wandb.log({"point_cloud": wandb.Object3D(point_cloud)})
+    wandb.log({f"3D_UMAP_FeatureMap_{name}": wandb.Object3D(point_cloud)})
