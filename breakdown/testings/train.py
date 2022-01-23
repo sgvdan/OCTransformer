@@ -98,9 +98,9 @@ def Get_Model(config, device):
         model = convnext_base(pretrained=config.pretrain, num_classes=4
                               )
     elif config.architecture == 'convnext_large':
-        model = convnext_base(pretrained=config.pretrain, num_classes=4)
+        model = convnext_large(pretrained=config.pretrain, num_classes=4)
     elif config.architecture == 'convnext_xlarge':
-        model = convnext_base(pretrained=config.pretrain, num_classes=4)
+        model = convnext_xlarge(pretrained=config.pretrain, num_classes=4)
 
     if config.architecture == 'dino':
         model = dino(4, pretrained=config.pretrain)
