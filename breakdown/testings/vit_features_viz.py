@@ -115,17 +115,17 @@ for name, model in zip(names, models):
     predictions = None
     ground_truth = None
     # Iterate through test dataset
+    with torch.no_grad():
+        for i, (images, labels) in enumerate(test_loader):
+            if i % 10 == 0:
+                print(f'image : {i}\n\n\n')
+            images = Variable(images).to(device)
+            labels = labels.to(device)
+            # Forward pass only to get logits/output
+            outputs = model(images)
 
-    for i, (images, labels) in enumerate(test_loader):
-        if i % 10 == 0:
-            print(f'image : {i}\n\n\n')
-        images = Variable(images).to(device)
-        labels = labels.to(device)
-        # Forward pass only to get logits/output
-        outputs = model(images)
-
-        embds.append(outputs.flatten().cpu().detach().numpy())
-        colors.append(labels.item())
+            embds.append(outputs.flatten().cpu().detach().numpy())
+            colors.append(labels.item())
 
     embds = np.array(embds)
     colors = np.array(colors)
