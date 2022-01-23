@@ -7,9 +7,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import umap
 
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+import scipy.interpolate
+from matplotlib import animation
+
+
+def axis_bounds(embedding):
+    left, right = embedding.T[0].min(), embedding.T[0].max()
+    bottom, top = embedding.T[1].min(), embedding.T[1].max()
+    adj_h, adj_v = (right - left) * 0.1, (top - bottom) * 0.1
+    return [left - adj_h, right + adj_h, bottom - adj_v, top + adj_v]
+
 
 def Train(criterion, device, label_names, model, optimizer, train_loader, val_loader, epochs, test_loader, isdino=False,
           vis=False):
+    aligned_mapper = None
     iter = 0
     for epoch in range(epochs):
         t0 = time.time()
@@ -32,7 +46,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 loss = outputs
                 model.learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
             if vis:
-                vis_feature_map_vit(device, epoch, i, iter, model, test_loader)
+                embds, colors = vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapper)
 
             # Getting gradients w.r.t. parameters
             loss.backward()
@@ -62,8 +76,77 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
         pass_model = model.model if isdino else model
         Testing(device, label_names, pass_model, test_loader)
 
+        if vis:
+            n_embeddings = len(aligned_mapper.embeddings_)
+            es = aligned_mapper.embeddings_
+            embedding_df = pd.DataFrame(np.vstack(es), columns=('x', 'y'))
+            embedding_df['z'] = np.repeat(np.linspace(0, 1.0, n_embeddings), es[0].shape[0])
+            embedding_df['id'] = np.tile(np.arange(es[0].shape[0]), n_embeddings)
+            embedding_df['digit'] = np.tile(colors, n_embeddings)
+            fx = scipy.interpolate.interp1d(
+                embedding_df.z[embedding_df.id == 0], embedding_df.x.values.reshape(n_embeddings, embds.shape[0]).T,
+                kind="cubic"
+            )
+            fy = scipy.interpolate.interp1d(
+                embedding_df.z[embedding_df.id == 0], embedding_df.y.values.reshape(n_embeddings, embds.shape[0]).T,
+                kind="cubic"
+            )
+            z = np.linspace(0, 1.0, 100)
+            # palette = px.colors.diverging.Spectral
+            interpolated_traces = [fx(z), fy(z)]
+            # traces = [
+            #     go.Scatter3d(
+            #         x=interpolated_traces[0][i],
+            #         y=interpolated_traces[1][i],
+            #         z=z * 3.0,
+            #         mode="lines",
+            #         line=dict(
+            #             color=palette[colors[i]],
+            #             width=3.0
+            #         ),
+            #         opacity=1.0,
+            #     )
+            #     for i in range(embds.shape[0])
+            # ]
+            # fig = go.Figure(data=traces)
+            # fig.update_layout(
+            #     width=800,
+            #     height=700,
+            #     autosize=False,
+            #     showlegend=False,
+            # )
+            # fig.show()
+            fig = plt.figure(figsize=(4, 4), dpi=150)
 
-def vis_feature_map_vit(device, epoch, i, iter, model, test_loader):
+            ax = fig.add_subplot(1, 1, 1)
+            ax_bound = axis_bounds(np.vstack(aligned_mapper.embeddings_))
+            scat = ax.scatter([], [], s=2)
+            scat.set_array(colors)
+            scat.set_cmap('Spectral')
+            text = ax.text(ax_bound[0] + 0.5, ax_bound[2] + 0.5, '')
+            ax.axis(ax_bound)
+            ax.set(xticks=[], yticks=[])
+            plt.tight_layout()
+
+            offsets = np.array(interpolated_traces).T
+            num_frames = offsets.shape[0]
+
+            def animate(i):
+                scat.set_offsets(offsets[i])
+                text.set_text(f'Frame {i}')
+                return scat
+
+            anim = animation.FuncAnimation(
+                fig,
+                init_func=None,
+                func=animate,
+                frames=num_frames,
+                interval=40)
+            anim.save("aligned_umap_pendigits_anim.gif", writer="pillow")
+            plt.close(anim._fig)
+
+
+def vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapper):
     with torch.no_grad():
         if iter % 300 == 0:
             embds = []
@@ -81,12 +164,25 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader):
 
             embds = np.vstack(embds)
             colors = np.hstack(colors)
+            if i == 0 and epoch == 0:
+                relation_dict = {i: i for i in range(embds.shape[0])}
+                relation_dicts = [relation_dict.copy() for i in range(embds.shape[0] - 1)]
+                aligned_mapper = umap.AlignedUMAP().fit([embds, embds], relations=relation_dicts)
+            else:
+                umap_viz(embds, aligned_mapper)
             embedding = umap.UMAP(random_state=42).fit_transform(embds)
             plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
             plt.title(str(i))
             plt.savefig(f"gif_res5/{epoch}__{i}.png")
             plt.show()
             plt.close()
+    return embds, colors
+
+
+def umap_viz(embds, aligned_mapper):
+    relation_dict = {i: i for i in range(embds.shape[0])}
+    relation_dicts = [relation_dict.copy() for _ in range(embds.shape[0] - 1)]
+    aligned_mapper.update(embds, relations={v: k for k, v in relation_dicts[0].items()})
 
 
 def Validation(device, iter, label_names, loss, model, val_loader):
