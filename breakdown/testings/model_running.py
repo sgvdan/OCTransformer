@@ -45,15 +45,15 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             else:
                 loss = outputs
                 model.learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
-            if vis:
-                if iter % 300 == 0:
-                    embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
-                                                                        aligned_mapper)
-
             # Getting gradients w.r.t. parameters
             loss.backward()
             # Updating parameters
             optimizer.step()
+
+            if vis:
+                if iter % 300 == 0:
+                    embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
+                                                                        aligned_mapper)
 
             iter += 1
             if iter % 50 == 0:
