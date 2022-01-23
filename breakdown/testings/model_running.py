@@ -166,7 +166,7 @@ def vis_feature_map_vit(device, epoch, i, iter, model, test_loader, aligned_mapp
             colors = np.hstack(colors)
             if i == 0 and epoch == 0:
                 relation_dict = {i: i for i in range(embds.shape[0])}
-                relation_dicts = [relation_dict.copy() for i in range(embds.shape[0] - 1)]
+                relation_dicts = [relation_dict.copy() for i in range(2 - 1)]
                 aligned_mapper = umap.AlignedUMAP().fit([embds, embds], relations=relation_dicts)
             else:
                 umap_viz(embds, aligned_mapper)
