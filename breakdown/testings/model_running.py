@@ -71,7 +71,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
         #########################################################################################################
         #                                                 TESTING                                               #
         #########################################################################################################
-        print("TESTING TIMZZZ")
+        print("TESTING TIMZZZ ")
         pass_model = model.model if isdino else model
         Testing(device, label_names, pass_model, test_loader)
     pass_model = model.model if isdino else model
