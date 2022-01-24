@@ -207,7 +207,10 @@ def vis_feature_map_next(device, epoch, i, iter, model, test_loader, aligned_map
             aligned_mapper = umap.AlignedUMAP().fit([embds, embds], relations=relation_dicts)
         else:
             umap_viz(embds, aligned_mapper)
-        # embedding = umap.UMAP(random_state=42).fit_transform(embds)
+        if True:
+            embedding = umap.UMAP(random_state=42, n_components=3).fit_transform(embds)
+            point_cloud = np.hstack([embedding, colors.reshape(-1, 1)])
+            wandb.log({f"3D_UMAP_FeatureMap_": wandb.Object3D(point_cloud)})
         # plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
         # plt.title(str(i))
         # plt.savefig(f"gif_res5/{epoch}__{i}.png")

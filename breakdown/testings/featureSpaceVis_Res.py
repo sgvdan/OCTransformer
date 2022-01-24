@@ -146,7 +146,7 @@ for name, model in zip(names, models):
     colors = np.array(colors)
     embedding = umap.UMAP(n_components=3).fit_transform(embds)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
-    plt.gca().legend(tuple(label_names))
+    # plt.gca().legend(tuple(label_names))
     plt.title(f'Feature Map of {name} Network 2_')
     plt.show()
     plt.savefig(f'Feature Map of {name} Network 2_')
