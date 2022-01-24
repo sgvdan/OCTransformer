@@ -11,7 +11,7 @@ from dino_class import dino
 import random
 
 hyperparameter_defaults = dict(
-    epochs=3,
+    epochs=2,
     seed=25,
     batch_size=8,
     learning_rate=0.0002408,

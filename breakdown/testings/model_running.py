@@ -51,7 +51,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             optimizer.step()
 
             if vis:
-                if iter % 50 == 0:
+                if iter % 200 == 0:
                     if isvit:
                         embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
                                                                             aligned_mapper)
