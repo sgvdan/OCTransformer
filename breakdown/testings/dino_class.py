@@ -3,18 +3,20 @@ import torch
 
 
 class dino(torch.nn.Module):
-    def __init__(self, num_classes, pretrained=False):
+    def __init__(self, num_classes, pretrained=False, m=None):
         super().__init__()
-
-        self.model = ViT(
-            image_size=496,
-            patch_size=16,
-            num_classes=num_classes,
-            dim=1024,
-            depth=6,
-            heads=8,
-            mlp_dim=2048
-        )
+        if m is None:
+            self.model = ViT(
+                image_size=496,
+                patch_size=16,
+                num_classes=num_classes,
+                dim=1024,
+                depth=6,
+                heads=8,
+                mlp_dim=2048
+            )
+        else:
+            self.model = m
 
         ######################################################################### v = Recorder(model)
 
