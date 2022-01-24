@@ -51,7 +51,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             optimizer.step()
 
             if vis:
-                if iter % 200 == 0:
+                if iter % 500 == 0:
                     if isvit:
                         embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
                                                                             aligned_mapper)
@@ -63,7 +63,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
                 print(f'iter : {iter}')
                 print(loss)
                 wandb.log({"loss": loss, "epoch": epoch})
-            if iter % 500 == 0:
+            if iter % 500 == 0 and not vis:
                 pass_model = model.model if isdino else model
                 Validation(device, iter, label_names, loss, pass_model, val_loader)
         t1 = time.time()
@@ -74,9 +74,10 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
         #########################################################################################################
         #                                                 TESTING                                               #
         #########################################################################################################
-        print("TESTING TIMZZZ ")
-        pass_model = model.model if isdino else model
-        Testing(device, label_names, pass_model, test_loader)
+        if not vis:
+            print("TESTING TIMZZZ ")
+            pass_model = model.model if isdino else model
+            Testing(device, label_names, pass_model, test_loader)
     pass_model = model.model if isdino else model
     torch.save(pass_model.state_dict(), os.path.join(wandb.run.dir, f'model.pt'))
 
@@ -99,7 +100,7 @@ def vis_gif(aligned_mapper, colors, embds):
         embedding_df.z[embedding_df.id == 0], embedding_df.y.values.reshape(n_embeddings, embds.shape[0]).T,
         kind="cubic"
     )
-    z = np.linspace(0, 1.0, 500)
+    z = np.linspace(0, 1.0, 300)
     # palette = px.colors.diverging.Spectral
     interpolated_traces = [fx(z), fy(z)]
     # traces = [
@@ -207,7 +208,7 @@ def vis_feature_map_next(device, epoch, i, iter, model, test_loader, aligned_map
             aligned_mapper = umap.AlignedUMAP().fit([embds, embds], relations=relation_dicts)
         else:
             umap_viz(embds, aligned_mapper)
-        if True:
+        if False:
             embedding = umap.UMAP(random_state=42, n_components=3).fit_transform(embds)
             point_cloud = np.hstack([embedding, colors.reshape(-1, 1)])
             wandb.log({f"3D_UMAP_FeatureMap_": wandb.Object3D(point_cloud)})
