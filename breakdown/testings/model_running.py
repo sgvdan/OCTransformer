@@ -99,7 +99,7 @@ def vis_gif(aligned_mapper, colors, embds):
         embedding_df.z[embedding_df.id == 0], embedding_df.y.values.reshape(n_embeddings, embds.shape[0]).T,
         kind="cubic"
     )
-    z = np.linspace(0, 1.0, 1000)
+    z = np.linspace(0, 1.0, 500)
     # palette = px.colors.diverging.Spectral
     interpolated_traces = [fx(z), fy(z)]
     # traces = [
