@@ -91,17 +91,28 @@ label_names = [
     "DME",
     "DRUSEN",
 ]
-test_dataset = Kermany_DataSet(def_args.test[0])
+
+dino = True
+
+test_dataset = Kermany_DataSet(def_args.test[0], size=(496, 496) if dino else (496, 512))
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=True)
 names = ["vit_base_patch16_224", "vit_base_patch32_384"]  # , "res50", "res101", "res152"]
 models = []
-for name in names:
-    model = timm.create_model(name, num_classes=4, img_size=(496, 512))
-    model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
+if dino:
+    model = timm.create_model('vit_base_patch32_224', pretrained=False, num_classes=4,
+                              img_size=(496, 496))
+    model.load_state_dict(torch.load(f'q_dino.pt', map_location=torch.device(device)))
+    name = "dino"
     model = model.to(device)
     models.append(model)
+else:
+    for name in names:
+        model = timm.create_model(name, num_classes=4, img_size=(496, 512))
+        model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
+        model = model.to(device)
+        models.append(model)
 
 for name, model in zip(names, models):
     embds = []
