@@ -74,7 +74,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
         #########################################################################################################
         #                                                 TESTING                                               #
         #########################################################################################################
-        if not vis:
+        if not vis or epoch == epochs:
             print("TESTING TIMZZZ ")
             pass_model = model.model if isdino else model
             Testing(device, label_names, pass_model, test_loader)
