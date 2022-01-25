@@ -103,9 +103,9 @@ def Get_Model(config, device):
         model = convnext_xlarge(pretrained=config.pretrain, num_classes=4)
 
     if config.architecture == 'dino':
-        m = timm.create_model('vit_base_patch32_384', pretrained=config.pretrain, num_classes=4,
-                              img_size=(496, 496))
-        model = dino(4, pretrained=config.pretrain, m=m)
+        # m = timm.create_model('vit_base_patch16_224', pretrained=config.pretrain, num_classes=4,
+        #                       img_size=(496, 496))
+        model = dino(4, pretrained=config.pretrain)
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs! ")
         model = nn.DataParallel(model)
