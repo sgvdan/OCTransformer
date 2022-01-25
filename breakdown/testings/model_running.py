@@ -51,7 +51,7 @@ def Train(criterion, device, label_names, model, optimizer, train_loader, val_lo
             optimizer.step()
 
             if vis:
-                if iter % 500 == 0:
+                if iter % 10000 == 0:
                     if isvit:
                         embds, colors, aligned_mapper = vis_feature_map_vit(device, epoch, i, iter, model, test_loader,
                                                                             aligned_mapper)
@@ -100,7 +100,7 @@ def vis_gif(aligned_mapper, colors, embds):
         embedding_df.z[embedding_df.id == 0], embedding_df.y.values.reshape(n_embeddings, embds.shape[0]).T,
         kind="cubic"
     )
-    z = np.linspace(0, 1.0, 300)
+    z = np.linspace(0, 1.0, 100)
     # palette = px.colors.diverging.Spectral
     interpolated_traces = [fx(z), fy(z)]
     # traces = [
@@ -149,7 +149,7 @@ def vis_gif(aligned_mapper, colors, embds):
         func=animate,
         frames=num_frames,
         interval=40)
-    anim.save("aligned_umap__anim____5_3____1.gif", writer="pillow")
+    anim.save("aligned_umap__anim____5_3__8__1.gif", writer="pillow")
     plt.close(anim._fig)
 
 
