@@ -46,7 +46,7 @@ hyperparameter_defaults = dict(
     optimizer="sgd",
     mom=0.7885,
     weight_decay=0.001071,
-    architecture='vit_base',
+    arch='vit_base',
     pretrain=False,
     dino_model_depth=6,
     dino_model_heads=8,
@@ -58,15 +58,13 @@ hyperparameter_defaults = dict(
     dino_learner_center_moving_average_decay=0.9,
 )
 
-wandb.init(config=hyperparameter_defaults, project="Dino_Test2")
-config = wandb.config
 
 
 def get_args_parser():
     parser = argparse.ArgumentParser('DINO', add_help=False)
 
     # Model parameters
-    parser.add_argument('--arch', default=config.architecture, type=str,
+    parser.add_argument('--arch', default=config.arch, type=str,
                         choices=['vit_tiny', 'vit_small', 'vit_base', 'xcit', 'deit_tiny', 'deit_small'] \
                                 + torchvision_archs + torch.hub.list("facebookresearch/xcit:main"),
                         help="""Name of architecture to train. For quick experiments with ViTs,
@@ -111,13 +109,13 @@ def get_args_parser():
     parser.add_argument('--clip_grad', type=float, default=3.0, help="""Maximal parameter
         gradient norm if using gradient clipping. Clipping with norm .3 ~ 1.0 can
         help optimization for larger ViT architectures. 0 for disabling.""")
-    parser.add_argument('--batch_size_per_gpu', default=config.batch_size, type=int,
+    parser.add_argument('--batch_size_per_gpu', default=config.batch_size_per_gpu, type=int,
                         help='Per-GPU batch-size : number of distinct images loaded on one GPU.')
     parser.add_argument('--epochs', default=10, type=int, help='Number of epochs of training.')
     parser.add_argument('--freeze_last_layer', default=1, type=int, help="""Number of epochs
         during which we keep the output layer fixed. Typically doing so during
         the first epoch helps training. Try increasing this value if the loss does not decrease.""")
-    parser.add_argument("--lr", default=config.learning_rate, type=float, help="""Learning rate at the end of
+    parser.add_argument("--lr", default=config.lr, type=float, help="""Learning rate at the end of
         linear warmup (highest LR used during training). The learning rate is linearly scaled
         with the batch size, and specified here for a reference batch size of 256.""")
     parser.add_argument("--warmup_epochs", default=1, type=int,
@@ -491,6 +489,8 @@ class DataAugmentationDINO(object):
 
 
 if __name__ == '__main__':
+    wandb.init(config=hyperparameter_defaults, project="Dino_Test2", group="DDP")
+    config = wandb.config
     parser = argparse.ArgumentParser('DINO', parents=[get_args_parser()])
     args = parser.parse_args()
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
