@@ -75,7 +75,7 @@ def display_instances(image, mask, fname="test", figsize=(5, 5), blur=False, con
         color = colors[i]
         _mask = mask[i]
         if blur:
-            _mask = cv2.blur(_mask,(10,10))
+            _mask = cv2.blur(_mask, (10, 10))
         # Mask
         masked_image = apply_mask(masked_image, _mask, color, alpha)
         # Mask Polygon
@@ -97,14 +97,15 @@ def display_instances(image, mask, fname="test", figsize=(5, 5), blur=False, con
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Visualize Self-Attention maps')
-    parser.add_argument('--arch', default='vit_small', type=str,
-        choices=['vit_tiny', 'vit_small', 'vit_base'], help='Architecture (support only ViT atm).')
+    parser.add_argument('--arch', default='vit_base', type=str,
+                        choices=['vit_tiny', 'vit_small', 'vit_base'], help='Architecture (support only ViT atm).')
     parser.add_argument('--patch_size', default=8, type=int, help='Patch resolution of the model.')
-    parser.add_argument('--pretrained_weights', default='', type=str,
-        help="Path to pretrained weights to load.")
+    parser.add_argument('--pretrained_weights', default='checkpoint.pth', type=str,
+                        help="Path to pretrained weights to load.")
     parser.add_argument("--checkpoint_key", default="teacher", type=str,
-        help='Key to use in the checkpoint (example: "teacher")')
-    parser.add_argument("--image_path", default=None, type=str, help="Path of the image to load.")
+                        help='Key to use in the checkpoint (example: "teacher")')
+    parser.add_argument("--image_path", default="../../../../data/kermany/test", type=str,
+                        help="Path of the image to load.")
     parser.add_argument("--image_size", default=(480, 480), type=int, nargs="+", help="Resize image.")
     parser.add_argument('--output_dir', default='.', help='Path where to save visualizations.')
     parser.add_argument("--threshold", type=float, default=None, help="""We visualize masks
@@ -178,7 +179,7 @@ if __name__ == '__main__':
 
     attentions = model.get_last_selfattention(img.to(device))
 
-    nh = attentions.shape[1] # number of head
+    nh = attentions.shape[1]  # number of head
 
     # we keep only the output patch attention
     attentions = attentions[0, :, 0, 1:].reshape(nh, -1)
@@ -194,14 +195,17 @@ if __name__ == '__main__':
             th_attn[head] = th_attn[head][idx2[head]]
         th_attn = th_attn.reshape(nh, w_featmap, h_featmap).float()
         # interpolate
-        th_attn = nn.functional.interpolate(th_attn.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[0].cpu().numpy()
+        th_attn = nn.functional.interpolate(th_attn.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[
+            0].cpu().numpy()
 
     attentions = attentions.reshape(nh, w_featmap, h_featmap)
-    attentions = nn.functional.interpolate(attentions.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[0].cpu().numpy()
+    attentions = nn.functional.interpolate(attentions.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[
+        0].cpu().numpy()
 
     # save attentions heatmaps
     os.makedirs(args.output_dir, exist_ok=True)
-    torchvision.utils.save_image(torchvision.utils.make_grid(img, normalize=True, scale_each=True), os.path.join(args.output_dir, "img.png"))
+    torchvision.utils.save_image(torchvision.utils.make_grid(img, normalize=True, scale_each=True),
+                                 os.path.join(args.output_dir, "img.png"))
     for j in range(nh):
         fname = os.path.join(args.output_dir, "attn-head" + str(j) + ".png")
         plt.imsave(fname=fname, arr=attentions[j], format='png')
@@ -210,4 +214,6 @@ if __name__ == '__main__':
     if args.threshold is not None:
         image = skimage.io.imread(os.path.join(args.output_dir, "img.png"))
         for j in range(nh):
-            display_instances(image, th_attn[j], fname=os.path.join(args.output_dir, "mask_th" + str(args.threshold) + "_head" + str(j) +".png"), blur=False)
+            display_instances(image, th_attn[j], fname=os.path.join(args.output_dir,
+                                                                    "mask_th" + str(args.threshold) + "_head" + str(
+                                                                        j) + ".png"), blur=False)
