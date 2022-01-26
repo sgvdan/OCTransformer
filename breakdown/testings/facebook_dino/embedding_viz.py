@@ -144,7 +144,7 @@ for p in model.parameters():
 model.eval()
 model.to(device)
 state_dict = torch.load('checkpoint.pth', map_location="cpu")
-state_dict = state_dict['student']
+state_dict = state_dict['teacher']
 # Iterate through test dataset
 state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
 # remove `backbone.` prefix induced by multicrop wrapper
@@ -168,8 +168,8 @@ colors = np.array(colors)
 # pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
 embedding = umap.UMAP(n_components=3).fit_transform(embds)
 plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
-plt.title(f'Feature Map of {name} Network 2 52 s')
+plt.title(f'Feature Map of {name} Network 2 53 ')
 plt.show()
-plt.savefig(f'Feature Map of {name} Network 2  52s')
+plt.savefig(f'Feature Map of {name} Network 2  53')
 point_cloud = np.hstack([embedding, colors.reshape(-1, 1)])
-wandb.log({f"3D_UMAP222_FeatureMap_{name} 52s": wandb.Object3D(point_cloud)})
+wandb.log({f"3D_UMAP222_FeatureMap_{name} 53": wandb.Object3D(point_cloud)})
