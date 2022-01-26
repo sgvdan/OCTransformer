@@ -119,7 +119,7 @@ def get_args_parser():
     # Misc
     parser.add_argument('--data_path', default="../../../../data/kermany/train", type=str,
         help='Please specify path to the ImageNet training data.')
-    parser.add_argument('--output_dir', default=".", type=str, help='Path to save logs and checkpoints.')
+    parser.add_argument('--output_dir', default="./p8", type=str, help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=20, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
     parser.add_argument('--num_workers', default=1, type=int, help='Number of data loading workers per GPU.')
