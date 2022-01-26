@@ -20,6 +20,14 @@ hyperparameter_defaults = dict(
     weight_decay=0.001071,
     architecture='dino',
     pretrain=False,
+    dino_model_depth=6,
+    dino_model_heads=8,
+    dino_learner_student_temp=0.9,
+    dino_learner_teacher_temp=0.04,
+    dino_learner_local_upper_crop_scale=0.4,
+    dino_learner_global_crop_scale=0.5,
+    dino_learner_moving_average_decay=0.9,
+    dino_learner_center_moving_average_decay=0.9,
 )
 
 wandb.init(config=hyperparameter_defaults, project="Dino_Test")
@@ -105,7 +113,7 @@ def Get_Model(config, device):
     if config.architecture == 'dino':
         # m = timm.create_model('vit_base_patch16_224', pretrained=config.pretrain, num_classes=4,
         #                       img_size=(496, 496))
-        model = dino(4, pretrained=config.pretrain)
+        model = dino(4, config)
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs! ")
         model = nn.DataParallel(model)
