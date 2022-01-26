@@ -158,7 +158,7 @@ with torch.no_grad():
         images = images.to(device)
         labels = labels.to(device)
         # Forward pass only to get logits/output
-        outputs = model.get_intermediate_layers(images)
+        outputs = model.get_intermediate_layers(images)[0]
 
         embds.append(outputs.flatten().cpu().detach().numpy())
         colors.append(labels.item())
