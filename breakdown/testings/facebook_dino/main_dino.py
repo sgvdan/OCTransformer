@@ -59,7 +59,6 @@ hyperparameter_defaults = dict(
 )
 
 
-
 def get_args_parser():
     parser = argparse.ArgumentParser('DINO', add_help=False)
 
@@ -287,7 +286,7 @@ def train_dino(args):
         dino_loss=dino_loss,
     )
     start_epoch = to_restore["epoch"]
-
+    r = str(torch.randint(0, 5000000000, (1,)).item())
     start_time = time.time()
     print("Starting DINO training !")
     for epoch in range(start_epoch, args.epochs):
@@ -307,11 +306,12 @@ def train_dino(args):
             'args': args,
             'dino_loss': dino_loss.state_dict(),
         }
+
         if fp16_scaler is not None:
             save_dict['fp16_scaler'] = fp16_scaler.state_dict()
-        utils.save_on_master(save_dict, os.path.join(args.output_dir, 'checkpoint.pth'))
+        utils.save_on_master(save_dict, os.path.join(args.output_dir, 'checkpoint__' + r + '__.pth'))
         if args.saveckp_freq and epoch % args.saveckp_freq == 0:
-            utils.save_on_master(save_dict, os.path.join(args.output_dir, f'checkpoint{epoch:04}.pth'))
+            utils.save_on_master(save_dict, os.path.join(args.output_dir, f'checkpoint{epoch:04}__' + r + '__.pth'))
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                      'epoch': epoch}
         if utils.is_main_process():
