@@ -30,7 +30,7 @@ hyperparameter_defaults = dict(
     dino_learner_center_moving_average_decay=0.9,
 )
 
-wandb.init(config=hyperparameter_defaults, project="Dino_Test")
+wandb.init(config=hyperparameter_defaults, project="Dino_Test2")
 config = wandb.config
 
 
