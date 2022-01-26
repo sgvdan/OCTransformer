@@ -149,7 +149,7 @@ def vis_gif(aligned_mapper, colors, embds):
         func=animate,
         frames=num_frames,
         interval=40)
-    anim.save("aligned_umap__anim____5_3__8__1.gif", writer="pillow")
+    anim.save("aligned_umap__anim__9__5_3__8__1.gif", writer="pillow")
     plt.close(anim._fig)
 
 
