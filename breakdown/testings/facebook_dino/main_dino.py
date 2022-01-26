@@ -287,6 +287,7 @@ def train_dino(args):
     )
     start_epoch = to_restore["epoch"]
     r = str(torch.randint(0, 5000000000, (1,)).item())
+    wandb.log({"r": r})
     start_time = time.time()
     print("Starting DINO training !")
     for epoch in range(start_epoch, args.epochs):
