@@ -163,6 +163,7 @@ with torch.no_grad():
             embds[n].append(outputs[n].flatten().cpu().detach().numpy())
             colors[n].append(labels.item())
 for n in range(9):
+    print(n)
     embdss = np.array(embds[n])
     colorss = np.array(colors[n])
     # pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
