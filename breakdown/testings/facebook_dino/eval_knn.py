@@ -199,7 +199,7 @@ if __name__ == '__main__':
     parser.add_argument('--use_cuda', default=True, type=utils.bool_flag,
         help="Should we store the features on GPU? We recommend setting this to False if you encounter OOM")
     parser.add_argument('--arch', default='vit_base', type=str, help='Architecture')
-    parser.add_argument('--patch_size', default=8, type=int, help='Patch resolution of the model.')
+    parser.add_argument('--patch_size', default=16, type=int, help='Patch resolution of the model.')
     parser.add_argument("--checkpoint_key", default="teacher", type=str,
         help='Key to use in the checkpoint (example: "teacher")')
     parser.add_argument('--dump_features', default=None,
