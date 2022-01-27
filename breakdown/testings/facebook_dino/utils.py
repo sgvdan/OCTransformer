@@ -487,8 +487,7 @@ def init_distributed_mode(args):
         print('Will run the code on one GPU.')
         args.rank, args.gpu, args.world_size = 0, 0, 1
         os.environ['MASTER_ADDR'] = '127.0.0.1'
-        os.environ['MASTER_PORT'] = '29502'  # str(
-        # abs(hash(json.dumps(vars(args), sort_keys=True))))  # json.dumps(d, sort_keys=True)
+        os.environ['MASTER_PORT'] = str(29500 + abs(hash(json.dumps(vars(args), sort_keys=True))) % 100)
     else:
         print('Does not support training without GPU.')
         sys.exit(1)
