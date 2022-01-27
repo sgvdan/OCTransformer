@@ -126,7 +126,7 @@ def get_args_parser():
                         help='Please specify path to the ImageNet training data.')
     r = str(abs(hash(json.dumps(vars(parser.parse_args()), sort_keys=True))))
     r = 3831946279198489342
-    parser.add_argument('--output_dir', default="./mult_gpu_fb_test_med_sugg", type=str,
+    parser.add_argument('--output_dir', default="./mult_gpu_fb_test_med_sugg_wandb", type=str,
                         help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=1, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
