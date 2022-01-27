@@ -148,7 +148,9 @@ if __name__ == '__main__':
             model.load_state_dict(state_dict, strict=True)
         else:
             print("There is no reference weights available for this model => We use random weights.")
-
+    model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
+    model.eval()
+    model.to(device)
     # open image
     if args.image_path is None:
         # user has not specified any image - we use our own image
