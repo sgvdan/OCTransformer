@@ -166,6 +166,7 @@ for n in range(9):
     print(n)
     embdss = np.array(embds[n])
     colorss = np.array(colors[n])
+    print(embdss.shape)
     # pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
     embedding = umap.UMAP(n_components=3).fit_transform(embdss)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=colorss)
