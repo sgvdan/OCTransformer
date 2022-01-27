@@ -151,6 +151,8 @@ state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
 state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
 msg = model.load_state_dict(state_dict, strict=False)
 model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
+model.eval()
+model.to(device)
 with torch.no_grad():
     for i, (images, labels) in enumerate(test_loader):
         if i % 10 == 0:
