@@ -149,7 +149,10 @@ if __name__ == '__main__':
     #     else:
     #         print("There is no reference weights available for this model => We use random weights.")
     model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
+    for p in model.parameters():
+        p.requires_grad = False
     model.eval()
+
     model.to(device)
     # open image
     if args.image_path is None:
