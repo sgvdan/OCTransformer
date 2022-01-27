@@ -162,7 +162,7 @@ with torch.no_grad():
         for n in range(9):
             embds[n].append(outputs[n].flatten().cpu().detach().numpy())
             colors[n].append(labels.item())
-for n in range(9):
+for n in range(8, -1, -1):
     print(n)
     embdss = np.array(embds[n])
     colorss = np.array(colors[n])
