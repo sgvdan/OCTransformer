@@ -127,8 +127,8 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=True)
 name = 'dino'
-embds = [[]] * 9
-colors = [[]] * 9
+embds = [[], [], [], [], [], [], [], [], []]
+colors = [[], [], [], [], [], [], [], [], []]
 # model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
 # model = model.to(device)
 correct = 0.0
@@ -162,7 +162,9 @@ with torch.no_grad():
         for n in range(9):
             embds[n].append(outputs[n][0, 0, :].flatten().cpu().detach().numpy())
             colors[n].append(labels.item())
-        # raise NotImplemented
+        # if i % 5 == 0 and i != 0:
+        #     print(f'image : {i}\n\n\n')
+        #     raise NotImplemented
 for n in range(8, -1, -1):
     print(n)
     embdss = np.array(embds[n])
