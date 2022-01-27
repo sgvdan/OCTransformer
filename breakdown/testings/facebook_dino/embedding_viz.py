@@ -127,8 +127,8 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=True)
 name = 'dino'
-embds = []
-colors = []
+embds = [[]] * 9
+colors = [[]] * 9
 # model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
 # model = model.to(device)
 correct = 0.0
@@ -158,18 +158,18 @@ with torch.no_grad():
         images = images.to(device)
         labels = labels.to(device)
         # Forward pass only to get logits/output
-        outputs = model.get_intermediate_layers(images)[0]
-
-        embds.append(outputs.flatten().cpu().detach().numpy())
-        colors.append(labels.item())
-
-embds = np.array(embds)
-colors = np.array(colors)
-# pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
-embedding = umap.UMAP(n_components=3).fit_transform(embds)
-plt.scatter(embedding[:, 0], embedding[:, 1], c=colors)
-plt.title(f'Feature Map of {name} Network 2 53 ')
-plt.show()
-plt.savefig(f'Feature Map of {name} Network 2  53')
-point_cloud = np.hstack([embedding, colors.reshape(-1, 1)])
-wandb.log({f"3D_UMAP222_FeatureMap_{name} 53": wandb.Object3D(point_cloud)})
+        outputs = model.get_intermediate_layers(images, n=9)
+        for n in range(9):
+            embds[n].append(outputs.flatten().cpu().detach().numpy())
+            colors[n].append(labels.item())
+for n in range(9):
+    embdss = np.array(embds[n])
+    colorss = np.array(colors[n])
+    # pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
+    embedding = umap.UMAP(n_components=3).fit_transform(embdss)
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=colorss)
+    plt.title(f'Feature Map of {name} Network 2 53 __n={n}')
+    plt.show()
+    plt.savefig(f'Feature Map of {name} Network 2  53 __n={n}')
+    point_cloud = np.hstack([embedding, colorss.reshape(-1, 1)])
+    wandb.log({f"3D_UMAP222_FeatureMap_{name} 53 __n={n}": wandb.Object3D(point_cloud)})
