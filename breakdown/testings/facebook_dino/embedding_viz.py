@@ -139,6 +139,7 @@ predictions = None
 ground_truth = None
 
 model = vits.__dict__['vit_base'](patch_size=16, num_classes=0)
+model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
 for p in model.parameters():
     p.requires_grad = False
 model.eval()
@@ -172,7 +173,7 @@ for n in range(8, -1, -1):
     print(embdss.shape)
     # pca = PCA(n_components=64, svd_solver='arpack').fit_transform(embds)
     embedding = umap.UMAP(n_components=3).fit_transform(embdss)
-    plt.scatter(embedding[:, 0], embedding[:, 1], c=colorss,s=2)
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=colorss, s=2)
     plt.title(f'Feature Map of {name} Network 2 53 __n={n}')
     plt.show()
     plt.savefig(f'Feature Map of {name} Network 2  53 __n={n}')
