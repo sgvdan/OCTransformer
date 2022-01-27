@@ -139,7 +139,6 @@ predictions = None
 ground_truth = None
 
 model = vits.__dict__['vit_base'](patch_size=16, num_classes=0)
-model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
 for p in model.parameters():
     p.requires_grad = False
 model.eval()
@@ -151,7 +150,7 @@ state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
 # remove `backbone.` prefix induced by multicrop wrapper
 state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
 msg = model.load_state_dict(state_dict, strict=False)
-
+model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
 with torch.no_grad():
     for i, (images, labels) in enumerate(test_loader):
         if i % 10 == 0:
