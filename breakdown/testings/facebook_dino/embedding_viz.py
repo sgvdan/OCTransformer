@@ -160,7 +160,7 @@ with torch.no_grad():
         # Forward pass only to get logits/output
         outputs = model.get_intermediate_layers(images, n=9)
         for n in range(9):
-            embds[n].append(outputs[n][:, 0].flatten().cpu().detach().numpy())
+            embds[n].append(outputs[n][0,:].flatten().cpu().detach().numpy())
             colors[n].append(labels.item())
 for n in range(8, -1, -1):
     print(n)
