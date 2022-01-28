@@ -72,7 +72,8 @@ class VITAttentionGradRollout:
         loss = (output * category_mask).sum()
         loss.backward()
 
-        return grad_rollout(self.attentions, self.attention_gradients, self.discard_ratio)
+        g= grad_rollout(self.attentions, self.attention_gradients, self.discard_ratio)
+        return g
 
 
 # create heatmap from mask on image
