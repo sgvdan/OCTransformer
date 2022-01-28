@@ -230,8 +230,8 @@ if __name__ == '__main__':
         image_transformer_attribution = img.squeeze().permute(1, 2, 0).data.cpu().numpy()
         image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
                 image_transformer_attribution.max() - image_transformer_attribution.min())
-        print(image_transformer_attribution.shape)
-        print(attentions[j].shape)
+        print(image_transformer_attribution.max())
+        print(attentions[j].max())
         vis = show_cam_on_image(image_transformer_attribution, attentions[j])
         vis = np.uint8(255 * vis)
         vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
