@@ -68,9 +68,16 @@ def extract_feature_pipeline(args):
         print(f"Architecture {args.arch} non supported")
         sys.exit(1)
     model.cuda()
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
     utils.load_pretrained_weights(model, args.pretrained_weights, args.checkpoint_key, args.arch, args.patch_size)
     model.eval()
+    model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
+    for p in model.parameters():
+        p.requires_grad = False
+    model.eval()
 
+    model.to(device)
     # ============ extract features ... ============
     print("Extracting features for train set...")
     train_features = extract_features(model, data_loader_train, args.use_cuda)
