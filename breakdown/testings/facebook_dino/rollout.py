@@ -95,5 +95,6 @@ if __name__ == '__main__':
     model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
     model.to(device)
     model.eval()
+    print(im.shape)
     grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9,)
     mask = grad_rollout(im, category_index=0)
