@@ -42,7 +42,7 @@ def grad_rollout2(attentions, gradients, discard_ratio=0.9):
     mask = result[0, 0, 1:]
     # In case of 224x224 image, this brings us from 196 to 14
     width = int(mask.size(-1) ** 0.5)
-    mask = mask.reshape(62,64).numpy()
+    mask = mask.reshape(62, 64).numpy()
     mask = mask / np.max(mask)
     return mask
 
@@ -74,7 +74,7 @@ class VITAttentionGradRollout:
         loss = (output * category_mask).sum()
         loss.backward()
 
-        g= grad_rollout2(self.attentions, self.attention_gradients, self.discard_ratio)
+        g = grad_rollout2(self.attentions, self.attention_gradients, self.discard_ratio)
         return g
 
 
@@ -98,7 +98,8 @@ if __name__ == '__main__':
     model.to(device)
     model.eval()
     print(im.shape)
-    grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9, )
-    mask = grad_rollout(im.unsqueeze(dim=0).to(device), category_index=0)
-    plt.imshow(mask)
-    plt.savefig("ggg2.png")
+    for i in [0.1 * j for j in range(1, 10)]:
+        grad_rollout = VITAttentionGradRollout(model, discard_ratio=i, )
+        mask = grad_rollout(im.unsqueeze(dim=0).to(device), category_index=2)
+        plt.imshow(mask)
+        plt.savefig(f"dme_fusion_{i}.png")
