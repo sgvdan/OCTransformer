@@ -87,7 +87,7 @@ def show_cam_on_image(img, mask):
 
 
 if __name__ == '__main__':
-    image = Image.open("../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg")
+    image = Image.open("../../../../data/kermany/val/DME/DME-9583225-1.jpeg")
     # image = Image.open("../../../../data/kermany/test/DME/DME-11053-1.jpeg")
     t = transforms.Compose([transforms.ToTensor()])
     im = t(image)
@@ -100,4 +100,4 @@ if __name__ == '__main__':
     grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9, )
     mask = grad_rollout(im.unsqueeze(dim=0).to(device), category_index=0)
     plt.imshow(mask)
-    plt.savefig("ggg.png")
+    plt.savefig("ggg2.png")
