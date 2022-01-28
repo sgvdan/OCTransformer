@@ -16,7 +16,7 @@ class dot_dict(dict):
     __delattr__ = dict.__delitem__
 
 
-def grad_rollout(attentions, gradients, discard_ratio=0.9):
+def grad_rollout2(attentions, gradients, discard_ratio=0.9):
     result = torch.eye(attentions[0].size(-1))
     with torch.no_grad():
         for attention, grad in zip(attentions, gradients):
@@ -72,7 +72,7 @@ class VITAttentionGradRollout:
         loss = (output * category_mask).sum()
         loss.backward()
 
-        g= grad_rollout(self.attentions, self.attention_gradients, self.discard_ratio)
+        g= grad_rollout2(self.attentions, self.attention_gradients, self.discard_ratio)
         return g
 
 
