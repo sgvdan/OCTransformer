@@ -113,10 +113,10 @@ if __name__ == '__main__':
                         help="Path to pretrained weights to load.")
     parser.add_argument("--checkpoint_key", default="teacher", type=str,
                         help='Key to use in the checkpoint (example: "teacher")')
-    parser.add_argument("--image_path", default="../../../../data/kermany/val/DME/DME-9583225-1.jpeg", type=str,
+    parser.add_argument("--image_path", default="../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg", type=str,
                         help="Path of the image to load.")
     parser.add_argument("--image_size", default=(480, 480), type=int, nargs="+", help="Resize image.")
-    parser.add_argument('--output_dir', default='./dme_exmpl', help='Path where to save visualizations.')
+    parser.add_argument('--output_dir', default='./normal_exmpl', help='Path where to save visualizations.')
     parser.add_argument("--threshold", type=float, default=0.4, help="""We visualize masks
         obtained by thresholding the self-attention maps to keep xx% of the mass.""")
     args = parser.parse_args()
