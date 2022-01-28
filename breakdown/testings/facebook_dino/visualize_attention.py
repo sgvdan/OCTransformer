@@ -232,7 +232,7 @@ if __name__ == '__main__':
                 image_transformer_attribution.max() - image_transformer_attribution.min())
         print(image_transformer_attribution.max())
         print(attentions[j].max())
-        vis = show_cam_on_image(image_transformer_attribution, attentions[j]/attentions[j].max())
+        vis = show_cam_on_image(image_transformer_attribution, (attentions[j]-attentions[j].min())/attentions[j].max())
         vis = np.uint8(255 * vis)
         vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
         plt.imsave(fname=fname, arr=vis, format='png')
