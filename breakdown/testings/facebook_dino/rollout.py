@@ -16,7 +16,7 @@ class dot_dict(dict):
     __delattr__ = dict.__delitem__
 
 
-def grad_rollout(attentions, gradients, discard_ratio):
+def grad_rollout(attentions, gradients, discard_ratio=0.9):
     result = torch.eye(attentions[0].size(-1))
     with torch.no_grad():
         for attention, grad in zip(attentions, gradients):
@@ -47,8 +47,7 @@ def grad_rollout(attentions, gradients, discard_ratio):
 
 
 class VITAttentionGradRollout:
-    def __init__(self, model, attention_layer_name='attn_drop',
-                 discard_ratio=0.9):
+    def __init__(self, model, attention_layer_name='attn_drop', discard_ratio=0.9):
         self.model = model
         self.discard_ratio = discard_ratio
         for name, module in self.model.named_modules():
@@ -73,7 +72,7 @@ class VITAttentionGradRollout:
         loss = (output * category_mask).sum()
         loss.backward()
 
-        return grad_rollout(self.attentions, self.attention_gradients,self.discard_ratio)
+        return grad_rollout(self.attentions, self.attention_gradients)
 
 
 # create heatmap from mask on image
@@ -83,6 +82,7 @@ def show_cam_on_image(img, mask):
     cam = heatmap * 0.4 + np.float32(img)
     cam = cam / np.max(cam)
     return cam
+
 
 if __name__ == '__main__':
     image = Image.open("../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg")
@@ -95,5 +95,5 @@ if __name__ == '__main__':
     model.to(device)
     model.eval()
     print(im.shape)
-    grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9,)
+    grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9, )
     mask = grad_rollout(im.unsqueeze(dim=0).to(device), category_index=0)
