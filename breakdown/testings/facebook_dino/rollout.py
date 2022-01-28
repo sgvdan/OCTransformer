@@ -130,6 +130,6 @@ if __name__ == '__main__':
         images = images.to(device)
         labels = labels.to(device)
         images = images.squeeze()
-        grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9, head_fusion='max')
-        mask = grad_rollout(images, 0)
+        grad_rollout2 = VITAttentionGradRollout(model, discard_ratio=0.9, head_fusion='max')
+        mask = grad_rollout2(images, 0)
         show_cam_on_image(images,mask)
