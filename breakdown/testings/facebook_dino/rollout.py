@@ -98,7 +98,7 @@ if __name__ == '__main__':
     model.to(device)
     model.eval()
     print(im.shape)
-    for i in [0.1 * j for j in range(1, 10)]:
+    for i in [0.9, 0.8]:
         grad_rollout = VITAttentionGradRollout(model, discard_ratio=i, )
         mask = grad_rollout(im.unsqueeze(dim=0).to(device), category_index=2)
         plt.imshow(mask)
