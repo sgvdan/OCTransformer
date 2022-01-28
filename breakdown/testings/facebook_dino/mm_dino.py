@@ -111,9 +111,9 @@ def print_top_classes(predictions, **kwargs):
         output_string += 'value = {:.3f}\t prob = {:.1f}%'.format(predictions[0, cls_idx], 100 * prob[0, cls_idx])
         print(output_string)
 
-
 image = Image.open("../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg")
-dog_cat_image = image
+t = transforms.Compose([transforms.ToTensor()])
+dog_cat_image = t(image)
 
 fig, axs = plt.subplots(1, 3)
 axs[0].imshow(image);
