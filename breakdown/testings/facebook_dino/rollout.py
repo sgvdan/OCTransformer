@@ -41,7 +41,7 @@ def grad_rollout2(attentions, gradients, discard_ratio=0.9):
     mask = result[0, 0, 1:]
     # In case of 224x224 image, this brings us from 196 to 14
     width = int(mask.size(-1) ** 0.5)
-    mask = mask.reshape(width, width).numpy()
+    mask = mask.reshape(62,64).numpy()
     mask = mask / np.max(mask)
     return mask
 
