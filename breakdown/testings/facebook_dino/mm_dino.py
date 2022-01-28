@@ -122,7 +122,7 @@ axs[0].imshow(image);
 axs[0].axis('off');
 
 output = model(dog_cat_image.unsqueeze(0).cuda())
-print_top_classes(output)
+# print_top_classes(output)
 
 # cat - the predicted class
 cat = generate_visualization(dog_cat_image)
