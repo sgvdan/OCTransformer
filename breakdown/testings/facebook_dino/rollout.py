@@ -86,50 +86,14 @@ def show_cam_on_image(img, mask):
     return cam
 
 if __name__ == '__main__':
+    image = Image.open("../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg")
+    # image = Image.open("../../../../data/kermany/test/DME/DME-11053-1.jpeg")
+    t = transforms.Compose([transforms.ToTensor()])
+    im = t(image)
+    im = torch.cat([im, im, im], 0)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    def_args = dot_dict({
-        "train": ["../../../data/kermany/train"],
-        "val": ["../../../data/kermany/val"],
-        "test": ["../../../../data/kermany/test"],
-    })
-
-    label_names = [
-        "NORMAL",
-        "CNV",
-        "DME",
-        "DRUSEN",
-    ]
-    test_dataset = Kermany_DataSet(def_args.test[0])
-    test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                              batch_size=1,
-                                              shuffle=True)
-    correct = 0.0
-    correct_arr = [0.0] * 10
-    total = 0.0
-    total_arr = [0.0] * 10
-    predictions = None
-    ground_truth = None
-    # Iterate through test dataset
-
-    columns = ["id", "Original Image", "Predicted", "Logits", "Truth", "Correct", "Attention NORMAL", "Attention CNV",
-               "Attention DME",
-               "Attention DRUSEN", "GradCAM", 'ScoreCAM', 'GradCAMPlusPlus', 'XGradCAM', 'EigenCAM', 'EigenGradCAM',
-               'Avg']
-    # for a in label_names:
-    #     columns.append("score_" + a)
-    test_dt = wandb.Table(columns=columns)
     model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
-    for p in model.parameters():
-        p.requires_grad = False
-    model.eval()
-
     model.to(device)
-    for i, (images, labels) in enumerate(test_loader):
-        if i % 10 == 0:
-            print(f'image : {i}\n\n\n')
-        images = images.to(device)
-        labels = labels.to(device)
-        images = images.squeeze()
-        grad_rollout2 = VITAttentionGradRollout(model, discard_ratio=0.9, head_fusion='max')
-        mask = grad_rollout2(images, 0)
-        show_cam_on_image(images,mask)
+    model.eval()
+    grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9,)
+    mask = grad_rollout(im, category_index=0)
