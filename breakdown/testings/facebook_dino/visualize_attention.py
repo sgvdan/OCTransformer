@@ -34,6 +34,14 @@ from PIL import Image
 import utils
 import vision_transformer as vits
 
+# create heatmap from mask on image
+def show_cam_on_image(img, mask):
+    heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
+    heatmap = np.float32(heatmap) / 255
+    cam = heatmap * 0.4 + np.float32(img)
+    cam = cam / np.max(cam)
+    return cam
+
 
 def apply_mask(image, mask, color, alpha=0.5):
     for c in range(3):
@@ -215,6 +223,17 @@ if __name__ == '__main__':
     for j in range(nh):
         fname = os.path.join(args.output_dir, "attn-head" + str(j) + ".png")
         plt.imsave(fname=fname, arr=attentions[j], format='png')
+        print(f"{fname} saved.")
+
+    for j in range(nh):
+        fname = os.path.join(args.output_dir, "attn-head_new" + str(j) + ".png")
+        image_transformer_attribution = img.squeeze().permute(1, 2, 0).data.cpu().numpy()
+        image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
+                image_transformer_attribution.max() - image_transformer_attribution.min())
+        vis = show_cam_on_image(image_transformer_attribution, attentions[j])
+        vis = np.uint8(255 * vis)
+        vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
+        plt.imsave(fname=fname, arr=vis, format='png')
         print(f"{fname} saved.")
 
     if args.threshold is not None:
