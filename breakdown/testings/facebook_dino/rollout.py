@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import torch
 from PIL import Image
 import numpy
@@ -98,3 +99,5 @@ if __name__ == '__main__':
     print(im.shape)
     grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9, )
     mask = grad_rollout(im.unsqueeze(dim=0).to(device), category_index=0)
+    plt.imshow(mask)
+    plt.savefig("ggg.png")
