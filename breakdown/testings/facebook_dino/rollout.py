@@ -88,7 +88,7 @@ def show_cam_on_image(img, mask):
 
 
 if __name__ == '__main__':
-    image = Image.open("../../../../data/kermany/val/DME/DME-9583225-1.jpeg")
+    image = Image.open("../../../../data/kermany/val/DME/DME-9603124-1.jpeg")
     # image = Image.open("../../../../data/kermany/test/DME/DME-11053-1.jpeg")
     t = transforms.Compose([transforms.ToTensor()])
     im = t(image)
