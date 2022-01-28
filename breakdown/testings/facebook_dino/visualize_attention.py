@@ -34,6 +34,7 @@ from PIL import Image
 import utils
 import vision_transformer as vits
 
+
 # create heatmap from mask on image
 def show_cam_on_image(img, mask):
     heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
@@ -112,10 +113,10 @@ if __name__ == '__main__':
                         help="Path to pretrained weights to load.")
     parser.add_argument("--checkpoint_key", default="teacher", type=str,
                         help='Key to use in the checkpoint (example: "teacher")')
-    parser.add_argument("--image_path", default="../../../../data/kermany/val/DRUSEN/DRUSEN-9894035-2.jpeg", type=str,
+    parser.add_argument("--image_path", default="../../../../data/kermany/val/CNV/CNV-8184974-1.jpeg", type=str,
                         help="Path of the image to load.")
     parser.add_argument("--image_size", default=(480, 480), type=int, nargs="+", help="Resize image.")
-    parser.add_argument('--output_dir', default='./drusen_exmpl', help='Path where to save visualizations.')
+    parser.add_argument('--output_dir', default='./cnv_exmpl', help='Path where to save visualizations.')
     parser.add_argument("--threshold", type=float, default=0.4, help="""We visualize masks
         obtained by thresholding the self-attention maps to keep xx% of the mass.""")
     args = parser.parse_args()
@@ -163,84 +164,88 @@ if __name__ == '__main__':
 
     model.to(device)
     # open image
-    if args.image_path is None:
-        # user has not specified any image - we use our own image
-        print("Please use the `--image_path` argument to indicate the path of the image you wish to visualize.")
-        print("Since no image path have been provided, we take the first image in our paper.")
-        response = requests.get("https://dl.fbaipublicfiles.com/dino/img.png")
-        img = Image.open(BytesIO(response.content))
-        img = img.convert('RGB')
-    elif os.path.isfile(args.image_path):
-        with open(args.image_path, 'rb') as f:
-            img = Image.open(f)
+    paths = [args.image_path]
+    for path in paths:
+        args.image_path = path
+        if args.image_path is None:
+            # user has not specified any image - we use our own image
+            print("Please use the `--image_path` argument to indicate the path of the image you wish to visualize.")
+            print("Since no image path have been provided, we take the first image in our paper.")
+            response = requests.get("https://dl.fbaipublicfiles.com/dino/img.png")
+            img = Image.open(BytesIO(response.content))
             img = img.convert('RGB')
-    else:
-        print(f"Provided image path {args.image_path} is non valid.")
-        sys.exit(1)
-    transform = pth_transforms.Compose([
-        pth_transforms.Resize(args.image_size),
-        pth_transforms.ToTensor(),
-        pth_transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-    ])
-    img = transform(img)
+        elif os.path.isfile(args.image_path):
+            with open(args.image_path, 'rb') as f:
+                img = Image.open(f)
+                img = img.convert('RGB')
+        else:
+            print(f"Provided image path {args.image_path} is non valid.")
+            sys.exit(1)
+        transform = pth_transforms.Compose([
+            pth_transforms.Resize(args.image_size),
+            pth_transforms.ToTensor(),
+            pth_transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        ])
+        img = transform(img)
 
-    # make the image divisible by the patch size
-    w, h = img.shape[1] - img.shape[1] % args.patch_size, img.shape[2] - img.shape[2] % args.patch_size
-    img = img[:, :w, :h].unsqueeze(0)
+        # make the image divisible by the patch size
+        w, h = img.shape[1] - img.shape[1] % args.patch_size, img.shape[2] - img.shape[2] % args.patch_size
+        img = img[:, :w, :h].unsqueeze(0)
 
-    w_featmap = img.shape[-2] // args.patch_size
-    h_featmap = img.shape[-1] // args.patch_size
+        w_featmap = img.shape[-2] // args.patch_size
+        h_featmap = img.shape[-1] // args.patch_size
 
-    attentions = model.get_last_selfattention(img.to(device))
+        attentions = model.get_last_selfattention(img.to(device))
 
-    nh = attentions.shape[1]  # number of head
+        nh = attentions.shape[1]  # number of head
 
-    # we keep only the output patch attention
-    attentions = attentions[0, :, 0, 1:].reshape(nh, -1)
+        # we keep only the output patch attention
+        attentions = attentions[0, :, 0, 1:].reshape(nh, -1)
 
-    if args.threshold is not None:
-        # we keep only a certain percentage of the mass
-        val, idx = torch.sort(attentions)
-        val /= torch.sum(val, dim=1, keepdim=True)
-        cumval = torch.cumsum(val, dim=1)
-        th_attn = cumval > (1 - args.threshold)
-        idx2 = torch.argsort(idx)
-        for head in range(nh):
-            th_attn[head] = th_attn[head][idx2[head]]
-        th_attn = th_attn.reshape(nh, w_featmap, h_featmap).float()
-        # interpolate
-        th_attn = nn.functional.interpolate(th_attn.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[
+        if args.threshold is not None:
+            # we keep only a certain percentage of the mass
+            val, idx = torch.sort(attentions)
+            val /= torch.sum(val, dim=1, keepdim=True)
+            cumval = torch.cumsum(val, dim=1)
+            th_attn = cumval > (1 - args.threshold)
+            idx2 = torch.argsort(idx)
+            for head in range(nh):
+                th_attn[head] = th_attn[head][idx2[head]]
+            th_attn = th_attn.reshape(nh, w_featmap, h_featmap).float()
+            # interpolate
+            th_attn = nn.functional.interpolate(th_attn.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[
+                0].cpu().numpy()
+
+        attentions = attentions.reshape(nh, w_featmap, h_featmap)
+        attentions = nn.functional.interpolate(attentions.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[
             0].cpu().numpy()
 
-    attentions = attentions.reshape(nh, w_featmap, h_featmap)
-    attentions = nn.functional.interpolate(attentions.unsqueeze(0), scale_factor=args.patch_size, mode="nearest")[
-        0].cpu().numpy()
-
-    # save attentions heatmaps
-    os.makedirs(args.output_dir, exist_ok=True)
-    torchvision.utils.save_image(torchvision.utils.make_grid(img, normalize=True, scale_each=True),
-                                 os.path.join(args.output_dir, "img.png"))
-    for j in range(nh):
-        fname = os.path.join(args.output_dir, "attn-head" + str(j) + ".png")
-        plt.imsave(fname=fname, arr=attentions[j], format='png')
-        print(f"{fname} saved.")
-
-    for j in range(nh):
-        fname = os.path.join(args.output_dir, "attn-head_new" + str(j) + ".png")
-        image_transformer_attribution = img.squeeze().permute(1, 2, 0).data.cpu().numpy()
-        image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
-                image_transformer_attribution.max() - image_transformer_attribution.min())
-        print(image_transformer_attribution.max())
-        print(attentions[j].max())
-        vis = show_cam_on_image(image_transformer_attribution, (attentions[j]-attentions[j].min())/attentions[j].max())
-        vis = np.uint8(255 * vis)
-        vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
-        plt.imsave(fname=fname, arr=vis, format='png')
-        print(f"{fname} saved.")
-
-    if args.threshold is not None:
-        image = skimage.io.imread(os.path.join(args.output_dir, "img.png"))
+        # save attentions heatmaps
+        os.makedirs(args.output_dir, exist_ok=True)
+        torchvision.utils.save_image(torchvision.utils.make_grid(img, normalize=True, scale_each=True),
+                                     os.path.join(args.output_dir, "img.png"))
         for j in range(nh):
-            display_instances(image, th_attn[j], fname=os.path.join(args.output_dir,
-                                                                    "mask_th" + str(args.threshold) + "_head" + str(
-                                                                        j) + ".png"), blur=False)
+            fname = os.path.join(args.output_dir, "attn-head" + str(j) + ".png")
+            plt.imsave(fname=fname, arr=attentions[j], format='png')
+            print(f"{fname} saved.")
+
+        for j in range(nh):
+            fname = os.path.join(args.output_dir, "attn-head_new" + str(j) + ".png")
+            image_transformer_attribution = img.squeeze().permute(1, 2, 0).data.cpu().numpy()
+            image_transformer_attribution = (image_transformer_attribution - image_transformer_attribution.min()) / (
+                    image_transformer_attribution.max() - image_transformer_attribution.min())
+            print(image_transformer_attribution.max())
+            print(attentions[j].max())
+            vis = show_cam_on_image(image_transformer_attribution,
+                                    (attentions[j] - attentions[j].min()) / attentions[j].max())
+            vis = np.uint8(255 * vis)
+            vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
+            plt.imsave(fname=fname, arr=vis, format='png')
+            print(f"{fname} saved.")
+
+        if args.threshold is not None:
+            image = skimage.io.imread(os.path.join(args.output_dir, "img.png"))
+            for j in range(nh):
+                display_instances(image, th_attn[j], fname=os.path.join(args.output_dir,
+                                                                        "mask_th" + str(args.threshold) + "_head" + str(
+                                                                            j) + ".png"), blur=False)
