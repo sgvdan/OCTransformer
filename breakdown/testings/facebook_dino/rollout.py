@@ -97,4 +97,4 @@ if __name__ == '__main__':
     model.eval()
     print(im.shape)
     grad_rollout = VITAttentionGradRollout(model, discard_ratio=0.9,)
-    mask = grad_rollout(im, category_index=0)
+    mask = grad_rollout(im.unsqueeze(dim=0), category_index=0)
