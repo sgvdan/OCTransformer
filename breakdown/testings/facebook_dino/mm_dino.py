@@ -113,7 +113,7 @@ def print_top_classes(predictions, **kwargs):
 
 
 image = Image.open("../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg")
-dog_cat_image = transform(image)
+dog_cat_image = image
 
 fig, axs = plt.subplots(1, 3)
 axs[0].imshow(image);
