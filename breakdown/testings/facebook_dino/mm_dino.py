@@ -114,7 +114,7 @@ def print_top_classes(predictions, **kwargs):
 image = Image.open("../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg")
 t = transforms.Compose([transforms.ToTensor()])
 dog_cat_image = t(image)
-
+print(dog_cat_image.shape)
 fig, axs = plt.subplots(1, 3)
 axs[0].imshow(image);
 axs[0].axis('off');
