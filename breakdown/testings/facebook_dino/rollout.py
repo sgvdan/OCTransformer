@@ -66,6 +66,7 @@ class VITAttentionGradRollout:
 
     def __call__(self, input_tensor, category_index):
         self.model.zero_grad()
+        print(input_tensor)
         output = self.model(input_tensor)
         category_mask = torch.zeros(output.size()).to(device)
         category_mask[:, category_index] = 1
