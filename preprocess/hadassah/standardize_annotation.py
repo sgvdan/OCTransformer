@@ -18,12 +18,12 @@ def standardize_annotation(annotations):
 
         annotations.loc[row_idx+.5, :LAST_COLUMN] = [patient_code, eye, *[value for value in end]]
 
+    annotations = annotations.iloc[:, :LAST_COLUMN]
+
     # Add important specifiers
     annotations.insert(1, 'P.I.D', None)
     annotations.insert(2, 'S.I.D', None)
     annotations.insert(3, 'E.I.D', None)
-
-    annotations = annotations.iloc[:, :LAST_COLUMN]
 
     return annotations.sort_index().reset_index(drop=True)
 

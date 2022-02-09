@@ -1,6 +1,11 @@
+import random
+
+import numpy as np
+
 import wandb
 
 import util
+from analysis.analyzer import plot_attention, plot_gradient_heatmap
 from data.hadassah_data import setup_hadassah
 from data.kermany_data import setup_kermany
 from models.bank import ModelsBank
@@ -46,19 +51,32 @@ class Experiment:
         else:
             raise NotImplementedError
 
-    def run(self):
+    def train(self):
         self.trainer.train(self.model, self.criterion, self.optimizer, self.scheduler, self.config.epochs)
 
         if self.config.load_best_model:
             self.model_bank.load_best(self.model, self.optimizer, self.scheduler)  # Refresh model (avoid over fitting)
 
-        accuracy = self.trainer.test(self.model)
-        self.logger.log({'Overall_Accuracy': accuracy})
+        # accuracy = self.trainer.test(self.model)
+        # self.logger.log({'Overall_Accuracy': accuracy})
+
+    def analyze(self):
+        for idx, (volume, label) in enumerate(self.test_loader):
+            if label == 1:
+                sample = self.test_loader.dataset.get_samples()[idx]
+                images_path = sample.volume_path.parent / 'images/'
+                print(images_path)
+                # attn = self.model.get_attention_map(volume.to(self.config.device))
+                #
+                # plot_attention(sample.name, volume[0], attn)
+
+                plot_gradient_heatmap(sample.name, volume[0], label, self.model, self.optimizer)
 
 
 def main():
     experiment = Experiment(default_config)
-    experiment.run()
+    experiment.train()
+    experiment.analyze()
 
 
 if __name__ == '__main__':

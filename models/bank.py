@@ -8,6 +8,7 @@ from pathlib import Path
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
+import util
 from models.deepset import DeepSet
 from models.slivernet import SliverNet2
 from models.vit import MyViT
@@ -42,13 +43,13 @@ class ModelsBank:
             raise NotImplementedError
 
         # Choose Model
-        model_name = self.config.model.lower()
-        if model_name == 'vit':
+        model_type = self.config.model.lower()
+        if model_type == 'vit':
             backbone.fc = torch.nn.Linear(in_features=512, out_features=self.config.embedding_dim,
                                           device=self.config.device)
             model = MyViT(backbone, self.config).to(self.config.device)
 
-        elif model_name == 'slivernet':
+        elif model_type == 'slivernet':
             assert self.config.batch_size == 1  # Only supports batch_size of 1
             print('IMPORTANT: Working in undeterminstic manner - so as to support SliverNet\'s max_pool operation')
             torch.use_deterministic_algorithms(mode=False)
@@ -58,7 +59,7 @@ class ModelsBank:
             if self.config.device == 'cuda':
                 model = model.cuda()
 
-        elif model_name == 'deepset':
+        elif model_type == 'deepset':
             backbone = torch.nn.Sequential(*list(backbone.children())[:-2])
             model = DeepSet(backbone=backbone, x_dim=1024, d_dim=self.config.embedding_dim,
                             num_classes=self.config.num_classes).to(self.config.device)
@@ -66,8 +67,9 @@ class ModelsBank:
             raise NotImplementedError
 
         # if Model Name not specified, random out a new one
-        if self.config.model_name is None:
-            model_name = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+        model_name = self.config.model_name
+        if model_name is None:
+            model_name = ''.join(util.get_pseudo_random().choices(string.ascii_letters + string.digits, k=10))
             print('Random model name generated:', model_name)
         model.name = model_name
 

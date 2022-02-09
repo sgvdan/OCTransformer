@@ -37,6 +37,8 @@ class HadassahDataset(Dataset):
         # TODO: REMOVE THIS! TREAT IT WITH LABEL NAME
         return {'DME_HEALTHY': 0, 'DME_SICK': 1}
 
+    def get_samples(self):
+        return self.samples
 
 class Records:
     def __init__(self):

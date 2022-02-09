@@ -5,8 +5,8 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': True,
-                           'log_group': 'hadassah/SliverNet+Imagenet',
+                           'log': False,
+                           'log_group': 'hadassah/ViT+Kermany/1head',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -22,25 +22,26 @@ default_config = dot_dict({'project': 'OCTransformer',
 
                            # Hadassah Dataset
                            'dataset': 'hadassah',
-                           'input_size': (256, 256),  # TODO : Change this back to 496,1024
-                           'num_slices': 7,
+                           'input_size': (256, 256),  # (496, 1024)
+                           'num_slices': 15,
                            'batch_size': 1,
                            'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
                            # Environment
-                           'backbone': 'imagenet_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
-                           'model': 'slivernet',
-                           'model_name': None,
+                           'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
+                           'model': 'vit',
+                           'attention_heads': 1,
+                           'model_name': 'HVGsj22555',
 
                            # Models Bank
-                           'keep_best_model': True,  # Whether to sync best model bank
+                           'keep_best_model': False,  # Whether to sync best model bank
                            'load_best_model': True,  # True to always load the best possible model, False for nominal
 
                            # Train Parameters
                            'optimizer': 'adam',
                            'criterion': 'cross_entropy',
                            'scheduler': None,
-                           'epochs': 30,
+                           'epochs': 0,
                            'lr': 1e-5,
 
                            'train_size': 0.65,

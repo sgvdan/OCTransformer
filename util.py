@@ -1,7 +1,12 @@
 import math
 import random
+import sys
+
+import numpy as np
 import torch
 import torchvision.transforms as transforms
+
+pseudo_random = random.Random()  # performed prior to make_deterministic
 
 
 class dot_dict(dict):
@@ -11,9 +16,15 @@ class dot_dict(dict):
     __delattr__ = dict.__delitem__
 
 
+def get_pseudo_random():
+    return pseudo_random
+
+
 def make_deterministic(seed=0):
     torch.manual_seed(seed)
     torch.use_deterministic_algorithms(mode=True)
+    random.seed(seed)
+    np.random.seed(seed)
 
 
 def split_list(input_list, chunks, random_split=True):
@@ -55,3 +66,17 @@ def get_balance_weights(labels, num_classes):
         weights[idx] = weight_per_class[int(label)]
 
     return torch.FloatTensor(weights)
+
+
+def move2cpu(d):
+    """Move data from gpu to cpu"""
+    return d.detach().cpu().float().numpy()
+
+
+def tensor2im(im_t, im_type='float'):
+    """Copy the tensor to the cpu & convert to range [0,255]"""
+    im_t = move2cpu(im_t)
+    if im_type == 'RGB':
+        im_t = np.transpose(im_t, (1, 2, 0))
+    im_np = np.clip(np.round(im_t * 255.0), 0, 255)
+    return im_np.astype(np.uint8)
