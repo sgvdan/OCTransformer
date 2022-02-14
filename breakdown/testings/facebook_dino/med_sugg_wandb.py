@@ -173,6 +173,8 @@ def train_dino(args):
         )
 
         teacher = vits.__dict__[args.arch](patch_size=args.patch_size)
+        teacher = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
+        print("yay")
         embed_dim = student.embed_dim
     # if the network is a XCiT
     elif args.arch in torch.hub.list("facebookresearch/xcit:main"):
