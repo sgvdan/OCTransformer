@@ -143,14 +143,14 @@ for p in model.parameters():
     p.requires_grad = False
 model.eval()
 model.to(device)
-state_dict = torch.load('checkpoint.pth', map_location="cpu")
+state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb/checkpoint0024.pth', map_location="cpu")
 state_dict = state_dict['teacher']
 # Iterate through test dataset
 state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
 # remove `backbone.` prefix induced by multicrop wrapper
 state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
 msg = model.load_state_dict(state_dict, strict=False)
-model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
+# model = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
 model.eval()
 model.to(device)
 with torch.no_grad():
