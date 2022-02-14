@@ -138,7 +138,7 @@ total_arr = [0.0] * 10
 predictions = None
 ground_truth = None
 
-model = vits.__dict__['vit_base'](patch_size=16, num_classes=0)
+model = vits.__dict__['vit_base'](patch_size=8, num_classes=0)
 for p in model.parameters():
     p.requires_grad = False
 model.eval()
