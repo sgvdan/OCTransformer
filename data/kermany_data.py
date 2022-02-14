@@ -30,10 +30,7 @@ class KermanyDataset(Dataset):
 
         image = image.unsqueeze(dim=0).expand(-1, 3, -1, -1)
 
-        #TEMPORARY
-        return image.squeeze(), label
-        #TEMPORARY
-        # return image, label
+        return image, label
 
     def __len__(self):
         return len(self.samples)

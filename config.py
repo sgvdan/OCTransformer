@@ -9,23 +9,23 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'log_group': 'misc',
                            'log_frequency': 10,
 
-                           # Kermany Dataset
-                           'dataset': 'kermany',
-                           'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/train',
-                           'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/val',
-                           'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/test',
-                           'kermany_labels': ['NORMAL', 'CNV', 'DME', 'DRUSEN'],
-                           'input_size': (256, 256),
+                           # # Kermany Dataset
+                           # 'dataset': 'kermany',
+                           # 'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/train',
+                           # 'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/val',
+                           # 'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/test',
+                           # 'kermany_labels': ['NORMAL', 'CNV', 'DME', 'DRUSEN'],
+                           # 'input_size': (256, 256),
+                           # 'num_slices': 1,
+                           # 'batch_size': 1,
+                           # 'num_classes': 4,  # TODO: CHANGE THIS TO len(kermany_labels)
+
+                           # Hadassah Dataset
+                           'dataset': 'hadassah',
+                           'input_size': (256, 256),  # (496, 1024)
                            'num_slices': 1,
                            'batch_size': 1,
-                           'num_classes': 4,  # TODO: CHANGE THIS TO len(kermany_labels)
-
-                           # # Hadassah Dataset
-                           # 'dataset': 'hadassah',
-                           # 'input_size': (256, 256),  # (496, 1024)
-                           # 'num_slices': 15,
-                           # 'batch_size': 1,
-                           # 'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
+                           'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
                            # Environment
                            'backbone': 'resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18

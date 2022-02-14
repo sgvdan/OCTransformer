@@ -67,11 +67,11 @@ class Experiment:
         # TEMPORARY
 
         for idx, (volume, label) in enumerate(self.test_loader):
-            if label == 3:
+            if label == 1:
             #     sample = self.test_loader.dataset.get_samples()[idx]
             #     attn = self.model.get_attention_map(volume.to(self.config.device))
             #     plot_attention(sample.name, volume[0], attn)
-                grad_cam_model(backbone, volume[0].unsqueeze(dim=0), label=0)
+                grad_cam_model(backbone, volume[0], label=0)
 
         # plot_gradient_heatmap("kermany({})".format(idx), volume.squeeze(), label, backbone, self.optimizer)  # revert to volume[0]
 
