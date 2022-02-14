@@ -1,17 +1,15 @@
-import random
-
-import numpy as np
-
 import wandb
 
 import util
-from analysis.analyzer import plot_attention, plot_gradient_heatmap
+from analysis.analyzer import plot_attention, plot_gradient_heatmap, grad_cam_model
 from data.hadassah_data import setup_hadassah
 from data.kermany_data import setup_kermany
 from models.bank import ModelsBank
 from config import default_config
 from logger import Logger
 from train.train import Trainer
+import torch
+import torchvision.models as tmodels
 
 
 class Experiment:
@@ -57,25 +55,30 @@ class Experiment:
         if self.config.load_best_model:
             self.model_bank.load_best(self.model, self.optimizer, self.scheduler)  # Refresh model (avoid over fitting)
 
-        # accuracy = self.trainer.test(self.model)
-        # self.logger.log({'Overall_Accuracy': accuracy})
+        accuracy = self.trainer.test(self.model)
+        self.logger.log({'Overall_Accuracy': accuracy})
 
     def analyze(self):
-        for idx, (volume, label) in enumerate(self.test_loader):
-            if label == 1:
-                sample = self.test_loader.dataset.get_samples()[idx]
-                images_path = sample.volume_path.parent / 'images/'
-                print(images_path)
-                # attn = self.model.get_attention_map(volume.to(self.config.device))
-                #
-                # plot_attention(sample.name, volume[0], attn)
+        # TEMPORARY
+        backbone = tmodels.resnet18(pretrained=False, num_classes=4).to(self.config.device)
+        kermany_path = '.models_bank/kermany_resnet18/resnet18.tar'
+        states_dict = torch.load(kermany_path)
+        backbone.load_state_dict(states_dict['model_state_dict'])
+        # TEMPORARY
 
-                plot_gradient_heatmap(sample.name, volume[0], label, self.model, self.optimizer)
+        for idx, (volume, label) in enumerate(self.test_loader):
+            if label == 3:
+            #     sample = self.test_loader.dataset.get_samples()[idx]
+            #     attn = self.model.get_attention_map(volume.to(self.config.device))
+            #     plot_attention(sample.name, volume[0], attn)
+                grad_cam_model(backbone, volume[0].unsqueeze(dim=0), label=0)
+
+        # plot_gradient_heatmap("kermany({})".format(idx), volume.squeeze(), label, backbone, self.optimizer)  # revert to volume[0]
 
 
 def main():
     experiment = Experiment(default_config)
-    experiment.train()
+    # experiment.train()
     experiment.analyze()
 
 

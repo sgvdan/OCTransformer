@@ -144,7 +144,6 @@ def build_hadassah_dataset(dataset_root, annotations_path):
         sample_name = '{}_{}_{}'.format(metadata['P.I.D'], metadata['E.I.D'], metadata['S.I.D'])
         path = dataset_root / '{}/{}'.format(patient_name, sample_name)
 
-        print(path)
         assert path.exists()
 
         patient = records.get_patient(patient_name)

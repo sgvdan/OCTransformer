@@ -1,4 +1,5 @@
 import torch
+from torch.nn.functional import one_hot
 from tqdm import tqdm
 from contextlib import ExitStack
 
@@ -48,7 +49,7 @@ class Trainer:
         self.logger.log_test(classes=self.test_loader.dataset.get_classes())
 
         # Obtain Test Accuracy
-        accuracy = self.logger.get_current_accuracy(classes=self.eval_loader.dataset.get_classes())
+        accuracy = self.logger.get_current_accuracy(classes=self.test_loader.dataset.get_classes())
         tqdm.write("\nTest Accuracy: {}".format(accuracy))
 
         return accuracy

@@ -29,7 +29,11 @@ class KermanyDataset(Dataset):
             image = self.transformations(image)
 
         image = image.unsqueeze(dim=0).expand(-1, 3, -1, -1)
-        return image, label
+
+        #TEMPORARY
+        return image.squeeze(), label
+        #TEMPORARY
+        # return image, label
 
     def __len__(self):
         return len(self.samples)
