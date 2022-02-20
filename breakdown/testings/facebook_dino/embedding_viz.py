@@ -126,7 +126,7 @@ test_dataset = Kermany_DataSet(def_args.test[0], size=(496, 496) if dino else (4
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=True)
-name = 'dino_new'
+name = 'dino_new_fitted'
 embds = [[], [], [], [], [], [], [], [], []]
 colors = [[], [], [], [], [], [], [], [], []]
 # model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
