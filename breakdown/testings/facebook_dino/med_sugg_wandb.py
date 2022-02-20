@@ -97,12 +97,12 @@ def get_args_parser():
     parser.add_argument('--freeze_last_layer', default=1, type=int, help="""Number of epochs
         during which we keep the output layer fixed. Typically doing so during
         the first epoch helps training. Try increasing this value if the loss does not decrease.""")
-    parser.add_argument("--lr", default=0.01, type=float, help="""Learning rate at the end of
+    parser.add_argument("--lr", default=0.00001, type=float, help="""Learning rate at the end of
         linear warmup (highest LR used during training). The learning rate is linearly scaled
         with the batch size, and specified here for a reference batch size of 256.""")
-    parser.add_argument("--warmup_epochs", default=10, type=int,
+    parser.add_argument("--warmup_epochs", default=0, type=int,
                         help="Number of epochs for the linear learning-rate warm up.")
-    parser.add_argument('--min_lr', type=float, default=5e-4, help="""Target LR at the
+    parser.add_argument('--min_lr', type=float, default=5e-8, help="""Target LR at the
         end of optimization. We use a cosine LR schedule with linear warmup.""")
     parser.add_argument('--optimizer', default='adamw', type=str,
                         choices=['adamw', 'sgd', 'lars'],
@@ -126,7 +126,7 @@ def get_args_parser():
                         help='Please specify path to the ImageNet training data.')
     r = str(abs(hash(json.dumps(vars(parser.parse_args()), sort_keys=True))))
     r = 3831946279198489342
-    parser.add_argument('--output_dir', default="./mult_gpu_fb_test_med_sugg_wandb2", type=str,
+    parser.add_argument('--output_dir', default="./mult_gpu_fb_test_med_sugg_wandb_fine_tune", type=str,
                         help='Path to save logs and checkpoints.')
     parser.add_argument('--saveckp_freq', default=1, type=int, help='Save checkpoint every x epochs.')
     parser.add_argument('--seed', default=0, type=int, help='Random seed.')
@@ -165,6 +165,7 @@ def train_dino(args):
     # ============ building student and teacher networks ... ============
     # we changed the name DeiT-S for ViT-S to avoid confusions
     args.arch = args.arch.replace("deit", "vit")
+    state_dict = torch.load('dino_vitbase8_pretrain_full_checkpoint.pth', map_location="cpu")
     # if the network is a Vision Transformer (i.e. vit_tiny, vit_small, vit_base)
     if args.arch in vits.__dict__.keys():
         student = vits.__dict__[args.arch](
@@ -173,7 +174,20 @@ def train_dino(args):
         )
 
         teacher = vits.__dict__[args.arch](patch_size=args.patch_size)
-        teacher = torch.hub.load('facebookresearch/dino:main', 'dino_vitb8')
+
+        state_dict_t = state_dict['teacher']
+        state_dict_s = state_dict['student']
+        # Iterate through test dataset
+        state_dict_t = {k.replace("module.", ""): v for k, v in state_dict_t.items()}
+        state_dict_s = {k.replace("module.", ""): v for k, v in state_dict_s.items()}
+        # remove `backbone.` prefix induced by multicrop wrapper
+        state_dict_t = {k.replace("backbone.", ""): v for k, v in state_dict_t.items()}
+        state_dict_s = {k.replace("backbone.", ""): v for k, v in state_dict_s.items()}
+        msg_t = teacher.load_state_dict(state_dict_t, strict=False)
+        msg_s = student.load_state_dict(state_dict_s, strict=False)
+        teacher.to('cuda')
+        student.to('cuda')
+
         print("yay")
         embed_dim = student.embed_dim
     # if the network is a XCiT
