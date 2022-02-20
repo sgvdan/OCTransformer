@@ -5,7 +5,7 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': False,
+                           'log': True,
                            'log_group': 'misc',
                            'log_frequency': 10,
 
@@ -23,7 +23,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 1,
+                           'num_slices': 5,
                            'batch_size': 1,
                            'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
@@ -31,11 +31,12 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'backbone': 'resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
                            'model': 'vit',
                            'attention_heads': 1,
+                           'vit_depth': 1,
                            'model_name': None,
 
                            # Models Bank
-                           'keep_best_model': False,  # Whether to sync best model bank
-                           'load_best_model': False,  # True to always load the best possible model, False for nominal
+                           'keep_best_model': True,  # Whether to sync best model bank
+                           'load_best_model': True,  # True to always load the best possible model, False for nominal
 
                            # Train Parameters
                            'optimizer': 'adam',

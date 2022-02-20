@@ -16,7 +16,7 @@ class Trainer:
 
     def train(self, model, criterion, optimizer, scheduler, epochs):
         for epoch in range(epochs):
-            tqdm.write("Epoch {epoch}/{epochs}".format(epoch=epoch, epochs=epochs))
+            tqdm.write("Epoch {epoch}/{epochs}".format(epoch=epoch+1, epochs=epochs))
 
             # Train
             tqdm.write("\nTrain:")

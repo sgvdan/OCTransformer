@@ -3,6 +3,7 @@ import wandb
 import util
 from analysis.analyzer import plot_attention, plot_gradient_heatmap, grad_cam_model
 from data.hadassah_data import setup_hadassah
+from data.hadassah_mix import MixedDataset
 from data.kermany_data import setup_kermany
 from models.bank import ModelsBank
 from config import default_config
@@ -66,19 +67,23 @@ class Experiment:
         backbone.load_state_dict(states_dict['model_state_dict'])
         # TEMPORARY
 
-        for idx, (volume, label) in enumerate(self.test_loader):
+        mix_dataset = MixedDataset(self.test_loader.dataset)
+        mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
+
+        for idx, (volume, label) in enumerate(mix_loader):
             if label == 1:
-            #     sample = self.test_loader.dataset.get_samples()[idx]
-            #     attn = self.model.get_attention_map(volume.to(self.config.device))
-            #     plot_attention(sample.name, volume[0], attn)
-                grad_cam_model(backbone, volume[0], label=0)
+                attn = self.model.get_attention_map(volume.to(self.config.device))
+                plot_attention('mix-{}'.format(idx), volume[0], attn)
+                pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
+                print("MODEL'S PREDICTION:", pred)
+            #     grad_cam_model(backbone, volume[0], label=0)
 
         # plot_gradient_heatmap("kermany({})".format(idx), volume.squeeze(), label, backbone, self.optimizer)  # revert to volume[0]
 
 
 def main():
     experiment = Experiment(default_config)
-    # experiment.train()
+    experiment.train()
     experiment.analyze()
 
 
