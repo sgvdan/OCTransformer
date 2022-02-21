@@ -126,7 +126,7 @@ test_dataset = Kermany_DataSet(def_args.test[0], size=(496, 496) if dino else (4
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=1,
                                           shuffle=True)
-name = 'dino_new_fine1'
+name = 'dino_new_fine'
 embds = [[], [], [], [], [], [], [], [], []]
 colors = [[], [], [], [], [], [], [], [], []]
 # model.load_state_dict(torch.load(f'{name}.pt', map_location=torch.device(device)))
@@ -143,7 +143,7 @@ for p in model.parameters():
     p.requires_grad = False
 model.eval()
 model.to(device)
-state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0001.pth', map_location="cpu")
+state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0000.pth', map_location="cpu")
 state_dict = state_dict['teacher']
 # Iterate through test dataset
 state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}

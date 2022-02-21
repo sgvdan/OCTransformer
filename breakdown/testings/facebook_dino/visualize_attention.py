@@ -113,11 +113,11 @@ if __name__ == '__main__':
                         help="Path to pretrained weights to load.")
     parser.add_argument("--checkpoint_key", default="teacher", type=str,
                         help='Key to use in the checkpoint (example: "teacher")')
-    parser.add_argument("--image_path", default="../../../../data/kermany/val/NORMAL/NORMAL-5193994-1.jpeg", type=str,
+    parser.add_argument("--image_path", default="../../../../data/kermany/val/DRUSEN/DRUSEN-9894035-2.jpeg", type=str,
                         help="Path of the image to load.")
-    #NORMAL/NORMAL-5193994-1                CNV/CNV-8184974-1          DRUSEN/DRUSEN-9894035-2    DME/DME-9583225-1
+    # NORMAL/NORMAL-5193994-1                CNV/CNV-8184974-1          DRUSEN/DRUSEN-9894035-2    DME/DME-9583225-1
     parser.add_argument("--image_size", default=(480, 480), type=int, nargs="+", help="Resize image.")
-    parser.add_argument('--output_dir', default='./normal_exmpl4', help='Path where to save visualizations.')
+    parser.add_argument('--output_dir', default='./drusen_exmpl5', help='Path where to save visualizations.')
     parser.add_argument("--threshold", type=float, default=0.4, help="""We visualize masks
         obtained by thresholding the self-attention maps to keep xx% of the mass.""")
     args = parser.parse_args()
@@ -168,7 +168,7 @@ if __name__ == '__main__':
         p.requires_grad = False
     model.eval()
     model.to(device)
-    state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0000.pth', map_location="cpu")
+    state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0001.pth', map_location="cpu")
     state_dict = state_dict['teacher']
     # Iterate through test dataset
     state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
