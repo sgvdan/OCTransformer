@@ -68,6 +68,23 @@ def get_balance_weights(labels, num_classes):
     return torch.FloatTensor(weights)
 
 
+def mask_from_heatmap(image, thresh=0.9, smallest_contour_len=30):
+    # binary mask according to threshold
+    ret, thresh_img = cv2.threshold(src=image, thresh=thresh * 255, maxval=255, type=cv2.THRESH_BINARY)
+    # find contours
+    contours, hierarchy = cv2.findContours(image=thresh_img, mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_SIMPLE)
+    # filter out irrelevant contours, and smooth the rest
+    contours = filter_contours(contours, smallest_contour_len=smallest_contour_len)
+    try:
+        contours = smoothene_contours(contours=contours)
+    except:
+        print("Failed to smoothen contours :/    continuing...")
+    # draw only filled contours
+    mask = np.zeros(image.shape)
+    cv2.fillPoly(img=mask, pts=contours, color=1)
+    return mask
+
+
 def move2cpu(d):
     """Move data from gpu to cpu"""
     return d.detach().cpu().float().numpy()

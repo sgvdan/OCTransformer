@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from PIL import Image, ImageEnhance
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
-from util import move2cpu, tensor2im
+from util import move2cpu, tensor2im, mask_from_heatmap
 
 
 def plot_attention(name, volume, attention):
@@ -52,9 +52,49 @@ def plot_attention(name, volume, attention):
     plt.savefig(path / 'attention.png')
 
 
+def plot_weighted_gradcam(name, model, volume, attention, std_thresh=2.5, kernel_size=30, contour_threshold=0.5,
+                          smallest_contour_len=30, device='cuda'):
+    backbone = model.model.patch_embed.backbone
+    volume = volume.squeeze().to(device=device, dtype=torch.float)  # Assume batch_size=1
+    original_images = volume.permute(0, 2, 3, 1).cpu().numpy()
+    original_images -= original_images.min()
+    original_images /= original_images.max()
+    attention = attention.detach().cpu().numpy()
+    backbone.eval()
+    cam = GradCAM(model=backbone, target_layers=[backbone.layer4[-1]], use_cuda=True)
+
+    grayscale_cam = cam(input_tensor=volume)
+    weighted_cam = attention[0, :, None, None] * grayscale_cam
+
+    threshold = (weighted_cam > std_thresh * weighted_cam.std())
+    grad_map = threshold * weighted_cam
+    #
+    # grad_map = weighted_cam - weighted_cam.mean()
+    # grad_map = (grad_map > std_thresh * grad_map.std()).astype(float)
+    #
+    # # blur
+    # grad_map = torch.nn.functional.conv2d(input=grad_map.view(torch.Size([1, 1]) + grad_map.shape),
+    #                                       weight=(torch.ones(1, 1, kernel_size,
+    #                                                          kernel_size) / kernel_size ** 2).cuda(),
+    #                                       padding='same').squeeze()
+    # # normalized numpy
+    # grad_map = np.uint8(cv2.normalize(tensor2im(grad_map), None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX))
+    # # contours
+    # grad_mask = mask_from_heatmap(grad_map, thresh=contour_threshold, smallest_contour_len=smallest_contour_len)
+
+
+    path = Path('./output/gradcam') / name
+    os.makedirs(path, exist_ok=True)
+
+    for idx in range(weighted_cam.shape[0]):
+        visualization = show_cam_on_image(original_images[idx], grad_map[idx], use_rgb=True)
+        img = Image.fromarray(visualization)
+        img.save(path / '{}.png'.format(idx))
+
+
 def grad_cam_model(res_model, input_tensor, label=0, device='cuda'):
     input_tensor = input_tensor.to(device=device, dtype=torch.float)
-    original_image = input_tensor[0].permute(1,2,0).cpu().numpy()
+    original_image = input_tensor[0].permute(1, 2, 0).cpu().numpy()
     original_image = (original_image - original_image.min()) / (original_image.max() - original_image.min())
 
     res_model.eval()
@@ -70,12 +110,13 @@ def grad_cam_model(res_model, input_tensor, label=0, device='cuda'):
         grayscale_cam = grayscale_cam[0, :]
         visualization = show_cam_on_image(original_image, grayscale_cam, use_rgb=True)
         img = Image.fromarray(visualization)
-        img.save('temp/{}.png'.format(cam_name))
+        img.save('output/gradcam/{}.png'.format(cam_name))
 
     return out
 
 
-def plot_gradient_heatmap(name, volume, label, model, optimizer, std_thresh=2, device="cuda"):
+def plot_gradient_heatmap(name, volume, label, model, optimizer, std_thresh=2, kernel_size=30, contour_threshold=0.5,
+                          smallest_contour_len=30, device="cuda"):
     n_slices = volume.shape[0]
 
     # Move to device
@@ -103,13 +144,20 @@ def plot_gradient_heatmap(name, volume, label, model, optimizer, std_thresh=2, d
     # threshold using std
     grad_map = (grad_map - grad_map.mean() > std_thresh * grad_map.std()).float()
 
+    # blur
+    grad_map = torch.nn.functional.conv2d(input=grad_map.view(torch.Size([1, 1]) + grad_map.shape),
+                                          weight=(torch.ones(1, 1, kernel_size,
+                                                             kernel_size) / kernel_size ** 2).cuda(),
+                                          padding='same').squeeze()
     # normalized numpy
     grad_map = np.uint8(cv2.normalize(tensor2im(grad_map), None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX))
+    # contours
+    grad_mask = mask_from_heatmap(grad_map, thresh=contour_threshold, smallest_contour_len=smallest_contour_len)
 
     original_volume = move2cpu(original_volume.permute(0, 2, 3, 1))
     zeros = np.zeros_like(grad_map)
     # present grad mask as red
-    grad_mask = np.stack([grad_map.astype(np.uint8), zeros, zeros], axis=3)
+    grad_mask = np.stack([grad_mask, zeros, zeros], axis=3)
 
     masked = original_volume + grad_mask
     masked = ((masked - masked.min()) / (masked.max() - masked.min()) * 255).astype(np.uint8)

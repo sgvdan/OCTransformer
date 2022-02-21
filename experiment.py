@@ -1,7 +1,7 @@
 import wandb
 
 import util
-from analysis.analyzer import plot_attention, plot_gradient_heatmap, grad_cam_model
+from analysis.analyzer import plot_attention, plot_gradient_heatmap, grad_cam_model, plot_weighted_gradcam
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
 from data.kermany_data import setup_kermany
@@ -70,12 +70,15 @@ class Experiment:
         mix_dataset = MixedDataset(self.test_loader.dataset)
         mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
-        for idx, (volume, label) in enumerate(mix_loader):
+        for idx, (volume, label) in enumerate(self.test_loader):
             if label == 1:
                 attn = self.model.get_attention_map(volume.to(self.config.device))
-                plot_attention('mix-{}'.format(idx), volume[0], attn)
+                plot_attention('hadassah-{}'.format(idx), volume[0], attn.mean(dim=0).unsqueeze(dim=0))
                 pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
                 print("MODEL'S PREDICTION:", pred)
+
+                plot_weighted_gradcam('hadassah-{}'.format(idx), self.model, volume, attn)
+
             #     grad_cam_model(backbone, volume[0], label=0)
 
         # plot_gradient_heatmap("kermany({})".format(idx), volume.squeeze(), label, backbone, self.optimizer)  # revert to volume[0]
