@@ -106,7 +106,7 @@ def display_instances(image, mask, fname="test", figsize=(5, 5), blur=False, con
 
 if __name__ == '__main__':
     n = 6
-    paths = ['normal', 'cnv', 'drusen', 'dme']
+    paths2 = ['normal', 'cnv', 'drusen', 'dme']
     images = ["NORMAL/NORMAL-5193994-1", "CNV/CNV-8184974-1", "DRUSEN/DRUSEN-9894035-2", "DME/DME-9583225-1"]
     for i in range(4):
         parser = argparse.ArgumentParser('Visualize Self-Attention maps')
@@ -122,7 +122,7 @@ if __name__ == '__main__':
                             help="Path of the image to load.")
         # NORMAL/NORMAL-5193994-1                CNV/CNV-8184974-1          DRUSEN/DRUSEN-9894035-2    DME/DME-9583225-1
         parser.add_argument("--image_size", default=(480, 480), type=int, nargs="+", help="Resize image.")
-        parser.add_argument('--output_dir', default='./' + paths[i] + '_exmpl' + str(n),
+        parser.add_argument('--output_dir', default='./' + paths2[i] + '_exmpl' + str(n),
                             help='Path where to save visualizations.')
         parser.add_argument("--threshold", type=float, default=0.4, help="""We visualize masks
             obtained by thresholding the self-attention maps to keep xx% of the mass.""")
