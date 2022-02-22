@@ -143,7 +143,7 @@ for p in model.parameters():
     p.requires_grad = False
 model.eval()
 model.to(device)
-state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0003.pth', map_location="cpu")
+state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0004.pth', map_location="cpu")
 state_dict = state_dict['teacher']
 # Iterate through test dataset
 state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
