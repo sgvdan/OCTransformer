@@ -40,7 +40,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'cross_entropy',
                            'scheduler': None,
-                           'epochs': 5,
+                           'epochs': 3,
                            'lr': 1e-5,
 
                            'train_size': 0.65,
@@ -48,8 +48,8 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'test_size': 0.25,
 
                            # Model
-                           'attention_heads': 2,
-                           'vit_depth': 1,
+                           'attention_heads': 12,
+                           'vit_depth': 12,
                            'embedding_dim': 768,
 
                            # General
