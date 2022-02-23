@@ -1,7 +1,10 @@
+import os
+from pathlib import Path
+
 import wandb
 
 import util
-from analysis.analyzer import plot_attention, plot_gradient_heatmap, grad_cam_model, plot_weighted_gradcam
+from analysis.visualizer import plot_attention, plot_overlay_weighted_gradcam, plot_slices
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
 from data.kermany_data import setup_kermany
@@ -10,7 +13,6 @@ from config import default_config
 from logger import Logger
 from train.train import Trainer
 import torch
-import torchvision.models as tmodels
 
 
 class Experiment:
@@ -60,28 +62,29 @@ class Experiment:
         self.logger.log({'Overall_Accuracy': accuracy})
 
     def analyze(self):
-        # TEMPORARY
-        backbone = tmodels.resnet18(pretrained=False, num_classes=4).to(self.config.device)
-        kermany_path = '.models_bank/kermany_resnet18/resnet18.tar'
-        states_dict = torch.load(kermany_path)
-        backbone.load_state_dict(states_dict['model_state_dict'])
-        # TEMPORARY
-
         mix_dataset = MixedDataset(self.test_loader.dataset)
         mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
-        for idx, (volume, label) in enumerate(self.test_loader):
+        for idx, (volume, label) in enumerate(mix_loader):
             if label == 1:
-                attn = self.model.get_attention_map(volume.to(self.config.device))
-                plot_attention('hadassah-{}'.format(idx), volume[0], attn.mean(dim=0).unsqueeze(dim=0))
+                path = Path(self.config.output_path) / 'mix-{}'.format(idx)
+                os.makedirs(path, exist_ok=True)
+
+                svolume = volume.squeeze(dim=0)  # Assume batch_size=1
+                # Plot slices
+                plot_slices(svolume, path)
+
+                # Plot Attention
+                attn = self.model.get_attention_map(volume)  # Assume batch_size=1
+                attn = attn.mean(dim=0).unsqueeze(dim=0)  # Average over all heads
+                plot_attention(attn, path)
+
+                # Plot weighted Attention x Gradcam
+                cam = self.model.get_gradcam(svolume)
+                plot_overlay_weighted_gradcam(svolume, attn, cam, path)
+
                 pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
                 print("MODEL'S PREDICTION:", pred)
-
-                plot_weighted_gradcam('hadassah-{}'.format(idx), self.model, volume, attn)
-
-            #     grad_cam_model(backbone, volume[0], label=0)
-
-        # plot_gradient_heatmap("kermany({})".format(idx), volume.squeeze(), label, backbone, self.optimizer)  # revert to volume[0]
 
 
 def main():

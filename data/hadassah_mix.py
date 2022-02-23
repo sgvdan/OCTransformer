@@ -1,7 +1,8 @@
-# This module will present mixed volumes - composed of healthy/sick slices, to evaluate the attention mechanism
+# A dataset of synthetica volumes - composed of mix of healthy/sick slices, to evaluate the attention mechanism
 
 import torch
 from torch.utils.data import Dataset
+
 
 class MixedDataset(Dataset):
     def __init__(self, dataset):

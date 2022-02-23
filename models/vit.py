@@ -1,6 +1,7 @@
 from functools import partial
 
 import torch
+from pytorch_grad_cam import GradCAM
 from timm.models.vision_transformer import VisionTransformer
 
 
@@ -39,7 +40,7 @@ class MyViT(torch.nn.Module):
                 x = blk.norm1(x)
                 B, N, C = x.shape
                 qkv = blk.attn.qkv(x).reshape(B, N, 3, blk.attn.num_heads, C // blk.attn.num_heads).permute(2, 0, 3, 1, 4)
-                q, k, v = qkv[0], qkv[1], qkv[2]   # make torchscript happy (cannot use tensor as tuple)
+                q, k, v = qkv[0], qkv[1], qkv[2]  .to(self.config.device) # make torchscript happy (cannot use tensor as tuple)
 
                 attn = (q @ k.transpose(-2, -1)) * blk.attn.scale
                 attn = attn.softmax(dim=-1)
@@ -58,6 +59,15 @@ class MyViT(torch.nn.Module):
         attentions = attentions[0, :, 0, 1:].reshape(nh, -1)
 
         return attentions
+
+    def get_gradcam(self, volume):
+        volume = volume.to(device=self.config.device, dtype=torch.float)
+
+        backbone = self.model.patch_embed.backbone  # Assuming ResNet18 backbone
+        backbone.eval()
+        cam = GradCAM(model=backbone, target_layers=[backbone.layer4[-1]], use_cuda=(self.config.device == 'cuda'))
+
+        return cam(input_tensor=volume)
 
 
 class BackboneWrapper(torch.nn.Module):
