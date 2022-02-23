@@ -25,8 +25,8 @@ class MixedDataset(Dataset):
         for idx in range(min(len(self.sick_samples), len(self.healthy_samples))):
             sick_sample = self.sick_samples[idx]
             healthy_sample = self.healthy_samples[idx]
-            mix_sample = torch.stack([sick_sample[0],
-                                      sick_sample[1],
+            mix_sample = torch.stack([healthy_sample[0],
+                                      healthy_sample[1],
                                       sick_sample[2],
                                       healthy_sample[2],
                                       healthy_sample[3]], dim=0)

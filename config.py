@@ -30,7 +30,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
                            'model': 'vit',
-                           'model_name': None,
+                           'model_name': 'zHNJZPphAg',
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -47,10 +47,14 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'eval_size': 0.1,
                            'test_size': 0.25,
 
-                           # Model
+                           # Model parameters
                            'attention_heads': 12,
                            'vit_depth': 12,
                            'embedding_dim': 768,
+
+                            # Segmentation parameters
+                           'attention_temperature': 0.01,
+                           'mask_std_thresh': 3,
 
                            # General
                            'output_path': './output/',

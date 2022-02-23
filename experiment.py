@@ -4,7 +4,7 @@ from pathlib import Path
 import wandb
 
 import util
-from analysis.visualizer import plot_attention, plot_overlay_weighted_gradcam, plot_slices
+from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
 from data.kermany_data import setup_kermany
@@ -65,9 +65,9 @@ class Experiment:
         mix_dataset = MixedDataset(self.test_loader.dataset)
         mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
-        for idx, (volume, label) in enumerate(mix_loader):
+        for idx, (volume, label) in enumerate(self.test_loader):
             if label == 1:
-                path = Path(self.config.output_path) / 'mix-{}'.format(idx)
+                path = Path(self.config.output_path) / 'hadassah-{}'.format(idx)
                 os.makedirs(path, exist_ok=True)
 
                 svolume = volume.squeeze(dim=0)  # Assume batch_size=1
@@ -76,12 +76,14 @@ class Experiment:
 
                 # Plot Attention
                 attn = self.model.get_attention_map(volume)  # Assume batch_size=1
-                attn = attn.mean(dim=0).unsqueeze(dim=0)  # Average over all heads
                 plot_attention(attn, path)
 
-                # Plot weighted Attention x Gradcam
+                # Plot GradCam
                 cam = self.model.get_gradcam(svolume)
-                plot_overlay_weighted_gradcam(svolume, attn, cam, path)
+                plot_gradcam(svolume, cam, path)
+
+                # Plot thresholded weighted Attention x Gradcam
+                plot_masks(svolume, attn, cam, path, std_thresh=self.config.mask_std_thresh)
 
                 pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
                 print("MODEL'S PREDICTION:", pred)
@@ -89,7 +91,7 @@ class Experiment:
 
 def main():
     experiment = Experiment(default_config)
-    experiment.train()
+    # experiment.train()
     experiment.analyze()
 
 

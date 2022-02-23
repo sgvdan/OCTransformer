@@ -1,5 +1,5 @@
 import math
-import os
+import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 from PIL import Image, ImageEnhance
@@ -49,35 +49,31 @@ def plot_attention(attention, path):
     plt.savefig(path / 'attention.png')
 
 
-def plot_overlay_weighted_gradcam(volume, attention, cam, path, std_thresh=3,
-                                  kernel_size=30, contour_threshold=0.5, smallest_contour_len=30, device='cuda'):
-    original_images = move2cpu(normalize(volume.permute(0, 2, 3, 1)))
+def plot_gradcam(volume, cam, path):
     n_slices = volume.shape[0]
+    original_images = move2cpu(normalize(volume.permute(0, 2, 3, 1)))
+
+    x_axis = np.arange(18-n_slices//2, 18 + n_slices//2+1, step=1)
+
+    for i in range(volume.shape[0]):
+        visualization = show_cam_on_image(original_images[i], 0.7*cam[i], use_rgb=True, colormap=cv.COLORMAP_HOT)
+        img = Image.fromarray(visualization)
+        img.save(path / 'gradcam-{}.png'.format(x_axis[i]))
+
+
+def plot_masks(volume, attention, cam, path, std_thresh=3):
+    n_slices = volume.shape[0]
+    original_images = move2cpu(normalize(volume.permute(0, 2, 3, 1)))
 
     x_axis = np.arange(18-n_slices//2, 18 + n_slices//2+1, step=1)
 
     attention = move2cpu(attention)
-
-    attention = np.exp(attention[0, :, None, None])
-    weighted_cam = (attention / attention.max()) * cam
+    weighted_cam = attention[0, :, None, None] * cam
 
     threshold = (weighted_cam > std_thresh * weighted_cam.std())
-    grad_map = threshold * weighted_cam
-    #
-    # grad_map = weighted_cam - weighted_cam.mean()
-    # grad_map = (grad_map > std_thresh * grad_map.std()).astype(float)
-    #
-    # # blur
-    # grad_map = torch.nn.functional.conv2d(input=grad_map.view(torch.Size([1, 1]) + grad_map.shape),
-    #                                       weight=(torch.ones(1, 1, kernel_size,
-    #                                                          kernel_size) / kernel_size ** 2).cuda(),
-    #                                       padding='same').squeeze()
-    # # normalized numpy
-    # grad_map = np.uint8(cv2.normalize(tensor2im(grad_map), None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX))
-    # # contours
-    # grad_mask = mask_from_heatmap(grad_map, thresh=contour_threshold, smallest_contour_len=smallest_contour_len)
+    grad_map = threshold * (weighted_cam / attention.max())
 
     for i in range(weighted_cam.shape[0]):
-        visualization = show_cam_on_image(original_images[i], grad_map[i], use_rgb=True)
+        visualization = show_cam_on_image(original_images[i], 0.7*grad_map[i], use_rgb=True, colormap=cv.COLORMAP_HOT)
         img = Image.fromarray(visualization)
-        img.save(path / 'gradcam-{}.png'.format(x_axis[i]))
+        img.save(path / 'weighted-gradcam-{}.png'.format(x_axis[i]))

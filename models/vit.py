@@ -58,6 +58,12 @@ class MyViT(torch.nn.Module):
         # keep only the output patch attention
         attentions = attentions[0, :, 0, 1:].reshape(nh, -1)
 
+        # Average over all heads
+        attentions = attentions.mean(dim=0, keepdim=True)
+
+        # Perform temperature-Softmax to emphasize the relevant slices
+        attentions = torch.softmax(attentions/self.config.attention_temperature, dim=1)
+
         return attentions
 
     def get_gradcam(self, volume):
