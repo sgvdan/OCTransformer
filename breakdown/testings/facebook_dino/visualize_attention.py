@@ -105,7 +105,7 @@ def display_instances(image, mask, fname="test", figsize=(5, 5), blur=False, con
 
 
 if __name__ == '__main__':
-    n = 9
+    n = 10
     paths2 = ['normal', 'cnv', 'drusen', 'dme']
     images = ["NORMAL/NORMAL-5193994-1", "CNV/CNV-8184974-1", "DRUSEN/DRUSEN-9894035-2", "DME/DME-9583225-1"]
     for i in range(4):
@@ -174,7 +174,7 @@ if __name__ == '__main__':
             p.requires_grad = False
         model.eval()
         model.to(device)
-        state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0005.pth', map_location="cpu")
+        state_dict = torch.load('mult_gpu_fb_test_med_sugg_wandb_fine_tune/checkpoint0006.pth', map_location="cpu")
         state_dict = state_dict['teacher']
         # Iterate through test dataset
         state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
