@@ -1,6 +1,5 @@
 import torch
 import wandb
-import data
 import numpy as np
 
 
@@ -9,6 +8,8 @@ class Logger:
         self.config = config
 
         self.steps, self.loss, self.pred, self.gt = None, None, None, None
+        self.images = None
+
         self.scratch()
 
     def get_current_accuracy(self, classes):
@@ -17,6 +18,7 @@ class Logger:
 
     def scratch(self):
         self.steps, self.loss, self.pred, self.gt = 0, 0, [], []
+        self.images = []
 
     def accumulate(self, pred, gt, loss=None):
         self.pred += pred.detach().cpu()
@@ -81,3 +83,14 @@ class Logger:
             return
 
         wandb.log(data)
+
+    def log_image(self, image, caption):
+        if not self.config.log:
+            return
+
+        self.images.append(wandb.Image(image, caption=caption))
+
+    def flush_images(self, name):
+        wandb.log({'images/{}'.format(name): self.images})
+        self.images = []
+

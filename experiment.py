@@ -67,23 +67,25 @@ class Experiment:
 
         for idx, (volume, label) in enumerate(self.test_loader):
             if label == 1:
-                path = Path(self.config.output_path) / 'hadassah-{}'.format(idx)
+                name = 'hadassah-{}'.format(idx)
+                path = Path(self.config.output_path) / name
                 os.makedirs(path, exist_ok=True)
 
                 svolume = volume.squeeze(dim=0)  # Assume batch_size=1
                 # Plot slices
-                plot_slices(svolume, path)
+                plot_slices(svolume, path, logger=self.logger)
 
                 # Plot Attention
                 attn = self.model.get_attention_map(volume)  # Assume batch_size=1
-                plot_attention(attn, path)
+                plot_attention(attn, path, logger=self.logger)
 
                 # Plot GradCam
                 cam = self.model.get_gradcam(svolume)
-                plot_gradcam(svolume, cam, path)
+                plot_gradcam(svolume, cam, path, logger=self.logger)
 
                 # Plot thresholded weighted Attention x Gradcam
-                plot_masks(svolume, attn, cam, path, std_thresh=self.config.mask_std_thresh)
+                plot_masks(svolume, attn, cam, path, logger=self.logger, std_thresh=self.config.mask_std_thresh)
+                self.logger.flush_images(name=name)
 
                 pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
                 print("MODEL'S PREDICTION:", pred)
@@ -91,7 +93,7 @@ class Experiment:
 
 def main():
     experiment = Experiment(default_config)
-    # experiment.train()
+    experiment.train()
     experiment.analyze()
 
 

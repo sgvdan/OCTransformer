@@ -5,8 +5,8 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': False,
-                           'log_group': 'misc',
+                           'log': True,
+                           'log_group': 'Mask-generating',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -23,14 +23,14 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 5,
+                           'num_slices': 15,
                            'batch_size': 1,
                            'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
                            'model': 'vit',
-                           'model_name': 'zHNJZPphAg',
+                           'model_name': None,
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
