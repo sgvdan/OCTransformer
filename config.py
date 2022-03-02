@@ -23,7 +23,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 15,
+                           'num_slices': 5,
                            'batch_size': 1,
                            'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
 
@@ -40,7 +40,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'cross_entropy',
                            'scheduler': None,
-                           'epochs': 3,
+                           'epochs': 1,
                            'lr': 1e-5,
 
                            'train_size': 0.65,
@@ -48,12 +48,12 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'test_size': 0.25,
 
                            # Model parameters
-                           'attention_heads': 12,
-                           'vit_depth': 12,
+                           'attention_heads': 1,
+                           'vit_depth': 1,
                            'embedding_dim': 768,
 
                             # Segmentation parameters
-                           'attention_temperature': 0.01,
+                           'attention_temperature': 0.1,
                            'mask_std_thresh': 3,
 
                            # General

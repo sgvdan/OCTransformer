@@ -2,7 +2,10 @@ from functools import partial
 
 import torch
 from pytorch_grad_cam import GradCAM
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 from timm.models.vision_transformer import VisionTransformer
+
+from util import move2cpu
 
 
 class MyViT(torch.nn.Module):
@@ -64,16 +67,15 @@ class MyViT(torch.nn.Module):
         # Perform temperature-Softmax to emphasize the relevant slices
         attentions = torch.softmax(attentions/self.config.attention_temperature, dim=1)
 
-        return attentions
+        return move2cpu(attentions)
 
     def get_gradcam(self, volume):
         volume = volume.to(device=self.config.device, dtype=torch.float)
 
         backbone = self.model.patch_embed.backbone  # Assuming ResNet18 backbone
-        backbone.eval()
         cam = GradCAM(model=backbone, target_layers=[backbone.layer4[-1]], use_cuda=(self.config.device == 'cuda'))
-
         return cam(input_tensor=volume)
+
 
 
 class BackboneWrapper(torch.nn.Module):

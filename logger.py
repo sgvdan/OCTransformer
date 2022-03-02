@@ -1,4 +1,9 @@
+import os
+from pathlib import Path
+
 import torch
+from PIL import Image
+
 import wandb
 import numpy as np
 
@@ -88,9 +93,22 @@ class Logger:
         if not self.config.log:
             return
 
-        self.images.append(wandb.Image(image, caption=caption))
+        self.images.append((image, caption))
 
     def flush_images(self, name):
-        wandb.log({'images/{}'.format(name): self.images})
+        if not self.config.log:
+            return
+
+        path = Path(self.config.output_path) / name
+        os.makedirs(path, exist_ok=True)
+
+        wandb_packet = []
+
+        for img, caption in self.images:
+            img.save(path / (caption + '.png'))
+            wandb_packet.append(wandb.Image(img, caption=caption))
+
+        wandb.log({('images/' + name): wandb_packet})
+
         self.images = []
 

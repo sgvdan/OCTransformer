@@ -1,10 +1,12 @@
 import os
 from pathlib import Path
 
+import numpy as np
+
 import wandb
 
 import util
-from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam
+from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
 from data.kermany_data import setup_kermany
@@ -65,30 +67,37 @@ class Experiment:
         mix_dataset = MixedDataset(self.test_loader.dataset)
         mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
-        for idx, (volume, label) in enumerate(self.test_loader):
+        names, volumes, attns, cams, masks = [], [], [], [], []
+        for idx, (volume, label) in enumerate(mix_loader):
             if label == 1:
-                name = 'hadassah-{}'.format(idx)
-                path = Path(self.config.output_path) / name
-                os.makedirs(path, exist_ok=True)
+                names.append('mix-' + str(idx))
 
-                svolume = volume.squeeze(dim=0)  # Assume batch_size=1
-                # Plot slices
-                plot_slices(svolume, path, logger=self.logger)
+                # Keep slices
+                volumes.append(volume.squeeze(dim=0))  # Assume batch_size=1
 
-                # Plot Attention
-                attn = self.model.get_attention_map(volume)  # Assume batch_size=1
-                plot_attention(attn, path, logger=self.logger)
+                # Keep Attention Maps
+                attns.append(self.model.get_attention_map(volume))  # Assume batch_size=1
 
-                # Plot GradCam
-                cam = self.model.get_gradcam(svolume)
-                plot_gradcam(svolume, cam, path, logger=self.logger)
+                # Keep GradCam Maps
+                cams.append(self.model.get_gradcam(volumes[-1]))
 
-                # Plot thresholded weighted Attention x Gradcam
-                plot_masks(svolume, attn, cam, path, logger=self.logger, std_thresh=self.config.mask_std_thresh)
-                self.logger.flush_images(name=name)
+                # Keep thresholded weighted Attention x Gradcam masks
+                masks.append(get_masks(attns[-1], cams[-1], std_thresh=self.config.mask_std_thresh))
 
                 pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
                 print("MODEL'S PREDICTION:", pred)
+
+        max_attn = np.stack(attns).max()
+        max_cam = np.stack(cams).max()
+        max_mask = np.stack(masks).max()
+
+        for name, volume, attn, cam, mask in zip(names, volumes, attns, cams, masks):
+            plot_slices(volume, logger=self.logger)
+            plot_attention(attn / max_attn, logger=self.logger)
+            plot_gradcam(volume, cam / max_cam, logger=self.logger)
+            plot_masks(volume, mask / max_mask, logger=self.logger)
+
+            self.logger.flush_images(name=name)
 
 
 def main():
