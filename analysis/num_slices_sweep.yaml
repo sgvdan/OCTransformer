@@ -1,7 +1,7 @@
 program: experiment.py
 method: grid
 metric:
-  name: Overall_Accuracy
+  name: Overall_Score
   goal: maximize
 parameters:
   num_slices:

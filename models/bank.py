@@ -54,14 +54,14 @@ class ModelsBank:
             torch.use_deterministic_algorithms(mode=False)
 
             backbone = torch.nn.Sequential(*list(backbone.children())[:-2])
-            model = SliverNet2(backbone=backbone, n_out=self.config.num_classes)
+            model = SliverNet2(backbone=backbone, n_out=len(self.config.labels))
             if self.config.device == 'cuda':
                 model = model.cuda()
 
         elif model_type == 'deepset':
             backbone = torch.nn.Sequential(*list(backbone.children())[:-2])
             model = DeepSet(backbone=backbone, x_dim=1024, d_dim=self.config.embedding_dim,
-                            num_classes=self.config.num_classes).to(self.config.device)
+                            num_classes=len(self.config.labels)).to(self.config.device)
         else:
             raise NotImplementedError
 
@@ -86,18 +86,25 @@ class ModelsBank:
         else:
             raise NotImplementedError
 
-        # Choose Criterion
-        if self.config.criterion == 'cross_entropy':
-            criterion = torch.nn.functional.cross_entropy
-        else:
-            raise NotImplementedError
-
         if self.config.load_best_model:
             self.load_best(model, optimizer, scheduler)
 
-        return model, criterion, optimizer, scheduler
+        return model, optimizer, scheduler
 
-    def sync_model(self, model, optimizer, scheduler, avg_accuracy):
+    def get_balanced_criterion(self, train_loader):
+        class_weights = util.get_balance_class_weights(torch.stack(train_loader.dataset.get_labels()))
+
+        # Choose Criterion
+        if self.config.criterion == 'cross_entropy':
+            criterion = torch.nn.CrossEntropyLoss(weight=class_weights.to(device=self.config.device))
+        elif self.config.criterion == 'binary_cross_entropy':
+            criterion = torch.nn.BCEWithLogitsLoss(pos_weight=class_weights.to(device=self.config.device))
+        else:
+            raise NotImplementedError
+
+        return criterion
+
+    def sync_model(self, model, optimizer, scheduler, score):
         if not self.config.keep_best_model:
             return
 
@@ -106,17 +113,17 @@ class ModelsBank:
 
         if model.name not in self.bank_record:
             self.bank_record[model.name] = {}
-            self.bank_record[model.name]['accuracy'] = 0
+            self.bank_record[model.name]['score'] = 0
             os.makedirs(model_path, exist_ok=True)
 
-        if avg_accuracy > self.bank_record[model.name]['accuracy']:
+        if score > self.bank_record[model.name]['score']:
             torch.save({
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
             }, os.path.join(self.bank_path, model.name, 'best.tar'))
-            self.bank_record[model.name]['accuracy'] = avg_accuracy
-            print("Best model updated.", "Model: {0}, Avg. Accuracy: {1}".format(model.name, avg_accuracy))
+            self.bank_record[model.name]['score'] = score
+            print("Best model updated.", "Model: {0}, Score (Macro-F1): {1}".format(model.name, score))
 
         # Save bank records
         with open(self.bank_record_path, 'wb+') as file:

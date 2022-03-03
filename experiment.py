@@ -44,7 +44,8 @@ class Experiment:
                                self.test_loader, self.model_bank, self.logger)
 
         # Set up Model Environment
-        self.model, self.criterion, self.optimizer, self.scheduler = self.model_bank.get_environment()
+        self.model, self.optimizer, self.scheduler = self.model_bank.get_environment()
+        self.criterion = self.model_bank.get_balanced_criterion(self.train_loader)
 
     def setup_data(self):
         if self.config.dataset == 'hadassah':
@@ -60,8 +61,9 @@ class Experiment:
         if self.config.load_best_model:
             self.model_bank.load_best(self.model, self.optimizer, self.scheduler)  # Refresh model (avoid over fitting)
 
-        accuracy = self.trainer.test(self.model)
-        self.logger.log({'Overall_Accuracy': accuracy})
+    def test(self):
+        score = self.trainer.test(self.model)
+        self.logger.log({'Overall_Score': score})
 
     def analyze(self):
         mix_dataset = MixedDataset(self.test_loader.dataset)
@@ -103,7 +105,8 @@ class Experiment:
 def main():
     experiment = Experiment(default_config)
     experiment.train()
-    experiment.analyze()
+    experiment.test()
+    # experiment.analyze()
 
 
 if __name__ == '__main__':

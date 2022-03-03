@@ -1,1 +1,0 @@
-python builder.py --action assess --path ~/workspace/OCT-DL/Data/train/control ~/workspace/OCT-DL/Data/train/study ~/workspace/OCT-DL/Data/validation/control ~/workspace/OCT-DL/Data/validation/study ~/workspace/OCT-DL/Data/test/study ~/workspace/OCT-DL/Data/test/control

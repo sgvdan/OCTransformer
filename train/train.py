@@ -16,7 +16,7 @@ class Trainer:
 
     def train(self, model, criterion, optimizer, scheduler, epochs):
         for epoch in range(epochs):
-            tqdm.write("Epoch {epoch}/{epochs}".format(epoch=epoch+1, epochs=epochs))
+            tqdm.write("Epoch {epoch}/{epochs}".format(epoch=epoch + 1, epochs=epochs))
 
             # Train
             tqdm.write("\nTrain:")
@@ -25,8 +25,8 @@ class Trainer:
                 pred, loss = self._feed_forward(model, images, labels, mode='train',
                                                 criterion=criterion, optimizer=optimizer, scheduler=scheduler)
                 self.logger.accumulate(pred=pred, gt=labels, loss=loss)
-                self.logger.log_train_periodic(classes=self.train_loader.dataset.get_classes())
-            self.logger.log_train(epoch=epoch, classes=self.train_loader.dataset.get_classes())
+                self.logger.log_train_periodic()
+            self.logger.log_train(epoch=epoch)
 
             # Evaluate
             tqdm.write("\nEvaluation:")
@@ -34,11 +34,11 @@ class Trainer:
             for images, labels in tqdm(self.eval_loader):
                 pred, _ = self._feed_forward(model, images, labels, mode='eval')
                 self.logger.accumulate(pred=pred, gt=labels)
-            self.logger.log_eval(epoch=epoch, classes=self.eval_loader.dataset.get_classes())
+            self.logger.log_eval(epoch=epoch)
 
             # Sync Model Bank
-            accuracy = self.logger.get_current_accuracy(classes=self.eval_loader.dataset.get_classes())
-            self.models_bank.sync_model(model, optimizer, scheduler, accuracy)
+            score = self.logger.get_current_macro_f1()
+            self.models_bank.sync_model(model, optimizer, scheduler, score)
 
     def test(self, model):
         tqdm.write("\nTest:")
@@ -46,13 +46,13 @@ class Trainer:
         for images, labels in tqdm(self.test_loader):
             pred, _ = self._feed_forward(model, images, labels, mode='eval')
             self.logger.accumulate(pred=pred, gt=labels)
-        self.logger.log_test(classes=self.test_loader.dataset.get_classes())
+        self.logger.log_test()
 
         # Obtain Test Accuracy
-        accuracy = self.logger.get_current_accuracy(classes=self.test_loader.dataset.get_classes())
-        tqdm.write("\nTest Accuracy: {}".format(accuracy))
+        score = self.logger.get_current_macro_f1()
+        tqdm.write("\nTest Score (Macro-F1): {}".format(score))
 
-        return accuracy
+        return score
 
     def _feed_forward(self, model, images, labels, mode, criterion=None, optimizer=None, scheduler=None):
         # Make sure mode is as expected
@@ -65,7 +65,7 @@ class Trainer:
 
         # Move to device
         images, labels = images.to(device=self.config.device, dtype=torch.float), \
-                         labels.to(device=self.config.device, dtype=torch.int64)
+                         labels.to(device=self.config.device, dtype=torch.float)
 
         # Run the model on the input batch
         with ExitStack() as stack:

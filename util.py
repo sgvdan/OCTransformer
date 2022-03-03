@@ -47,26 +47,15 @@ def split_list(input_list, chunks, random_split=True):
     return breakdown
 
 
-def get_balance_weights(labels, num_classes):
-    num_scans = len(labels)
-    assert num_scans > 0 and num_classes > 0
+def get_balance_class_weights(labels):
+    pos = labels.sum(dim=0)
+    neg = (1 - labels).sum(dim=0)
+    weights = neg / pos
 
-    # Count # of appearances per each class
-    count = [0] * num_classes
-    for label in labels:  # TODO: If one_hot handling required - take `label.argmax(-1)`
-        count[int(label)] += 1
+    assert not torch.any(weights.isnan()) and not torch.any(weights.isinf())
+    print('Labels prevalence are:', pos, 'corresponding class-balancing weights used:', weights)  # Log important info
 
-    # Each class receives weight in reverse proportion to its # of appearances
-    weight_per_class = [0.] * num_classes
-    for idx in range(num_classes):
-        weight_per_class[idx] = float(num_scans) / float(count[idx])
-
-    # Assign class-corresponding weight for each element
-    weights = [0] * num_scans
-    for idx, label in enumerate(labels):
-        weights[idx] = weight_per_class[int(label)]
-
-    return torch.FloatTensor(weights)
+    return weights
 
 
 def move2cpu(d):
@@ -111,3 +100,7 @@ def figure2img(plt):
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
     return Image.open(buffer)
+
+
+def get_reduced_label(label, keys):
+    return torch.tensor([label[key] for key in keys])

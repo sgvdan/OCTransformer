@@ -63,7 +63,7 @@ def setup_kermany(config):
     # Train Loader
     train_dataset = KermanyDataset(config.kermany_train_path, chosen_labels=config.kermany_labels,
                                    transformations=transform)
-    train_weights = util.get_balance_weights(train_dataset.get_labels(), config.num_classes)
+    train_weights = util.get_balance_weights(train_dataset.get_labels(), len(config.kermany_labels))
     train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size,
                                                sampler=train_sampler)

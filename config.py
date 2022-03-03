@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'Mask-generating',
+                           'log_group': 'multilabel-prelim',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -18,14 +18,14 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # 'input_size': (256, 256),
                            # 'num_slices': 1,
                            # 'batch_size': 1,
-                           # 'num_classes': 4,  # TODO: CHANGE THIS TO len(kermany_labels)
 
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 5,
+                           'num_slices': 15,
                            'batch_size': 1,
-                           'num_classes': 2,  # TODO: CHANGE THIS TO SOMEHOW TAKE IT FROM THE DATASET!!
+                           'labels': ['DR', 'DME', 'IRF', 'SRF', 'ELLIPSOID ZONE DISRUPTION '],
+                           'confidence_thresholds': [0.5, 0.5, 0.5, 0.5, 0.5],
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
@@ -38,9 +38,9 @@ default_config = dot_dict({'project': 'OCTransformer',
 
                            # Train Parameters
                            'optimizer': 'adam',
-                           'criterion': 'cross_entropy',
+                           'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 1,
+                           'epochs': 15,
                            'lr': 1e-5,
 
                            'train_size': 0.65,

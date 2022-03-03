@@ -1,11 +1,12 @@
 import os
 from pathlib import Path
 
+import numpy as np
 import torch
-from PIL import Image
+from tqdm import tqdm
 
 import wandb
-import numpy as np
+from analysis.stats import get_stats
 
 
 class Logger:
@@ -17,9 +18,19 @@ class Logger:
 
         self.scratch()
 
-    def get_current_accuracy(self, classes):
-        accuracy, _ = self.assess(classes)
-        return np.mean([value for value in accuracy.values()])
+    def log(self, data):
+        if not self.config.log:
+            return
+
+        wandb.log(data)
+
+    def get_current_macro_f1(self):
+        pred = torch.stack(self.pred)
+        gt = torch.stack(self.gt)
+        thres = torch.tensor(self.config.confidence_thresholds)
+        _, _, _, _, macro_f1 = get_stats(pred, gt, thres)
+
+        return macro_f1
 
     def scratch(self):
         self.steps, self.loss, self.pred, self.gt = 0, 0, [], []
@@ -33,61 +44,60 @@ class Logger:
         if loss is not None:
             self.loss += loss
 
-    def assess(self, classes):
-        iou, accuracy = {}, {}
-        _, pred_labels = torch.stack(self.pred).max(dim=1)
-        gt_labels = torch.stack(self.gt)
+    def log_stats(self, title, epoch):
+        pred = torch.stack(self.pred)
+        gt = torch.stack(self.gt)
+        thres = torch.tensor(self.config.confidence_thresholds)
 
-        for label_name, label in classes.items():
-            correct_predictions = ((pred_labels == gt_labels) & (gt_labels == label)).count_nonzero()
-            incorrect_predictions = ((pred_labels == label) & (gt_labels != label)).count_nonzero()
-            batch_size = (gt_labels == label).count_nonzero()
+        accuracy, precision, recall, f1, macro_f1 = get_stats(pred, gt, thres)
 
-            iou[label_name] = correct_predictions / (batch_size + incorrect_predictions)
-            accuracy[label_name] = correct_predictions / batch_size
+        for idx, label in enumerate(self.config.labels):
+            self.log({'{title}/accuracy/{label}'.format(title=title, label=label): accuracy[idx],
+                      '{title}/precision/{label}'.format(title=title, label=label): precision[idx],
+                      '{title}/recall/{label}'.format(title=title, label=label): recall[idx],
+                      '{title}/f1/{label}'.format(title=title, label=label): f1[idx],
+                      '{title}/epoch'.format(title=title): epoch})
 
-        return accuracy, iou
+        self.log({'{title}/macro_f1'.format(title=title): macro_f1,
+                  '{title}/epoch'.format(title=title): epoch})
 
-    def log_train_periodic(self, classes):
+    def log_train_periodic(self):
         if self.steps % self.config.log_frequency == 0:
-            self.log_train(None, classes)
+            self.log_train(None)
 
-    def log_train(self, epoch, classes):
+    def log_train(self, epoch):
         if not self.config.log:
             return
 
-        accuracy, iou = self.assess(classes)
-        for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
-            wandb.log({'train/accuracy/{label}'.format(label=label): acc,
-                       'train/iou/{label}'.format(label=label): iou,
-                       'train/epoch': epoch})
+        self.log({'train/loss': self.loss/self.steps})
+        self.log_stats(title='train', epoch=epoch)
 
-        wandb.log({'train/loss': self.loss/self.steps})
-
-    def log_eval(self, epoch, classes):
+    def log_eval(self, epoch):
         if not self.config.log:
             return
 
-        accuracy, iou = self.assess(classes)
-        for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
-            wandb.log({'evaluation/accuracy/{label}'.format(label=label): acc,
-                       'evaluation/iou/{label}'.format(label=label): iou,
-                       'evaluation/epoch': epoch})
+        self.log_stats(title='evaluation', epoch=epoch)
 
-    def log_test(self, classes):
+    def log_test(self):
         if not self.config.log:
             return
 
-        accuracy, iou = self.assess(classes)
-        for (label, acc), (_, iou) in zip(accuracy.items(), iou.items()):
-            wandb.log({'test/accuracy/{label}'.format(label=label): acc,
-                       'test/iou/{label}'.format(label=label): iou})
+        self.log_stats(title='test', epoch=None)
+        self.log_curves()
 
-    def log(self, data):
-        if not self.config.log:
-            return
+    def log_curves(self):
+        pred = torch.stack(self.pred)
+        gt = torch.stack(self.gt)
 
-        wandb.log(data)
+        tqdm.write("\nLogging curves:")
+        for idx, label in tqdm(enumerate(self.config.labels)):
+            for thres in np.arange(0.0, 1.0, 0.1):
+                _gt = gt[:, idx]  # W&B SHIT  TODO: sort this out
+                _pred = (pred[:, idx] > thres).to(dtype=torch.int64)
+                _pred = torch.nn.functional.one_hot(_pred, num_classes=2)
+
+                self.log({'roc-' + label: wandb.plot.roc_curve(_gt, _pred, title=('ROC-' + label)),
+                          'pr-' + label: wandb.plot.pr_curve(_gt, _pred, title=('PR-' + label))})
 
     def log_image(self, image, caption):
         if not self.config.log:
@@ -108,7 +118,7 @@ class Logger:
             img.save(path / (caption + '.png'))
             wandb_packet.append(wandb.Image(img, caption=caption))
 
-        wandb.log({('images/' + name): wandb_packet})
+        self.log({('images/' + name): wandb_packet})
 
         self.images = []
 

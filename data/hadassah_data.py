@@ -1,3 +1,4 @@
+import itertools
 import pickle
 from pathlib import Path
 
@@ -11,34 +12,32 @@ import util
 
 
 class HadassahDataset(Dataset):
-    def __init__(self, samples, chosen_label, transformations):
+    def __init__(self, samples, chosen_labels, transformations):
         self.transformations = transformations
         self.samples = samples
-        self.chosen_label = chosen_label
+        self.classes = {label: label_value for label_value, label in enumerate(chosen_labels)}
 
     def __getitem__(self, idx):
         sample = self.samples[idx]
+        label = util.get_reduced_label(sample.get_label(), self.classes.keys())
 
-        sample_data = sample.get_data()
-        sample_label = sample.get_label()[self.chosen_label]
-
-        sample_data = self.transformations(sample_data)
+        sample_data = self.transformations(sample.get_data())
         sample_data = sample_data.unsqueeze(dim=1).expand(-1, 3, -1, -1)
 
-        return sample_data, sample_label
+        return sample_data, label
 
     def __len__(self):
         return len(self.samples)
 
     def get_labels(self):
-        return [sample.get_label()[self.chosen_label] for sample in self.samples]
+        return [util.get_reduced_label(sample.get_label(), self.classes.keys()) for sample in self.samples]
 
     def get_classes(self):
-        # TODO: REMOVE THIS! TREAT IT WITH LABEL NAME
-        return {'DME_HEALTHY': 0, 'DME_SICK': 1}
+        return self.classes
 
     def get_samples(self):
         return self.samples
+
 
 class Records:
     def __init__(self):
@@ -173,7 +172,7 @@ def setup_hadassah(config):
     records = build_hadassah_dataset(dataset_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std',
                                      annotations_path='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std/std_annotations.xlsx')
 
-    control, study = records.slice_samples({'DME': 1})
+    control, study = records.slice_samples(dict(list(zip(config.labels, itertools.repeat(1)))))
 
     train_control, eval_control, test_control = util.split_list(control, [config.train_size,
                                                                           config.eval_size,
@@ -185,19 +184,16 @@ def setup_hadassah(config):
     transform = get_hadassah_transform(config)
 
     # Test Loader
-    test_dataset = HadassahDataset([*test_control, *test_study], chosen_label='DME', transformations=transform)
+    test_dataset = HadassahDataset([*test_control, *test_study], chosen_labels=config.labels, transformations=transform)
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=config.batch_size)
 
     # Evaluation Loader
-    eval_dataset = HadassahDataset([*eval_control, *eval_study], chosen_label='DME', transformations=transform)
+    eval_dataset = HadassahDataset([*eval_control, *eval_study], chosen_labels=config.labels, transformations=transform)
     eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset, batch_size=config.batch_size)
 
     # Train Loader
-    train_dataset = HadassahDataset([*train_control, *train_study], chosen_label='DME', transformations=transform)
-    train_weights = util.get_balance_weights(train_dataset.get_labels(), num_classes=config.num_classes)
-    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size,
-                                               sampler=train_sampler)
+    train_dataset = HadassahDataset([*train_control, *train_study], chosen_labels=config.labels, transformations=transform)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=True)
 
     return train_loader, eval_loader, test_loader
 
