@@ -1,8 +1,41 @@
+import numpy as np
 import torch
 
 
+def sweep_thresholds_curves(pred, gt, thres_range):
+    pr, roc, f1 = [], [], []
+    for thres in thres_range:
+        true_positives, false_positives, true_negatives, false_negatives = get_stats(pred, gt, thres)
+
+        tpr = np.nan_to_num(true_positives / (true_positives + false_negatives), nan=0)
+        fpr = np.nan_to_num(false_positives / (true_negatives + false_positives), nan=0)
+
+        precision = np.nan_to_num(true_positives / (false_positives + true_positives), nan=1)
+        recall = tpr
+        f1_score = 2 * (precision * recall) / (precision + recall)
+
+        pr.append(np.stack([recall, precision]))
+        roc.append(np.stack([fpr, tpr]))
+        f1.append(f1_score)
+
+    return np.stack(pr), np.stack(roc), np.stack(f1)
+
+
+def get_performance_mesaures(pred, gt, thres):
+    true_positives, false_positives, true_negatives, false_negatives = get_stats(pred, gt, thres)
+
+    accuracy = (true_positives + true_negatives) / (false_positives + false_negatives + true_positives + true_negatives)
+    precision = true_positives / (false_positives + true_positives)
+    recall = true_positives / (false_negatives + true_positives)
+
+    f1 = 2 * (precision * recall) / (precision + recall)
+    macro_f1 = 2 * (precision.nanmean() * recall.nanmean()) / (precision.nanmean() + recall.nanmean())
+
+    return accuracy, precision, recall, f1, macro_f1
+
+
 def get_stats(pred, gt, thres):
-    binary_pred = (pred > thres).float()
+    binary_pred = (torch.sigmoid(pred) > thres).float()
     confusion = binary_pred / gt
     # Element-wise division of the 2 tensors returns a new tensor which holds a
     # unique value for each case:
@@ -16,11 +49,4 @@ def get_stats(pred, gt, thres):
     true_negatives = torch.sum(torch.isnan(confusion), dim=0)
     false_negatives = torch.sum(confusion == 0, dim=0)
 
-    accuracy = (true_positives + true_negatives) / (false_positives + false_negatives + true_positives + true_negatives)
-    precision = true_positives / (false_positives + true_positives)
-    recall = true_positives / (false_negatives + true_positives)
-
-    f1 = 2 * (precision * recall) / (precision + recall)
-    macro_f1 = 2 * (precision.nanmean() * recall.nanmean()) / (precision.nanmean() + recall.nanmean())
-
-    return accuracy, precision, recall, f1, macro_f1
+    return true_positives, false_positives, true_negatives, false_negatives

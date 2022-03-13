@@ -25,12 +25,12 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'num_slices': 15,
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF', 'SRF', 'ELLIPSOID ZONE DISRUPTION '],
-                           'confidence_thresholds': [0.5, 0.5, 0.5, 0.5, 0.5],
+                           'confidence_thresholds': [0.85, 0.95, 0.95, 0.90, 0.85],  # Obtained from https://wandb.ai/sgvdan/OCTransformer/runs/pwg2qn0h
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
                            'model': 'vit',
-                           'model_name': None,
+                           'model_name': 'hDZZnuZNoa',
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -40,7 +40,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 15,
+                           'epochs': 0,#6,
                            'lr': 1e-5,
 
                            'train_size': 0.65,

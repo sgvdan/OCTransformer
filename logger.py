@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 import wandb
-from analysis.stats import get_stats
+from analysis.stats import get_performance_mesaures, sweep_thresholds_curves
 
 
 class Logger:
@@ -28,7 +28,7 @@ class Logger:
         pred = torch.stack(self.pred)
         gt = torch.stack(self.gt)
         thres = torch.tensor(self.config.confidence_thresholds)
-        _, _, _, _, macro_f1 = get_stats(pred, gt, thres)
+        _, _, _, _, macro_f1 = get_performance_mesaures(pred, gt, thres)
 
         return macro_f1
 
@@ -49,7 +49,7 @@ class Logger:
         gt = torch.stack(self.gt)
         thres = torch.tensor(self.config.confidence_thresholds)
 
-        accuracy, precision, recall, f1, macro_f1 = get_stats(pred, gt, thres)
+        accuracy, precision, recall, f1, macro_f1 = get_performance_mesaures(pred, gt, thres)
 
         for idx, label in enumerate(self.config.labels):
             self.log({'{title}/accuracy/{label}'.format(title=title, label=label): accuracy[idx],
@@ -88,16 +88,36 @@ class Logger:
     def log_curves(self):
         pred = torch.stack(self.pred)
         gt = torch.stack(self.gt)
+        thres_range = np.arange(0.0, 1.01, 0.05)
+        pr, roc, f1 = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
 
-        tqdm.write("\nLogging curves:")
-        for idx, label in tqdm(enumerate(self.config.labels)):
-            for thres in np.arange(0.0, 1.0, 0.1):
-                _gt = gt[:, idx]  # W&B SHIT  TODO: sort this out
-                _pred = (pred[:, idx] > thres).to(dtype=torch.int64)
-                _pred = torch.nn.functional.one_hot(_pred, num_classes=2)
+        for idx, label in enumerate(self.config.labels):
+            # Log details
+            roc_details = wandb.Table(data=np.concatenate([thres_range[:, None], roc[:, :, idx], f1[:, idx, None]], axis=1),
+                                      columns=["Threshold", "False Positive Rate", "True Positive Rate", "F1-Score"])
+            pr_details = wandb.Table(data=np.concatenate([thres_range[:, None], pr[:, :, idx], f1[:, idx, None]], axis=1),
+                                     columns=["Threshold", "Recall", "Precision", "F1-Score"])
+            wandb.log({'roc-details-' + label: roc_details, 'pr-details-' + label: pr_details})
 
-                self.log({'roc-' + label: wandb.plot.roc_curve(_gt, _pred, title=('ROC-' + label)),
-                          'pr-' + label: wandb.plot.pr_curve(_gt, _pred, title=('PR-' + label))})
+            # Log graphs (obtain singular (max) y per x)
+            _pr, _roc = [], []
+            for r in np.unique(pr[:, 0, idx]):
+                mask = pr[:, 0, idx] == r  # gather all similar recalls
+                _pr.append(np.stack([r, np.max(pr[mask, 1, idx])]))
+
+            for fp in np.unique(roc[:, 0, idx]):
+                mask = roc[:, 0, idx] == fp  # gather all similar false-positives
+                _roc.append(np.stack([fp, np.max(roc[mask, 1, idx])]))
+
+            max_pr = wandb.Table(data=np.stack(_pr), columns=["Recall", "Precision"])
+            max_roc = wandb.Table(data=np.stack(_roc), columns=["False Positive Rate", "True Positive Rate"])
+
+            wandb.log({"roc-graph-" + label: wandb.plot.line(max_roc, "False Positive Rate", "True Positive Rate",
+                                                             title="ROC-" + label)})
+            wandb.log({"pr-graph-" + label: wandb.plot.line(max_pr, "Recall", "Precision",
+                                                            title="PR-" + label)})
+            # Print ideal thresholds
+            tqdm.write(label + ' - ideal threshold:' + str(round(thres_range[np.argmax(f1[:, idx])], 2)))
 
     def log_image(self, image, caption):
         if not self.config.log:
