@@ -96,6 +96,15 @@ def show_cams_on_image_batch(img: np.ndarray,
     return np.uint8(255 * cams)
 
 
+def max_contour(data):
+    xs, ys = [], []
+    for x in np.unique(data[:, 0]):
+        mask = data[:, 0] == x  # gather all similar x
+        xs.append(x)
+        ys.append(np.max(data[mask, 1]))  # y = max. y
+
+    return xs, ys
+
 def figure2img(plt):
     buffer = BytesIO()
     plt.savefig(buffer, format='png')

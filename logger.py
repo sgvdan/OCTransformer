@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 import wandb
 from analysis.stats import get_performance_mesaures, sweep_thresholds_curves
+from util import max_contour
 
 
 class Logger:
@@ -91,6 +92,8 @@ class Logger:
         thres_range = np.arange(0.0, 1.01, 0.05)
         pr, roc, f1 = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
 
+        pr_xs, roc_xs = [], []
+        pr_ys, roc_ys = [], []
         for idx, label in enumerate(self.config.labels):
             # Log details
             roc_details = wandb.Table(data=np.concatenate([thres_range[:, None], roc[:, :, idx], f1[:, idx, None]], axis=1),
@@ -99,25 +102,22 @@ class Logger:
                                      columns=["Threshold", "Recall", "Precision", "F1-Score"])
             wandb.log({'roc-details-' + label: roc_details, 'pr-details-' + label: pr_details})
 
-            # Log graphs (obtain singular (max) y per x)
-            _pr, _roc = [], []
-            for r in np.unique(pr[:, 0, idx]):
-                mask = pr[:, 0, idx] == r  # gather all similar recalls
-                _pr.append(np.stack([r, np.max(pr[mask, 1, idx])]))
+            # Log graphs (obtain singular (max) y per x
+            xs, ys = max_contour(pr[:, :, idx])
+            pr_xs.append(xs)
+            pr_ys.append(ys)
 
-            for fp in np.unique(roc[:, 0, idx]):
-                mask = roc[:, 0, idx] == fp  # gather all similar false-positives
-                _roc.append(np.stack([fp, np.max(roc[mask, 1, idx])]))
+            xs, ys = max_contour(roc[:, :, idx])
+            roc_xs.append(xs)
+            roc_ys.append(ys)
 
-            max_pr = wandb.Table(data=np.stack(_pr), columns=["Recall", "Precision"])
-            max_roc = wandb.Table(data=np.stack(_roc), columns=["False Positive Rate", "True Positive Rate"])
-
-            wandb.log({"roc-graph-" + label: wandb.plot.line(max_roc, "False Positive Rate", "True Positive Rate",
-                                                             title="ROC-" + label)})
-            wandb.log({"pr-graph-" + label: wandb.plot.line(max_pr, "Recall", "Precision",
-                                                            title="PR-" + label)})
             # Print ideal thresholds
             tqdm.write(label + ' - ideal threshold:' + str(round(thres_range[np.argmax(f1[:, idx])], 2)))
+
+        wandb.log({'pr-graph': wandb.plot.line_series(pr_xs, pr_ys, keys=self.config.labels,
+                                                      title="Precision-Recall Curve"),
+                   'roc-graph': wandb.plot.line_series(roc_xs, roc_ys, keys=self.config.labels,
+                                                       title="Receiver Operating Characteristic Curve")})
 
     def log_image(self, image, caption):
         if not self.config.log:
