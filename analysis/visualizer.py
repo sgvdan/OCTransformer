@@ -17,7 +17,7 @@ def get_masks(attention, cam, std_thresh=3):
     return grad_map
 
 
-def plot_slices(volume, logger):
+def plot_slices(volume, logger, title):
     n_slices = volume.shape[0]
 
     x_axis = np.arange(18-n_slices//2, 18 + n_slices//2+1, step=1)
@@ -29,10 +29,10 @@ def plot_slices(volume, logger):
         enhancer = ImageEnhance.Brightness(img)
         img_enhanced = enhancer.enhance(2.5)
 
-        logger.log_image(img_enhanced, caption='slice-' + str(x_axis[i]))
+        logger.log_image(img_enhanced, caption=title + '-' + str(x_axis[i]))
 
 
-def plot_attention(attention, logger):
+def plot_attention(attention, logger, title):
     n_heads = attention.shape[0]
     n_slices = attention.shape[1]
 
@@ -55,10 +55,10 @@ def plot_attention(attention, logger):
     plt.yticks([])
     plt.tight_layout()
 
-    logger.log_image(figure2img(plt), caption='attention')
+    logger.log_image(figure2img(plt), caption=title)
 
 
-def plot_gradcam(volume, cam, logger):
+def plot_gradcam(volume, cam, logger, title):
     n_slices = volume.shape[0]
     original_images = move2cpu(normalize(volume.permute(0, 2, 3, 1)))
 
@@ -66,10 +66,10 @@ def plot_gradcam(volume, cam, logger):
 
     for i in range(volume.shape[0]):
         visualization = show_cam_on_image(original_images[i], 0.7*cam[i], use_rgb=True, colormap=cv.COLORMAP_HOT)
-        logger.log_image(Image.fromarray(visualization), caption=('gradcam-' + str(x_axis[i])))
+        logger.log_image(Image.fromarray(visualization), caption=(title + '-' + str(x_axis[i])))
 
 
-def plot_masks(volume, mask, logger):
+def plot_masks(volume, mask, logger, title):
     n_slices = volume.shape[0]
     original_images = move2cpu(normalize(volume.permute(0, 2, 3, 1)))
 
@@ -78,4 +78,4 @@ def plot_masks(volume, mask, logger):
     for i in range(mask.shape[0]):
         visualization = show_cam_on_image(original_images[i], 0.3*mask[i], use_rgb=True, colormap=cv.COLORMAP_HOT)
         img = Image.fromarray(visualization)
-        logger.log_image(img, caption=('mask-' + str(x_axis[i])))
+        logger.log_image(img, caption=(title + '-' + str(x_axis[i])))

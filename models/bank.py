@@ -92,7 +92,7 @@ class ModelsBank:
         return model, optimizer, scheduler
 
     def get_balanced_criterion(self, train_loader):
-        class_weights = util.get_balance_class_weights(torch.stack(train_loader.dataset.get_labels()))
+        class_weights = util.get_balance_class_weights(train_loader.dataset.get_labels())
 
         # Choose Criterion
         if self.config.criterion == 'cross_entropy':

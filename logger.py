@@ -120,15 +120,9 @@ class Logger:
                                                        title="Receiver Operating Characteristic Curve")})
 
     def log_image(self, image, caption):
-        if not self.config.log:
-            return
-
         self.images.append((image, caption))
 
     def flush_images(self, name):
-        if not self.config.log:
-            return
-
         path = Path(self.config.output_path) / name
         os.makedirs(path, exist_ok=True)
 
@@ -139,6 +133,5 @@ class Logger:
             wandb_packet.append(wandb.Image(img, caption=caption))
 
         self.log({('images/' + name): wandb_packet})
-
         self.images = []
 

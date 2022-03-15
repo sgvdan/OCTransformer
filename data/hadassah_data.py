@@ -30,7 +30,7 @@ class HadassahDataset(Dataset):
         return len(self.samples)
 
     def get_labels(self):
-        return [util.get_reduced_label(sample.get_label(), self.classes.keys()) for sample in self.samples]
+        return torch.stack([util.get_reduced_label(sample.get_label(), self.classes.keys()) for sample in self.samples])
 
     def get_classes(self):
         return self.classes

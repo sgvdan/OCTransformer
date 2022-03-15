@@ -69,12 +69,13 @@ class MyViT(torch.nn.Module):
 
         return move2cpu(attentions)
 
-    def get_gradcam(self, volume):
+    def get_gradcam(self, volume, target_categories):
         volume = volume.to(device=self.config.device, dtype=torch.float)
 
         backbone = self.model.patch_embed.backbone  # Assuming ResNet18 backbone
-        cam = GradCAM(model=backbone, target_layers=[backbone.layer4[-1]], use_cuda=(self.config.device == 'cuda'))
-        return cam(input_tensor=volume)
+        cam = GradCAM(model=self.model, target_layers=[backbone.layer4[-1]], use_cuda=(self.config.device == 'cuda'))
+        targets = [ClassifierOutputTarget(category) for category in target_categories]
+        return cam(input_tensor=volume, targets=targets)
 
 
 

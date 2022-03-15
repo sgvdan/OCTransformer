@@ -17,7 +17,7 @@ class MixedDataset(Dataset):
 
     def generate_mixed_samples(self):
         for idx, (sample_data, sample_label) in enumerate(self.dataset):
-            if sample_label == 0:
+            if sum(sample_label) < 2:
                 self.healthy_samples += [sample_data]
             else:
                 self.sick_samples += [sample_data]
@@ -40,10 +40,6 @@ class MixedDataset(Dataset):
 
     def get_labels(self):
         return [self.label] * len(self.samples)
-
-    def get_classes(self):
-        # TODO: REMOVE THIS! TREAT IT WITH LABEL NAME
-        return {'DME_HEALTHY': 0, 'DME_SICK': 1}
 
     def get_samples(self):
         return self.samples

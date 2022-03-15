@@ -1,11 +1,9 @@
 from pathlib import Path
-
-import torch.nn.functional
+import torch
+from torch.nn.functional import one_hot
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.io import read_image
-
-import util
 
 
 class KermanyDataset(Dataset):
@@ -19,6 +17,7 @@ class KermanyDataset(Dataset):
         self.samples = []
         for label, label_value in self.classes.items():
             label_dir = self.root / label
+            label_value = one_hot(torch.tensor(label_value), num_classes=len(self.classes))
             self.samples += [(img_path, label_value) for img_path in label_dir.iterdir()]
 
     def __getitem__(self, idx):
@@ -36,10 +35,9 @@ class KermanyDataset(Dataset):
         return len(self.samples)
 
     def get_labels(self):
-        return [labels for _, labels in self.samples]
+        return torch.stack([label for _, label in self.samples])
 
     def get_classes(self):
-        # TODO: REMOVE THIS! TREAT IT WITH LABEL NAME
         return self.classes
 
 
@@ -51,21 +49,17 @@ def setup_kermany(config):
     transform = get_kermany_transform(config.input_size)
 
     # Test Loader
-    test_dataset = KermanyDataset(config.kermany_test_path, chosen_labels=config.kermany_labels,
+    test_dataset = KermanyDataset(config.kermany_test_path, chosen_labels=config.labels,
                                   transformations=transform)
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=config.batch_size)
 
     # Eval Loader
-    eval_dataset = KermanyDataset(config.kermany_eval_path, chosen_labels=config.kermany_labels,
+    eval_dataset = KermanyDataset(config.kermany_eval_path, chosen_labels=config.labels,
                                   transformations=transform)
     eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset, batch_size=config.batch_size)
 
     # Train Loader
-    train_dataset = KermanyDataset(config.kermany_train_path, chosen_labels=config.kermany_labels,
-                                   transformations=transform)
-    train_weights = util.get_balance_weights(train_dataset.get_labels(), len(config.kermany_labels))
-    train_sampler = torch.utils.data.sampler.WeightedRandomSampler(train_weights, len(train_weights))
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size,
-                                               sampler=train_sampler)
+    train_dataset = KermanyDataset(config.kermany_train_path, chosen_labels=config.labels, transformations=transform)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=True)
 
     return train_loader, eval_loader, test_loader

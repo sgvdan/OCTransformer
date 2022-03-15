@@ -1,11 +1,9 @@
-import os
-from pathlib import Path
-
 import numpy as np
 
 import wandb
 
 import util
+from analysis.stats import get_binary_prediction
 from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
@@ -62,51 +60,49 @@ class Experiment:
             self.model_bank.load_best(self.model, self.optimizer, self.scheduler)  # Refresh model (avoid over fitting)
 
     def test(self):
-        score = self.trainer.test(self.model)
-        self.logger.log({'Overall_Score': score})
+        return self.trainer.test(self.model)
 
     def analyze(self):
         mix_dataset = MixedDataset(self.test_loader.dataset)
         mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
-        names, volumes, attns, cams, masks = [], [], [], [], []
-        for idx, (volume, label) in enumerate(mix_loader):
-            if label == 1:
-                names.append('mix-' + str(idx))
+        shuffle_test = torch.utils.data.DataLoader(dataset=self.test_loader.dataset,
+                                                   batch_size=self.config.batch_size,
+                                                   shuffle=True)
 
-                # Keep slices
-                volumes.append(volume.squeeze(dim=0))  # Assume batch_size=1
+        for idx, (volume, label) in enumerate(shuffle_test):
+            if idx > 10:
+                break
 
-                # Keep Attention Maps
-                attns.append(self.model.get_attention_map(volume))  # Assume batch_size=1
+            # Keep slices
+            plot_slices(volume.squeeze(dim=0), logger=self.logger, title='raw')
 
-                # Keep GradCam Maps
-                cams.append(self.model.get_gradcam(volumes[-1]))
+            # Keep Attention Maps
+            attn = self.model.get_attention_map(volume)
+            plot_attention(attn, logger=self.logger, title='attention')
 
-                # Keep thresholded weighted Attention x Gradcam masks
-                masks.append(get_masks(attns[-1], cams[-1], std_thresh=self.config.mask_std_thresh))
+            # Generate Weighted GradCam Masks per each positive label
+            pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
+            binary_pred = get_binary_prediction(pred.cpu(), torch.tensor(self.config.confidence_thresholds))
+            target_labels = binary_pred.nonzero()[:, 1].tolist()  # gather all positive labels
 
-                pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
-                print("MODEL'S PREDICTION:", pred)
+            for category in target_labels:
+                label = self.config.labels[category]
 
-        max_attn = np.stack(attns).max()
-        max_cam = np.stack(cams).max()
-        max_mask = np.stack(masks).max()
+                cam = self.model.get_gradcam(volume, target_categories=[category])
+                plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam-' + label)
+                mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
+                plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask-' + label)
 
-        for name, volume, attn, cam, mask in zip(names, volumes, attns, cams, masks):
-            plot_slices(volume, logger=self.logger)
-            plot_attention(attn / max_attn, logger=self.logger)
-            plot_gradcam(volume, cam / max_cam, logger=self.logger)
-            plot_masks(volume, mask / max_mask, logger=self.logger)
-
-            self.logger.flush_images(name=name)
+            self.logger.flush_images(name='kermany-' + str(idx))
+            print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
 
 
 def main():
     experiment = Experiment(default_config)
     experiment.train()
     experiment.test()
-    # experiment.analyze()
+    experiment.analyze()
 
 
 if __name__ == '__main__':

@@ -51,6 +51,7 @@ class Trainer:
         # Obtain Test Accuracy
         score = self.logger.get_current_macro_f1()
         tqdm.write("\nTest Score (Macro-F1): {}".format(score))
+        self.logger.log({'Overall_Score': score})
 
         return score
 

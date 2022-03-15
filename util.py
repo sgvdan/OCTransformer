@@ -64,36 +64,10 @@ def move2cpu(d):
 
 
 def normalize(d):
+    d = d.float()
     d -= d.min()
     d /= d.max()
     return d
-
-
-def show_cams_on_image_batch(img: np.ndarray,
-                      mask: np.ndarray,
-                      use_rgb: bool = False,
-                      colormap: int = cv2.COLORMAP_JET) -> np.ndarray:
-    """ This function overlays the cam mask on the image as an heatmap.
-    By default the heatmap is in BGR format.
-
-    :param img: The base image in RGB or BGR format.
-    :param mask: The cam mask.
-    :param use_rgb: Whether to use an RGB or BGR heatmap, this should be set to True if 'img' is in RGB format.
-    :param colormap: The OpenCV colormap to be used.
-    :returns: The default image with the cam overlay.
-    """
-    heatmaps = cv2.applyColorMap(np.uint8(255 * mask), colormap)
-    if use_rgb:
-        heatmaps = cv2.cvtColor(heatmaps, cv2.COLOR_BGR2RGB)
-    heatmaps = np.float32(heatmaps) / 255
-
-    if np.max(img) > 1:
-        raise Exception(
-            "The input image should np.float32 in the range [0, 1]")
-
-    cams = heatmaps + imgs
-    cams = cams / np.max(cams)
-    return np.uint8(255 * cams)
 
 
 def max_contour(data):

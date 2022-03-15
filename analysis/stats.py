@@ -12,7 +12,7 @@ def sweep_thresholds_curves(pred, gt, thres_range):
 
         precision = np.nan_to_num(true_positives / (false_positives + true_positives), nan=1)
         recall = tpr
-        f1_score = 2 * (precision * recall) / (precision + recall)
+        f1_score = np.nan_to_num(2 * (precision * recall) / (precision + recall), 0)
 
         pr.append(np.stack([recall, precision]))
         roc.append(np.stack([fpr, tpr]))
@@ -35,7 +35,7 @@ def get_performance_mesaures(pred, gt, thres):
 
 
 def get_stats(pred, gt, thres):
-    binary_pred = (torch.sigmoid(pred) > thres).float()
+    binary_pred = get_binary_prediction(pred, thres)
     confusion = binary_pred / gt
     # Element-wise division of the 2 tensors returns a new tensor which holds a
     # unique value for each case:
@@ -50,3 +50,7 @@ def get_stats(pred, gt, thres):
     false_negatives = torch.sum(confusion == 0, dim=0)
 
     return true_positives, false_positives, true_negatives, false_negatives
+
+
+def get_binary_prediction(pred, thres):
+    return (torch.sigmoid(pred) > thres).float()
