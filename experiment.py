@@ -1,5 +1,4 @@
 import numpy as np
-
 import wandb
 
 import util
@@ -86,15 +85,15 @@ class Experiment:
             binary_pred = get_binary_prediction(pred.cpu(), torch.tensor(self.config.confidence_thresholds))
             target_labels = binary_pred.nonzero()[:, 1].tolist()  # gather all positive labels
 
-            for category in target_labels:
-                label = self.config.labels[category]
-
-                cam = self.model.get_gradcam(volume, target_categories=[category])
+            if target_labels:
+                label = '_'.join([self.config.labels[category] for category in target_labels])
+                cam = self.model.get_gradcam(volume)
                 plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam-' + label)
+
                 mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
                 plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask-' + label)
 
-            self.logger.flush_images(name='kermany-' + str(idx))
+            self.logger.flush_images(name='temp-' + str(idx))
             print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
 
 
