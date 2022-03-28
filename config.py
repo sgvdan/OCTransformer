@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'multilabel-prelim',
+                           'log_group': 'slivernet-vit-comparison',
                            'log_frequency': 10,
 
                            # Kermany Dataset
@@ -29,8 +29,8 @@ default_config = dot_dict({'project': 'OCTransformer',
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
-                           'model': 'vit',
-                           'model_name': None, #'ShYJc1A8Xi'-resnet freeze,  #'hnCZEGBOIx',
+                           'model': 'vit',  # vit / slivernet / deepset
+                           'model_name': None,#'ShYJc1A8Xi'-resnet freeze,  #'hnCZEGBOIx',
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -40,7 +40,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 25,#6,
+                           'epochs': 15,#6,
                            'lr': 1e-5,
 
                            'train_size': 0.65,

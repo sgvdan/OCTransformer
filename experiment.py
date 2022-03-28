@@ -69,8 +69,13 @@ class Experiment:
                                                    batch_size=self.config.batch_size,
                                                    shuffle=True)
 
+        count = 0
         for idx, (volume, label) in enumerate(shuffle_test):
-            if idx > 10:
+            if label.sum() == 0:
+                continue
+
+            count += 1
+            if count > 10:
                 break
 
             # Keep slices
@@ -101,7 +106,7 @@ def main():
     experiment = Experiment(default_config)
     experiment.train()
     experiment.test()
-    experiment.analyze()
+    # experiment.analyze()
 
 
 if __name__ == '__main__':
