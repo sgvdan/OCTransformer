@@ -3,7 +3,7 @@ import wandb
 
 import util
 from analysis.stats import get_binary_prediction
-from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks
+from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks, get_gradcam
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
 from data.kermany_data import setup_kermany
@@ -70,12 +70,8 @@ class Experiment:
                                                    shuffle=True)
 
         count = 0
-        for idx, (volume, label) in enumerate(shuffle_test):
-            if label.sum() == 0:
-                continue
-
-            count += 1
-            if count > 10:
+        for idx, (volume, label) in enumerate(mix_loader):
+            if count > 6:
                 break
 
             # Keep slices
@@ -91,22 +87,28 @@ class Experiment:
             target_labels = binary_pred.nonzero()[:, 1].tolist()  # gather all positive labels
 
             if target_labels:
-                label = '_'.join([self.config.labels[category] for category in target_labels])
-                cam = self.model.get_gradcam(volume)
+                count += 1
+
+            for category in target_labels:
+                label = self.config.labels[category]
+                cam = get_gradcam(input_tensor=volume, model=self.model,
+                                  target_layers=[self.model.model.patch_embed.backbone.layer4[-1]],
+                                  categories=[category], type=self.config.gradcam_type, device=self.config.device,
+                                  aug_smooth=self.config.aug_smooth, eigen_smooth=self.config.eigen_smooth)
                 plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam-' + label)
 
                 mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
                 plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask-' + label)
 
-            self.logger.flush_images(name='temp-' + str(idx))
+            self.logger.flush_images(name='mix-' + str(idx))
             print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
 
 
 def main():
     experiment = Experiment(default_config)
     experiment.train()
-    experiment.test()
-    # experiment.analyze()
+    # experiment.test()
+    experiment.analyze()
 
 
 if __name__ == '__main__':

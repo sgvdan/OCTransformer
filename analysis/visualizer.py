@@ -2,11 +2,42 @@ import math
 
 import cv2 as cv
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 from PIL import Image, ImageEnhance
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
 from util import move2cpu, normalize, figure2img
+
+from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+
+
+def get_gradcam(input_tensor, model, target_layers, categories, type, aug_smooth, eigen_smooth, device):
+    input_tensor = input_tensor.to(device=device, dtype=torch.float)
+
+    type = type.lower()
+    if type == 'gradcam':
+        cam = GradCAM
+    elif type == 'scorecam':
+        cam = ScoreCAM
+    elif type == 'gradcam++':
+        cam = GradCAMPlusPlus
+    elif type == 'ablationcam':
+        cam = AblationCAM
+    elif type == 'xgradcam':
+        cam = XGradCAM
+    elif type == 'eigencam':
+        cam = EigenCAM
+    elif type =='fullgrad':
+        cam = FullGrad
+    else:
+        raise NotImplementedError
+
+    cam_instance = cam(model=model, target_layers=target_layers, use_cuda=(device == 'cuda'))
+    target_categories = [ClassifierOutputTarget(category) for category in categories]
+    return cam_instance(input_tensor=input_tensor, targets=target_categories,
+                        aug_smooth=aug_smooth, eigen_smooth=eigen_smooth)
 
 
 def get_masks(attention, cam, std_thresh=3):

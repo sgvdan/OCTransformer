@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'slivernet-vit-comparison',
+                           'log_group': 'gradcam-playground',
                            'log_frequency': 10,
 
                            # Kermany Dataset
@@ -19,18 +19,19 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # 'num_slices': 1,
                            # 'batch_size': 1,
                            # 'confidence_thresholds': [0.05, 0.70, 0.50, 0.75],  # Obtained from https://wandb.ai/sgvdan/OCTransformer/runs/2nz8mhbw
+
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 15,
+                           'num_slices': 5,
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF', 'ELLIPSOID ZONE DISRUPTION '],
-                           'confidence_thresholds': [0.1, 0.8, 0.75, 0.65],  # Obtained from https://wandb.ai/sgvdan/OCTransformer/runs/pwg2qn0h
+                           'confidence_thresholds': [0.15, 0.3, 0.9, 0.95],
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': None,#'ShYJc1A8Xi'-resnet freeze,  #'hnCZEGBOIx',
+                           'model_name': '1lp6U0oxEt',#'ShYJc1A8Xi'-resnet freeze,  #'hnCZEGBOIx',
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -40,7 +41,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 15,#6,
+                           'epochs': 0,#6,
                            'lr': 1e-5,
 
                            'train_size': 0.65,
@@ -53,6 +54,9 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'embedding_dim': 768,
 
                             # Segmentation parameters
+                           'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad
+                           'aug_smooth': True,
+                           'eigen_smooth': False,
                            'attention_temperature': 0.1,
                            'mask_std_thresh': 3,
 
