@@ -25,6 +25,15 @@ class Logger:
 
         wandb.log(data)
 
+    def get_current_optimal_thresholds(self):
+        pred = torch.stack(self.pred)
+        gt = torch.stack(self.gt)
+        thres_range = np.arange(0.0, 1.01, 0.05)
+
+        _, _, _, opt_thres = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
+
+        return opt_thres
+
     def get_current_macro_f1(self):
         pred = torch.stack(self.pred)
         gt = torch.stack(self.gt)
@@ -90,7 +99,7 @@ class Logger:
         pred = torch.stack(self.pred)
         gt = torch.stack(self.gt)
         thres_range = np.arange(0.0, 1.01, 0.05)
-        pr, roc, f1 = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
+        pr, roc, f1, opt_thres = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
 
         pr_xs, roc_xs = [], []
         pr_ys, roc_ys = [], []
@@ -112,7 +121,7 @@ class Logger:
             roc_ys.append(ys)
 
             # Print ideal thresholds
-            tqdm.write(label + ' - ideal threshold:' + str(round(thres_range[np.argmax(f1[:, idx])], 2)))
+            tqdm.write(label + ' - optimal threshold:' + str(round(opt_thres[idx], 2)))
 
         wandb.log({'pr-graph': wandb.plot.line_series(pr_xs, pr_ys, keys=self.config.labels,
                                                       title="Precision-Recall Curve"),

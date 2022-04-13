@@ -10,7 +10,6 @@ class Trainer:
         self.train_loader = train_loader
         self.eval_loader = eval_loader
         self.test_loader = test_loader
-        self.config = config
         self.models_bank = models_bank
         self.logger = logger
 
@@ -39,6 +38,9 @@ class Trainer:
             # Sync Model Bank
             score = self.logger.get_current_macro_f1()
             self.models_bank.sync_model(model, optimizer, scheduler, score)
+
+            # Sync Thresholds
+            #TODO: SYNC
 
     def test(self, model):
         tqdm.write("\nTest:")

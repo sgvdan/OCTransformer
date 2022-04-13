@@ -18,7 +18,9 @@ def sweep_thresholds_curves(pred, gt, thres_range):
         roc.append(np.stack([fpr, tpr]))
         f1.append(f1_score)
 
-    return np.stack(pr), np.stack(roc), np.stack(f1)
+    optimal_thresholds = thres_range[np.argmax(f1)]
+
+    return np.stack(pr), np.stack(roc), np.stack(f1), optimal_thresholds
 
 
 def get_performance_mesaures(pred, gt, thres):

@@ -169,8 +169,7 @@ def get_hadassah_transform(config):
 
 
 def setup_hadassah(config):
-    records = build_hadassah_dataset(dataset_root='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std',
-                                     annotations_path='/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std/std_annotations.xlsx')
+    records = build_hadassah_dataset(dataset_root=config.hadassah_root, annotations_path=config.hadassah_annotations)
 
     control, study = records.slice_samples(dict(list(zip(config.labels, itertools.repeat(1)))))
 

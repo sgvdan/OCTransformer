@@ -13,6 +13,8 @@ from models.slivernet import SliverNet2
 from models.vit import MyViT
 import torchvision.models as tmodels
 
+# from pdmodels.pd_resnet import pdresnet18
+
 
 class ModelsBank:
     def __init__(self, config):
@@ -38,6 +40,8 @@ class ModelsBank:
             kermany_path = '.models_bank/kermany_resnet18/resnet18.tar'
             states_dict = torch.load(kermany_path)
             backbone.load_state_dict(states_dict['model_state_dict'])
+        # elif backbone_name == 'pdresnet18':
+        #     backbone = pdresnet18(pretrained=False).to(self.config.device)
         else:
             raise NotImplementedError
 

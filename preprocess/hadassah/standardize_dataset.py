@@ -7,12 +7,31 @@ import numpy as np
 from PIL import Image
 from oct_converter.readers import E2E
 from tqdm import tqdm
+from skimage.restoration import denoise_tv_chambolle
 
 # TODO: Standardize dataset
-from data.hadassah_data import Sample
 
 
-def build_patient_dataset(patient_path, dest_path):
+def mask_out_noise(image, snr=10):
+    denoised_image = denoise_tv_chambolle(image, weight=1)
+    fft = abs(np.fft.fft(denoised_image, axis=-1))  # FFT on the LAST axis
+
+    signal = np.max(fft[:, 1:], axis=-1)  # Take the spectral breakdown "envelope", aside from the "sum" element
+    signal /= np.max(signal)
+
+    signal_boundaries = np.argwhere(signal > (1/snr)).squeeze()
+    _min, _max = signal_boundaries[0], signal_boundaries[-1]
+
+    _min = max(0, _min - 15)
+    _max = min(_max + 15, image.shape[-2] - 1)
+
+    image[:_min, :] = 0
+    image[_max:, :] = 0
+
+    return image
+
+
+def build_patient_dataset(patient_path, dest_path, remove_noise):
     dest_path = Path(dest_path)
 
     # Iterate through patient's samples
@@ -39,6 +58,10 @@ def build_patient_dataset(patient_path, dest_path):
                 #     continue
 
                 volume_data.insert(0, volume_data.pop())  # Fix oct-reader bug appending first image to last
+
+                if remove_noise:
+                    for image in volume_data:
+                        mask_out_noise(image, snr=10)
 
                 # Save volume
                 volume_dst_path = sample_dst_path / 'volume'  # Patient ID are unique
@@ -75,14 +98,14 @@ def build_patient_dataset(patient_path, dest_path):
     tqdm.write('Saved patient\'s data {} to {}.'.format(patient_path, dest_path))
 
 
-def build(rootdir, destdir):
+def build(rootdir, destdir, remove_noise):
     rootdir = Path(rootdir)
     destdir = Path(destdir)
 
     # Iterate through all subdirectories and standardize them in destdir
     for path in rootdir.iterdir():
         if path.is_dir():
-            build_patient_dataset(path, destdir / path.name)
+            build_patient_dataset(path, destdir / path.name, remove_noise)
 
 
 if __name__ == '__main__':
@@ -91,7 +114,9 @@ if __name__ == '__main__':
                         help='Input folder path (.xlsx)')
     parser.add_argument('-o', '--output', type=str, required=True,
                         help='Output (standardized) folder path (.xlsx)')
+    parser.add_argument('-rn', '--remove-noise', action='store_true',
+                        help='Choose whether to mask out noise')
 
     args = parser.parse_args()
 
-    build(args.input, args.output)
+    build(args.input, args.output, args.remove_noise)

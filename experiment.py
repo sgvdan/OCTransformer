@@ -107,8 +107,8 @@ class Experiment:
 def main():
     experiment = Experiment(default_config)
     experiment.train()
-    # experiment.test()
-    experiment.analyze()
+    experiment.test()
+    # experiment.analyze()
 
 
 if __name__ == '__main__':

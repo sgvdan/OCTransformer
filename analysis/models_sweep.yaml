@@ -1,0 +1,10 @@
+program: experiment.py
+method: grid
+metric:
+  name: Overall_Score
+  goal: maximize
+parameters:
+  num_slices:
+    values: [5, 11, 19, 29, 37]
+  model:
+    values: ['vit', 'slivernet', 'deepset']
