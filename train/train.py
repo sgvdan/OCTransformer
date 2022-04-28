@@ -1,7 +1,10 @@
+import numpy as np
 import torch
 from torch.nn.functional import one_hot
 from tqdm import tqdm
 from contextlib import ExitStack
+
+from analysis.stats import get_performance_mesaures, sweep_thresholds_curves
 
 
 class Trainer:
@@ -24,8 +27,13 @@ class Trainer:
                 pred, loss = self._feed_forward(model, images, labels, mode='train',
                                                 criterion=criterion, optimizer=optimizer, scheduler=scheduler)
                 self.logger.accumulate(pred=pred, gt=labels, loss=loss)
-                self.logger.log_train_periodic()
-            self.logger.log_train(epoch=epoch)
+                self.logger.log_train_periodic(thres=model.thresholds)
+            self.logger.log_train(epoch=epoch, thres=model.thresholds)
+
+            # Update thresholds
+            _, _, _, thresholds = sweep_thresholds_curves(*self.logger.get_accumulation(),
+                                                          thres_range=np.arange(0.0, 1.01, 0.05))
+            model.thresholds = torch.tensor(thresholds)
 
             # Evaluate
             tqdm.write("\nEvaluation:")
@@ -33,14 +41,11 @@ class Trainer:
             for images, labels in tqdm(self.eval_loader):
                 pred, _ = self._feed_forward(model, images, labels, mode='eval')
                 self.logger.accumulate(pred=pred, gt=labels)
-            self.logger.log_eval(epoch=epoch)
+            self.logger.log_eval(epoch=epoch, thres=model.thresholds)
 
-            # Sync Model Bank
-            score = self.logger.get_current_macro_f1()
-            self.models_bank.sync_model(model, optimizer, scheduler, score)
-
-            # Sync Thresholds
-            #TODO: SYNC
+            # Determine score & Sync Model Bank
+            _, _, _, _, macro_f1 = get_performance_mesaures(*self.logger.get_accumulation(), model.thresholds)
+            self.models_bank.sync_model(model, optimizer, scheduler, macro_f1)
 
     def test(self, model):
         tqdm.write("\nTest:")
@@ -48,12 +53,11 @@ class Trainer:
         for images, labels in tqdm(self.test_loader):
             pred, _ = self._feed_forward(model, images, labels, mode='eval')
             self.logger.accumulate(pred=pred, gt=labels)
-        self.logger.log_test()
+        self.logger.log_test(model.thresholds)
 
         # Obtain Test Accuracy
-        score = self.logger.get_current_macro_f1()
+        _, _, _, _, score = get_performance_mesaures(*self.logger.get_accumulation(), model.thresholds)
         tqdm.write("\nTest Score (Macro-F1): {}".format(score))
-        self.logger.log({'Overall_Score': score})
 
         return score
 

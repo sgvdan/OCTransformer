@@ -1,0 +1,10 @@
+program: experiment.py
+method: grid
+metric:
+  name: Overall_Score
+  goal: maximize
+parameters:
+  embedding_dim:
+    values: [256, 512, 768, 896, 1024, 1250, 1500]
+  model:
+    values: ['vit']

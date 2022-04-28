@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import pickle
 from pathlib import Path
@@ -8,8 +9,11 @@ from PIL import Image
 from oct_converter.readers import E2E
 from tqdm import tqdm
 from skimage.restoration import denoise_tv_chambolle
+from torchvision import transforms
 
 # TODO: Standardize dataset
+import util
+from data.hadassah_data import HadassahDataset
 
 
 def mask_out_noise(image, snr=10):
@@ -35,6 +39,8 @@ def build_patient_dataset(patient_path, dest_path, remove_noise):
     dest_path = Path(dest_path)
 
     # Iterate through patient's samples
+    mean = []
+    squared_mean = []
     for e2e_path in tqdm(list(Path(patient_path).rglob("*.E2E"))):
         if e2e_path.is_file():
             e2e = E2E(e2e_path)
@@ -66,8 +72,11 @@ def build_patient_dataset(patient_path, dest_path, remove_noise):
                 # Save volume
                 volume_dst_path = sample_dst_path / 'volume'  # Patient ID are unique
                 os.makedirs(volume_dst_path, exist_ok=True)
+                save_data = np.stack(volume_data, axis=2)
                 with open(volume_dst_path / 'data.npy', 'wb+') as file:
-                    np.save(file, np.stack(volume_data, axis=2))  # Save as single tensor
+                    np.save(file, save_data)  # Save as single tensor
+                mean.append(save_data.mean())
+
 
                 # Also save Images for debugging-ease
                 images_dst_path = volume_dst_path / 'images'
@@ -75,9 +84,10 @@ def build_patient_dataset(patient_path, dest_path, remove_noise):
 
                 for i, tomogram in enumerate(volume_data):
                     im = Image.fromarray(tomogram.astype('uint8')).convert('RGB')
+                    enhanced_img = transforms.functional.adjust_brightness(im, 2)
                     tomogram_path = images_dst_path / '{}.jpg'.format(i)
                     with open(tomogram_path, 'wb+') as file:
-                        im.save(file)
+                        enhanced_img.save(file)
 
                 # Save fundus
                 if fundusi is not None:
@@ -106,6 +116,15 @@ def build(rootdir, destdir, remove_noise):
     for path in rootdir.iterdir():
         if path.is_dir():
             build_patient_dataset(path, destdir / path.name, remove_noise)
+
+
+def calibrate(dataset_root, dest_path):
+    records = build_hadassah_dataset(dataset_root=dataset_root)  # TODO: make that it doesn't require annotations
+    dataset = HadassahDataset(records.get_samples())
+    mean, stdev = util.get_dataset_stats(dataset)
+
+    with open(dest_path + '/info.json', 'wb+') as file:
+        json.dump({'mean': mean, 'stdev': stdev}, file)
 
 
 if __name__ == '__main__':

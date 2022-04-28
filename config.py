@@ -5,8 +5,8 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': False,
-                           'log_group': 'models-comparison',
+                           'log': True,
+                           'log_group': 'temp',
                            'log_frequency': 10,
 
                            # Kermany Dataset
@@ -14,26 +14,24 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # 'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/train',
                            # 'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/val',
                            # 'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/test',
-                           # 'labels': ['NORMAL', 'CNV', 'DME', 'DRUSEN'],
                            # 'input_size': (256, 256),
                            # 'num_slices': 1,
                            # 'batch_size': 1,
-                           # 'confidence_thresholds': [0.05, 0.70, 0.50, 0.75],  # Obtained from https://wandb.ai/sgvdan/OCTransformer/runs/2nz8mhbw
+                           # 'labels': ['NORMAL', 'CNV', 'DME', 'DRUSEN'],
 
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'hadassah_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked',
                            'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 5,
+                           'num_slices': 15,
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF', 'ELLIPSOID ZONE DISRUPTION '],
-                           'confidence_thresholds': [0.15, 0.3, 0.9, 0.95],
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
-                           'model': 'slivernet',  # vit / slivernet / deepset
-                           'model_name': None,  # 'ShYJc1A8Xi'-resnet freeze,  #'hnCZEGBOIx',
+                           'model': 'vit',  # vit / slivernet / deepset
+                           'model_name': None,
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -43,7 +41,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 10,#6,
+                           'epochs': 25,#6,
                            'lr': 1e-5,
 
                            'train_size': 0.65,
@@ -51,8 +49,8 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'test_size': 0.25,
 
                            # Model parameters
-                           'attention_heads': 1,
-                           'vit_depth': 1,
+                           'attention_heads': 12,
+                           'vit_depth': 12,
                            'embedding_dim': 768,
 
                             # Segmentation parameters

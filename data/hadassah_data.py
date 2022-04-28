@@ -163,9 +163,11 @@ def build_hadassah_dataset(dataset_root, annotations_path):
     return records
 
 
-def get_hadassah_transform(config):
+def get_hadassah_transform(config, mean, stdev):
     return transforms.Compose([transforms.ToTensor(), transforms.Resize(config.input_size),
-                               SubsetSamplesTransform(config.num_slices)])
+                               SubsetSamplesTransform(config.num_slices), transforms.Normalize(mean, stdev),
+                               #EnhanceBrightness(3),
+                               transforms.RandomHorizontalFlip(p=0.5)])
 
 
 def setup_hadassah(config):
@@ -180,17 +182,19 @@ def setup_hadassah(config):
                                                                   config.eval_size,
                                                                   config.test_size])
 
-    transform = get_hadassah_transform(config)
-
     # Test Loader
+    transform = get_hadassah_transform(config, 7.85263045909125, 19.988803667371428)
     test_dataset = HadassahDataset([*test_control, *test_study], chosen_labels=config.labels, transformations=transform)
+
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=config.batch_size)
 
     # Evaluation Loader
+    transform = get_hadassah_transform(config, 8.69875640790064, 22.536245302856397)
     eval_dataset = HadassahDataset([*eval_control, *eval_study], chosen_labels=config.labels, transformations=transform)
     eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset, batch_size=config.batch_size)
 
     # Train Loader
+    transform = get_hadassah_transform(config, 8.165419910168131, 21.35598863335939)
     train_dataset = HadassahDataset([*train_control, *train_study], chosen_labels=config.labels, transformations=transform)
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=True)
 

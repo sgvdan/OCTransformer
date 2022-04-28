@@ -13,7 +13,7 @@ from models.slivernet import SliverNet2
 from models.vit import MyViT
 import torchvision.models as tmodels
 
-# from pdmodels.pd_resnet import pdresnet18
+# from pdmodels import pdresnet18
 
 
 class ModelsBank:
@@ -90,6 +90,8 @@ class ModelsBank:
         else:
             raise NotImplementedError
 
+        model.thresholds = None
+
         if self.config.load_best_model:
             self.load_best(model, optimizer, scheduler)
 
@@ -118,6 +120,7 @@ class ModelsBank:
         if model.name not in self.bank_record:
             self.bank_record[model.name] = {}
             self.bank_record[model.name]['score'] = 0
+            self.bank_record[model.name]['thresholds'] = None
             os.makedirs(model_path, exist_ok=True)
 
         if score > self.bank_record[model.name]['score']:
@@ -127,6 +130,7 @@ class ModelsBank:
                 'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
             }, os.path.join(self.bank_path, model.name, 'best.tar'))
             self.bank_record[model.name]['score'] = score
+            self.bank_record[model.name]['thresholds'] = model.thresholds
             print("Best model updated.", "Model: {0}, Score (Macro-F1): {1}".format(model.name, score))
 
         # Save bank records
@@ -145,3 +149,5 @@ class ModelsBank:
         optimizer.load_state_dict(states_dict['optimizer_state_dict'])
         if scheduler is not None and states_dict['scheduler_state_dict'] is not None:
             scheduler.load_state_dict(states_dict['scheduler_state_dict'])
+
+        model.thresholds = self.bank_record[model.name]['thresholds']

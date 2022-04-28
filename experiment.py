@@ -61,7 +61,7 @@ class Experiment:
     def test(self):
         return self.trainer.test(self.model)
 
-    def analyze(self):
+    def visualize(self):
         mix_dataset = MixedDataset(self.test_loader.dataset)
         mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
@@ -70,9 +70,19 @@ class Experiment:
                                                    shuffle=True)
 
         count = 0
-        for idx, (volume, label) in enumerate(mix_loader):
-            if count > 6:
+        for idx, (volume, label) in enumerate(shuffle_test):
+            if count > 5:
                 break
+
+            # Generate Weighted GradCam Masks per each positive label
+            pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
+            binary_pred = get_binary_prediction(pred.cpu(), torch.tensor(self.model_bank.bank_record[self.model.name]['thresholds']))
+            target_labels = binary_pred.nonzero()[:, 1].tolist()  # gather all positive labels
+
+            if not target_labels:
+                continue
+
+            count += 1
 
             # Keep slices
             plot_slices(volume.squeeze(dim=0), logger=self.logger, title='raw')
@@ -80,14 +90,6 @@ class Experiment:
             # Keep Attention Maps
             attn = self.model.get_attention_map(volume)
             plot_attention(attn, logger=self.logger, title='attention')
-
-            # Generate Weighted GradCam Masks per each positive label
-            pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
-            binary_pred = get_binary_prediction(pred.cpu(), torch.tensor(self.config.confidence_thresholds))
-            target_labels = binary_pred.nonzero()[:, 1].tolist()  # gather all positive labels
-
-            if target_labels:
-                count += 1
 
             for category in target_labels:
                 label = self.config.labels[category]
@@ -108,7 +110,7 @@ def main():
     experiment = Experiment(default_config)
     experiment.train()
     experiment.test()
-    # experiment.analyze()
+    experiment.visualize()
 
 
 if __name__ == '__main__':

@@ -25,6 +25,9 @@ class Logger:
 
         wandb.log(data)
 
+    def get_accumulation(self):
+        return torch.stack(self.pred), torch.stack(self.gt)
+
     def get_current_optimal_thresholds(self):
         pred = torch.stack(self.pred)
         gt = torch.stack(self.gt)
@@ -33,14 +36,6 @@ class Logger:
         _, _, _, opt_thres = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
 
         return opt_thres
-
-    def get_current_macro_f1(self):
-        pred = torch.stack(self.pred)
-        gt = torch.stack(self.gt)
-        thres = torch.tensor(self.config.confidence_thresholds)
-        _, _, _, _, macro_f1 = get_performance_mesaures(pred, gt, thres)
-
-        return macro_f1
 
     def scratch(self):
         self.steps, self.loss, self.pred, self.gt = 0, 0, [], []
@@ -54,10 +49,12 @@ class Logger:
         if loss is not None:
             self.loss += loss
 
-    def log_stats(self, title, epoch):
+    def log_stats(self, title, epoch, thres=None):
         pred = torch.stack(self.pred)
         gt = torch.stack(self.gt)
-        thres = torch.tensor(self.config.confidence_thresholds)
+
+        if thres is None:
+            thres = torch.tensor([0.5] * len(self.config.labels))
 
         accuracy, precision, recall, f1, macro_f1 = get_performance_mesaures(pred, gt, thres)
 
@@ -71,35 +68,37 @@ class Logger:
         self.log({'{title}/macro_f1'.format(title=title): macro_f1,
                   '{title}/epoch'.format(title=title): epoch})
 
-    def log_train_periodic(self):
+    def log_train_periodic(self, thres):
         if self.steps % self.config.log_frequency == 0:
-            self.log_train(None)
+            self.log_train(None, thres)
 
-    def log_train(self, epoch):
+    def log_train(self, epoch, thres):
         if not self.config.log:
             return
 
         self.log({'train/loss': self.loss/self.steps})
-        self.log_stats(title='train', epoch=epoch)
+        self.log_stats(title='train', epoch=epoch, thres=thres)
 
-    def log_eval(self, epoch):
+    def log_eval(self, epoch, thres):
         if not self.config.log:
             return
 
-        self.log_stats(title='evaluation', epoch=epoch)
+        self.log_stats(title='evaluation', epoch=epoch, thres=thres)
 
-    def log_test(self):
+    def log_test(self, thres):
         if not self.config.log:
             return
 
-        self.log_stats(title='test', epoch=None)
-        self.log_curves()
+        self.log_stats(title='test', epoch=None, thres=thres)
 
     def log_curves(self):
+        if not self.config.log:
+            return
+
         pred = torch.stack(self.pred)
         gt = torch.stack(self.gt)
         thres_range = np.arange(0.0, 1.01, 0.05)
-        pr, roc, f1, opt_thres = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
+        pr, roc, f1, thresholds = sweep_thresholds_curves(pred, gt, thres_range=thres_range)
 
         pr_xs, roc_xs = [], []
         pr_ys, roc_ys = [], []
@@ -121,7 +120,7 @@ class Logger:
             roc_ys.append(ys)
 
             # Print ideal thresholds
-            tqdm.write(label + ' - optimal threshold:' + str(round(opt_thres[idx], 2)))
+            tqdm.write(label + ' - optimal threshold:' + str(round(thresholds[idx], 2)))
 
         wandb.log({'pr-graph': wandb.plot.line_series(pr_xs, pr_ys, keys=self.config.labels,
                                                       title="Precision-Recall Curve"),

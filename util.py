@@ -79,6 +79,7 @@ def max_contour(data):
 
     return xs, ys
 
+
 def figure2img(plt):
     buffer = BytesIO()
     plt.savefig(buffer, format='png')
@@ -87,3 +88,27 @@ def figure2img(plt):
 
 def get_reduced_label(label, keys):
     return torch.tensor([label[key] for key in keys])
+
+
+def get_dataset_stats(dataset):
+    """
+    Calculates a dataset's stats
+    :param dataset: corresponding to torch.Dataset
+    :return: mean, std deviation
+    """
+    assert len(dataset) != 0
+
+    total_sum = 0
+    number_of_pixels = 0
+
+    for image, _ in dataset:
+        number_of_pixels += np.prod(image.shape)
+        total_sum += np.sum(image.numpy())
+    mean = total_sum/number_of_pixels
+
+    variances_sum = 0
+    for image, _ in dataset:
+        variances_sum += np.sum((image.numpy() - mean) ** 2)
+    stdev = np.sqrt(variances_sum/number_of_pixels)
+
+    return mean, stdev
