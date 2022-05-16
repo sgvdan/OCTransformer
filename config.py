@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'temp',
+                           'log_group': 'temp', #'BOE_Chiu_Integration',
                            'log_frequency': 10,
 
                            # Kermany Dataset
@@ -24,14 +24,15 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'hadassah_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked',
                            'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 15,
+                           'num_slices': 11,
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF', 'ELLIPSOID ZONE DISRUPTION '],
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': None,
+                           'model_name': '7a80xJlT7A',  #'7a80xJlT7A',
+                           'layer_segmentation_input': False,
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -41,7 +42,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 25,#6,
+                           'epochs': 0,
                            'lr': 1e-5,
 
                            'train_size': 0.65,
@@ -49,7 +50,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'test_size': 0.25,
 
                            # Model parameters
-                           'attention_heads': 12,
+                           'attention_heads': 1,
                            'vit_depth': 12,
                            'embedding_dim': 768,
 
@@ -57,7 +58,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad
                            'aug_smooth': True,
                            'eigen_smooth': False,
-                           'attention_temperature': 0.1,
+                           'attention_temperature': 0.3,
                            'mask_std_thresh': 3,
 
                            # General

@@ -48,6 +48,8 @@ class ModelsBank:
         # Choose Model
         model_type = self.config.model.lower()
         if model_type == 'vit':
+            print('IMPORTANT: Working in undeterminstic manner - so as to support MGU-Net\'s max_pool operation')
+            torch.use_deterministic_algorithms(mode=False)
             backbone.fc = torch.nn.Linear(in_features=512, out_features=self.config.embedding_dim,
                                           device=self.config.device)
             model = MyViT(backbone, self.config).to(self.config.device)

@@ -165,8 +165,8 @@ def build_hadassah_dataset(dataset_root, annotations_path):
 
 def get_hadassah_transform(config, mean, stdev):
     return transforms.Compose([transforms.ToTensor(), transforms.Resize(config.input_size),
-                               SubsetSamplesTransform(config.num_slices), transforms.Normalize(mean, stdev),
-                               #EnhanceBrightness(3),
+                               SubsetSamplesTransform(config.num_slices), VolumeNormalize(),
+                               # transforms.Normalize(mean, stdev), EnhanceBrightness(3),
                                transforms.RandomHorizontalFlip(p=0.5)])
 
 
@@ -209,3 +209,13 @@ class SubsetSamplesTransform(object):
         indices = torch.tensor(range(18-self.num_slices//2, 18 + self.num_slices//2+1))
         new_sample = sample.index_select(dim=0, index=indices)
         return new_sample
+
+
+class VolumeNormalize(object):
+    def __call__(self, sample):
+        norm_sample = sample
+
+        norm_sample -= sample.min()
+        norm_sample /= sample.max()
+
+        return norm_sample

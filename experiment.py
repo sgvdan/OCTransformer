@@ -4,6 +4,7 @@ import wandb
 import util
 from analysis.stats import get_binary_prediction
 from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks, get_gradcam
+from data.boe_chiu_data import BOEChiuDataset, get_boe_chiu_transform
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
 from data.kermany_data import setup_kermany
@@ -62,16 +63,15 @@ class Experiment:
         return self.trainer.test(self.model)
 
     def visualize(self):
-        mix_dataset = MixedDataset(self.test_loader.dataset)
-        mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
+        # mix_dataset = MixedDataset(self.test_loader.dataset)
+        # mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
         shuffle_test = torch.utils.data.DataLoader(dataset=self.test_loader.dataset,
                                                    batch_size=self.config.batch_size,
                                                    shuffle=True)
-
         count = 0
         for idx, (volume, label) in enumerate(shuffle_test):
-            if count > 5:
+            if count > 10:
                 break
 
             # Generate Weighted GradCam Masks per each positive label
@@ -91,19 +91,80 @@ class Experiment:
             attn = self.model.get_attention_map(volume)
             plot_attention(attn, logger=self.logger, title='attention')
 
-            for category in target_labels:
-                label = self.config.labels[category]
-                cam = get_gradcam(input_tensor=volume, model=self.model,
-                                  target_layers=[self.model.model.patch_embed.backbone.layer4[-1]],
-                                  categories=[category], type=self.config.gradcam_type, device=self.config.device,
-                                  aug_smooth=self.config.aug_smooth, eigen_smooth=self.config.eigen_smooth)
-                plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam-' + label)
+            # Keep GradCAM
+            cam = get_gradcam(input_tensor=volume, model=self.model.model.patch_embed,
+                              target_layers=[self.model.model.patch_embed.backbone.layer4[-1]],
+                              type=self.config.gradcam_type, device=self.config.device,
+                              aug_smooth=self.config.aug_smooth, eigen_smooth=self.config.eigen_smooth)
+            plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam')
 
-                mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
-                plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask-' + label)
+            # Keep Masks
+            mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
+            plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask')
 
-            self.logger.flush_images(name='mix-' + str(idx))
+            self.logger.flush_images(name='vis-' + str(idx))
             print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
+
+    def boe_chiu_eval(self):
+        assert self.config.num_slices == 11  # Need to comply with BOE_Chiu's slices count
+        boe_chiu_dataset = BOEChiuDataset('/home/projects/ronen/sgvdan/workspace/datasets/2015_BOE_Chiu/mat_dataset/train',
+                                          transformations=get_boe_chiu_transform(self.config.input_size))
+        boe_chiu_loader = torch.utils.data.DataLoader(dataset=boe_chiu_dataset,
+                                                      batch_size=self.config.batch_size,
+                                                      shuffle=True)
+        count = 0
+        dsc = []
+        for idx, (volume, label) in enumerate(boe_chiu_loader):
+            if count > 10:
+                break
+
+            # Generate Weighted GradCam Masks per each positive label
+            pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
+            binary_pred = get_binary_prediction(pred.cpu(), torch.tensor(self.model_bank.bank_record[self.model.name]['thresholds']))
+            target_labels = binary_pred.nonzero()[:, 1].tolist()  # gather all positive labels
+
+            if not target_labels:
+                continue
+
+            count += 1
+
+            # Keep slices
+            plot_slices(volume.squeeze(dim=0), logger=self.logger, title='raw')
+
+            # Keep Attention Maps
+            attn = self.model.get_attention_map(volume)
+            plot_attention(attn, logger=self.logger, title='attention')
+
+            # Keep GradCAM
+            cam = get_gradcam(input_tensor=volume, model=self.model.model.patch_embed,
+                              target_layers=[self.model.model.patch_embed.backbone.layer4[-1]],
+                              type=self.config.gradcam_type, device=self.config.device,
+                              aug_smooth=self.config.aug_smooth, eigen_smooth=self.config.eigen_smooth)
+            plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam')
+
+            # Keep Masks
+            mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
+
+            fluid_gt = (label.squeeze() == 9).cpu().numpy().astype(float)
+            roi_pred = (mask > 0).astype(float)
+
+            dsc.append(2 * np.multiply(fluid_gt, roi_pred).sum() / (fluid_gt + roi_pred).sum())
+            print("DSC: ", dsc)
+
+            plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask')
+
+            y = np.multiply(fluid_gt, roi_pred)
+            plot_masks(volume.squeeze(dim=0), y, logger=self.logger, title='intersection')
+
+            y = 0.5 * (fluid_gt + roi_pred)
+            plot_masks(volume.squeeze(dim=0), y, logger=self.logger, title='union')
+
+            self.logger.flush_images(name='boe-chiu-' + str(idx))
+            print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
+
+        mean_dsc = np.array(dsc).mean()
+        self.logger.log({'MEAN DSC': mean_dsc})
+        print('MEAN DSC:', mean_dsc)
 
 
 def main():
@@ -111,6 +172,7 @@ def main():
     experiment.train()
     experiment.test()
     experiment.visualize()
+    experiment.boe_chiu_eval()
 
 
 if __name__ == '__main__':

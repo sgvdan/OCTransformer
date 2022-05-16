@@ -6,14 +6,11 @@ import torch
 from matplotlib import pyplot as plt
 from PIL import Image, ImageEnhance
 from pytorch_grad_cam.utils.image import show_cam_on_image
-
 from util import move2cpu, normalize, figure2img
-
 from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 
 
-def get_gradcam(input_tensor, model, target_layers, categories, type, aug_smooth, eigen_smooth, device):
+def get_gradcam(input_tensor, model, target_layers, type, aug_smooth, eigen_smooth, device):
     input_tensor = input_tensor.to(device=device, dtype=torch.float)
 
     type = type.lower()
@@ -35,9 +32,7 @@ def get_gradcam(input_tensor, model, target_layers, categories, type, aug_smooth
         raise NotImplementedError
 
     cam_instance = cam(model=model, target_layers=target_layers, use_cuda=(device == 'cuda'))
-    target_categories = [ClassifierOutputTarget(category) for category in categories]
-    return cam_instance(input_tensor=input_tensor, targets=target_categories,
-                        aug_smooth=aug_smooth, eigen_smooth=eigen_smooth)
+    return cam_instance(input_tensor=input_tensor, aug_smooth=aug_smooth, eigen_smooth=eigen_smooth)
 
 
 def get_masks(attention, cam, std_thresh=3):
@@ -56,7 +51,7 @@ def plot_slices(volume, logger, title):
     for i in range(n_slices):
         img = move2cpu(volume[i])
 
-        img = Image.fromarray(img[0, :, :]).convert('RGB')
+        img = Image.fromarray(img[0, :, :] * 255).convert('RGB')
         enhancer = ImageEnhance.Brightness(img)
         img_enhanced = enhancer.enhance(2.5)
 
@@ -75,8 +70,6 @@ def plot_attention(attention, logger, title):
 
     for i in range(n_heads):
         axes = plt.subplot(rows_num, cols_num, i+1)
-        # norm_image = (attention[i] - attention.min()) / (attention.max()-attention.min()) * 255
-        # norm_image = (attention[i] - attention[i].min())
         attn = np.concatenate([np.array([0, 1]), attention[i]]).reshape(1, -1)
         plt.imshow(attn, cmap='gist_heat', norm=None)
         plt.title("Attention Map")
