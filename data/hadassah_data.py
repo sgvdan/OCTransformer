@@ -1,5 +1,6 @@
 import itertools
 import pickle
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -37,6 +38,18 @@ class HadassahDataset(Dataset):
 
     def get_samples(self):
         return self.samples
+
+
+class HadassahGistDataset(HadassahDataset):
+    def __init__(self, samples, chosen_labels, transformations, gist_transform):
+        super().__init__(samples, chosen_labels, transformations)
+        self.gist_transform = gist_transform
+
+    def __getitem__(self, idx):
+        sample_data, label = super().__getitem__(idx)
+        gist = self.gist_transform(self.samples[idx].get_gist())
+
+        return [sample_data, gist], label
 
 
 class Records:
@@ -94,10 +107,11 @@ class Patient:
 
 
 class Sample:
-    def __init__(self, name, label, volume_path=None, fundus_path=None, metadata_path=None):
+    def __init__(self, name, label, volume_path=None, gist_path=None, fundus_path=None, metadata_path=None):
         self.name = name
         self.label = label
         self.volume_path = volume_path
+        self.gist_path = gist_path
         self.fundus_path = fundus_path
         self.metadata_path = metadata_path
 
@@ -122,6 +136,13 @@ class Sample:
             return None
         else:
             return np.load(self.volume_path, mmap_mode='r')
+
+    def get_gist(self):
+        if self.gist_path is None:
+            return None
+        else:
+            with open(self.gist_path, 'rb') as gist_file:
+                return pickle.load(gist_file)
 
     def get_fundus(self):
         if self.fundus_path is None:
@@ -151,11 +172,12 @@ def build_hadassah_dataset(dataset_root, annotations_path):
             records.add_patient(patient)
 
         temp = path / 'volume/images/'
-        if len(list(temp.glob('*'))) != 37:
+        if len(list(temp.glob('ls-*.jpg'))) != 37:  # TODO: relevant only for -ls (layer-segmentation) dataset. Need to change
             continue
 
         sample = Sample(sample_name, label,
                         volume_path=path / 'volume/data.npy',
+                        gist_path=path / 'volume/gist.pkl',
                         fundus_path=path / 'fundus/fundus.npy',
                         metadata_path=path / '.metadata')
         patient.add_sample(sample)
@@ -182,20 +204,26 @@ def setup_hadassah(config):
                                                                   config.eval_size,
                                                                   config.test_size])
 
+    if config.layer_segmentation_input:
+        gist_transform = SubsetSamplesTransform(config.num_slices)
+        dataset_handler = partial(HadassahGistDataset, gist_transform=gist_transform)
+    else:
+        dataset_handler = HadassahDataset
+
     # Test Loader
     transform = get_hadassah_transform(config, 7.85263045909125, 19.988803667371428)
-    test_dataset = HadassahDataset([*test_control, *test_study], chosen_labels=config.labels, transformations=transform)
+    test_dataset = dataset_handler([*test_control, *test_study], chosen_labels=config.labels, transformations=transform)
 
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=config.batch_size)
 
     # Evaluation Loader
     transform = get_hadassah_transform(config, 8.69875640790064, 22.536245302856397)
-    eval_dataset = HadassahDataset([*eval_control, *eval_study], chosen_labels=config.labels, transformations=transform)
+    eval_dataset = dataset_handler([*eval_control, *eval_study], chosen_labels=config.labels, transformations=transform)
     eval_loader = torch.utils.data.DataLoader(dataset=eval_dataset, batch_size=config.batch_size)
 
     # Train Loader
     transform = get_hadassah_transform(config, 8.165419910168131, 21.35598863335939)
-    train_dataset = HadassahDataset([*train_control, *train_study], chosen_labels=config.labels, transformations=transform)
+    train_dataset = dataset_handler([*train_control, *train_study], chosen_labels=config.labels, transformations=transform)
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=True)
 
     return train_loader, eval_loader, test_loader

@@ -1,0 +1,37 @@
+#BSUB -J OCTransformer                      			# CHANGE JOB NAME
+#BSUB -q waic-long #gpu-interactive      		    			# QUEUE TO RUN IN
+#BSUB -gpu num=1:j_exclusive=yes        			# NUM OF GPUS
+#BSUB -R affinity[thread*8]                 			# CPU THREADS
+#BSUB -env DISPLAY="132.76.81.79:0.0"	    			# Server X ip
+#BSUB -R 'hname!=dgxws02 && hname!=dgxws01'
+##BSUB -m hgn01
+##BSUB -m waic_dgx_hosts
+##BSUB -m agn01
+##BSUB -m dgxws02
+
+# WORKAROUND
+if [ -f ~/.bash_profile ]; then
+  . ~/.bash_profile
+elif [ -f ~/.profile ]; then
+  . ~/.profile
+fi
+
+env > ~/env_int.txt
+
+export DISPLAY="132.76.81.79:0.0"
+
+#RUN YOUR CODE
+
+# ACTIVATE YOUR CONDA ENVIRONMENT
+source /apps/RH7U2/gnu/anaconda/2020.11/python/3.8/etc/profile.d/conda.sh
+
+/bin/bash
+
+CUBLAS_WORKSPACE_CONFIG=:4096:8
+export CUBLAS_WORKSPACE_CONFIG
+
+cd ~/workspace/projects/OCTransformer
+export PYTHONPATH=/home/projects/ronen/sgvdan/workspace/projects/OCTransformer:/home/projects/ronen/sgvdan/workspace/projects/MGU-Net
+
+conda activate sgvdan-workspace
+wandb agent sgvdan/OCTransformer/k6ka5m9i

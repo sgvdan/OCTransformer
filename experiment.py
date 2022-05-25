@@ -3,7 +3,8 @@ import wandb
 
 import util
 from analysis.stats import get_binary_prediction
-from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks, get_gradcam
+from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks, get_gradcam, \
+    low_dimension_plot
 from data.boe_chiu_data import BOEChiuDataset, get_boe_chiu_transform
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
@@ -71,7 +72,7 @@ class Experiment:
                                                    shuffle=True)
         count = 0
         for idx, (volume, label) in enumerate(shuffle_test):
-            if count > 10:
+            if count > 5:
                 break
 
             # Generate Weighted GradCam Masks per each positive label
@@ -112,12 +113,9 @@ class Experiment:
         boe_chiu_loader = torch.utils.data.DataLoader(dataset=boe_chiu_dataset,
                                                       batch_size=self.config.batch_size,
                                                       shuffle=True)
-        count = 0
         dsc = []
+        test_table = wandb.Table(columns=['id', 'prediction', 'dsc'])
         for idx, (volume, label) in enumerate(boe_chiu_loader):
-            if count > 10:
-                break
-
             # Generate Weighted GradCam Masks per each positive label
             pred, _ = self.trainer._feed_forward(self.model, volume, label, mode='eval')
             binary_pred = get_binary_prediction(pred.cpu(), torch.tensor(self.model_bank.bank_record[self.model.name]['thresholds']))
@@ -125,8 +123,6 @@ class Experiment:
 
             if not target_labels:
                 continue
-
-            count += 1
 
             # Keep slices
             plot_slices(volume.squeeze(dim=0), logger=self.logger, title='raw')
@@ -149,7 +145,7 @@ class Experiment:
             roi_pred = (mask > 0).astype(float)
 
             dsc.append(2 * np.multiply(fluid_gt, roi_pred).sum() / (fluid_gt + roi_pred).sum())
-            print("DSC: ", dsc)
+            print("DSC: ", dsc[-1])
 
             plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask')
 
@@ -160,19 +156,52 @@ class Experiment:
             plot_masks(volume.squeeze(dim=0), y, logger=self.logger, title='union')
 
             self.logger.flush_images(name='boe-chiu-' + str(idx))
-            print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
+
+            str_pred = str([self.config.labels[idx] for idx in target_labels])
+            print("Model's {} prediction:".format(idx), str_pred)
+            test_table.add_data('boe-chiu-' + str(idx), str_pred, dsc[-1])
 
         mean_dsc = np.array(dsc).mean()
-        self.logger.log({'MEAN DSC': mean_dsc})
+        test_table.add_data('boe-chiu-mean', '-', mean_dsc)
+
+        self.logger.log({'DSC': test_table})
+        self.logger.log({'MEAN_DSC': mean_dsc})
         print('MEAN DSC:', mean_dsc)
 
 
 def main():
     experiment = Experiment(default_config)
     experiment.train()
+    backbone = experiment.model.model.patch_embed
+    y = torch.concat([torch.stack(experiment.logger.train_gt), torch.stack(experiment.logger.eval_gt)])
+    z = torch.argmax(y, dim=1)
+    data = experiment.model.accum_cls_token
+    low_dimension_plot(data, z, "ViT T-SNE VOLUME TRAINING+EVALUATION (DR) projection")
+
+    # y = y[:, 0]  # LOOK ONLY AT DR
+    # y = y.unsqueeze(dim=1).expand(-1, experiment.config.num_slices)
+    #
+    # num_slices, embedding_dim = experiment.config.num_slices, experiment.config.embedding_dim
+    # num_samples = y.shape[0]
+    # y = y.reshape(num_samples * num_slices)
+
+    # data = backbone.accum_resnet_tokens.reshape(num_samples * num_slices, embedding_dim)
+    # low_dimension_plot(data, y, "ResNet T-SNE TRAINING+EVALUATION (DR) projection")
+    #
+    # data = backbone.accum_gist_tokens.reshape(num_samples * num_slices, 64)
+    # low_dimension_plot(data, y, "MGU-Net T-SNE TRAINING+EVALUATION (DR) projection")
+    #
+    # data = backbone.accum_concat_tokens.reshape(num_samples * num_slices, embedding_dim + 64)
+    # low_dimension_plot(data, y, "Concat T-SNE TRAINING+EVALUATION (DR) projection")
+
     experiment.test()
-    experiment.visualize()
-    experiment.boe_chiu_eval()
+
+    y = torch.argmax(torch.stack(experiment.logger.test_gt), dim=1)
+    data = experiment.model.accum_cls_token
+    low_dimension_plot(data, y, "ViT T-SNE VOLUME TEST (DR) projection")
+    # experiment.logger.log_curves()
+    # experiment.visualize()
+    # experiment.boe_chiu_eval()
 
 
 if __name__ == '__main__':

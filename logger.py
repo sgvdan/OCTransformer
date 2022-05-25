@@ -18,6 +18,7 @@ class Logger:
         self.images = None
 
         self.scratch()
+        self.train_gt = self.eval_gt = self.test_gt = None
 
     def log(self, data):
         if not self.config.log:
@@ -73,6 +74,8 @@ class Logger:
             self.log_train(None, thres)
 
     def log_train(self, epoch, thres):
+        self.train_gt = self.gt
+
         if not self.config.log:
             return
 
@@ -80,12 +83,16 @@ class Logger:
         self.log_stats(title='train', epoch=epoch, thres=thres)
 
     def log_eval(self, epoch, thres):
+        self.eval_gt = self.gt
+
         if not self.config.log:
             return
 
         self.log_stats(title='evaluation', epoch=epoch, thres=thres)
 
     def log_test(self, thres):
+        self.test_gt = self.gt
+
         if not self.config.log:
             return
 

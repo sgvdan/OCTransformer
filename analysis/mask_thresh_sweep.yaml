@@ -1,0 +1,10 @@
+program: experiment.py
+method: random
+metric:
+  name: MEAN_DSC
+  goal: maximize
+parameters:
+  mask_std_thresh:
+    distribution: uniform
+    min: 1.0
+    max: 5.0

@@ -5,15 +5,15 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': True,
-                           'log_group': 'temp', #'BOE_Chiu_Integration',
+                           'log': False,
+                           'log_group': 'temp',
                            'log_frequency': 10,
 
-                           # Kermany Dataset
+                           # # Kermany Dataset
                            # 'dataset': 'kermany',
-                           # 'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/train',
-                           # 'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/val',
-                           # 'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/test',
+                           # 'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/original/kermany/train',
+                           # 'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/original/kermany/val',
+                           # 'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/original/kermany/test',
                            # 'input_size': (256, 256),
                            # 'num_slices': 1,
                            # 'batch_size': 1,
@@ -21,17 +21,17 @@ default_config = dot_dict({'project': 'OCTransformer',
 
                            # Hadassah Dataset
                            'dataset': 'hadassah',
-                           'hadassah_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked',
-                           'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked/std_annotations.xlsx',
+                           'hadassah_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked-ls',
+                           'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked-ls/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
                            'num_slices': 11,
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF', 'ELLIPSOID ZONE DISRUPTION '],
 
                            # Environment
-                           'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / resnet18
+                           'backbone': 'kermany_ls_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': '7a80xJlT7A',  #'7a80xJlT7A',
+                           'model_name': 'kC99843Hyt',  #None, MmwCDCwJlF - for no layer-segmentation-input, 'sGJbi5gB7j' - with
                            'layer_segmentation_input': False,
 
                            # Models Bank

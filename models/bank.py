@@ -5,6 +5,7 @@ import string
 import torch
 from pathlib import Path
 
+from torch.nn import Conv2d
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import util
@@ -40,6 +41,10 @@ class ModelsBank:
             kermany_path = '.models_bank/kermany_resnet18/resnet18.tar'
             states_dict = torch.load(kermany_path)
             backbone.load_state_dict(states_dict['model_state_dict'])
+        elif backbone_name == 'kermany_ls_resnet18':
+            backbone = tmodels.resnet18(pretrained=False, num_classes=4)
+            backbone.conv1 = Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+            backbone = backbone.to(self.config.device)
         # elif backbone_name == 'pdresnet18':
         #     backbone = pdresnet18(pretrained=False).to(self.config.device)
         else:

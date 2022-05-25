@@ -14,10 +14,13 @@ class MyViT(torch.nn.Module):
         super().__init__()
 
         self.config = config
+        # TODO: Delete
+        self.accum_cls_token = torch.empty(0).to(device='cuda')
 
         if self.config.layer_segmentation_input:
             backbone = partial(MGUNetBackboneWrapper, backbone=backbone, num_patches=self.config.num_slices)
             embedding_dim = self.config.embedding_dim + 64
+            assert self.config.attention_heads == 1
         else:
             backbone = partial(BackboneWrapper, backbone=backbone, num_patches=self.config.num_slices)
             embedding_dim = self.config.embedding_dim
@@ -31,6 +34,10 @@ class MyViT(torch.nn.Module):
                                        weight_init='')  # TODO: Migrate many of these to config.py
 
     def forward(self, x):
+        # TODO: Delete
+        y = self.model.forward_features(x)
+        self.accum_cls_token = torch.concat([self.accum_cls_token, y])
+        # End TODO: Delete
         return self.model(x)
 
     def get_last_selfattention(self, x):
@@ -83,6 +90,8 @@ class BackboneWrapper(torch.nn.Module):
         super().__init__()
         self.backbone = backbone
         self.num_patches = num_patches
+        # TODO: delete
+        self.accum_resnet_tokens = torch.empty(0).to(device='cuda')
 
     def forward(self, x):
         batch_size, slices, channels, height, width = x.shape
@@ -90,6 +99,9 @@ class BackboneWrapper(torch.nn.Module):
         x = x.reshape(batch_size * slices, channels, height, width)
         x = self.backbone(x)
         x = x.reshape(batch_size, slices, -1)
+
+        # TODO: delete
+        self.accum_resnet_tokens = torch.concat([self.accum_resnet_tokens, x])
 
         return x
 
@@ -104,31 +116,27 @@ class MGUNetBackboneWrapper(torch.nn.Module):
         checkpoint = torch.load('/home/projects/ronen/sgvdan/workspace/projects/OCTransformer/.models_bank/MGUNet_BOE_2015-pretrained/model_best.pth.tar')
         self.mgu_net.load_state_dict(checkpoint['state_dict'])
 
+        # TODO: delete
+        self.accum_resnet_tokens = torch.empty(0).to(device='cuda')
+        self.accum_gist_tokens = torch.empty(0).to(device='cuda')
+        self.accum_concat_tokens = torch.empty(0).to(device='cuda')
+
     def forward(self, x):
+        x, gist = x
         batch_size, slices, channels, height, width = x.shape
+
         x = x.reshape(batch_size * slices, channels, height, width)
-
         y = self.backbone(x)
-
-        int_x = x[:, 0, :, :].unsqueeze(dim=1)
-        int_x -= int_x.min()
-        int_x /= int_x.max()
-        int_x = torchvision.transforms.functional.adjust_brightness(int_x, 3)
-
-        z = self.mgu_net(int_x, gist=True)
-        _, pred_seg = torch.max(z[2], 1)
-        pred_seg = pred_seg.detach().cpu()
-        for idx, (img, pred) in enumerate(zip(int_x, pred_seg)):
-            _img = (img[0].cpu().detach().numpy() * 255).astype('uint8')
-            vis_result(['yooo-{}.bmp'.format(idx)], _img, None, pred.unsqueeze(dim=0), save_dir='./')
-        z = z[-1]
-
-        #TODO: FIX MGU-Net backbone training SO EVERYTHING IS RIGHT!!
-
         y = y.reshape(batch_size, slices, -1)
-        z = z.reshape(batch_size, slices, -1)
-        # zeros = torch.zeros_like(z[:, :, :8])
 
-        x = torch.concat([y, z], dim=-1)
+        gist = gist.reshape(batch_size, slices, -1)
+
+        x = torch.concat([y, gist], dim=-1)
+
+        # TODO: delete
+        self.accum_resnet_tokens = torch.concat([self.accum_resnet_tokens, y])
+        self.accum_gist_tokens = torch.concat([self.accum_gist_tokens, gist])
+        self.accum_concat_tokens = torch.concat([self.accum_concat_tokens, x])
+        # TODO: delete
 
         return x

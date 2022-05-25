@@ -6,6 +6,11 @@ import torch
 from matplotlib import pyplot as plt
 from PIL import Image, ImageEnhance
 from pytorch_grad_cam.utils.image import show_cam_on_image
+
+from sklearn.manifold import TSNE
+import seaborn as sns
+import pandas as pd
+
 from util import move2cpu, normalize, figure2img
 from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
 
@@ -103,3 +108,17 @@ def plot_masks(volume, mask, logger, title):
         visualization = show_cam_on_image(original_images[i], 0.3*mask[i], use_rgb=True, colormap=cv.COLORMAP_HOT)
         img = Image.fromarray(visualization)
         logger.log_image(img, caption=(title + '-' + str(x_axis[i])))
+
+
+def low_dimension_plot(data, labels, title):
+    tsne = TSNE()
+    z = tsne.fit_transform(data.cpu().numpy())
+
+    df = pd.DataFrame()
+    df["y"] = labels.cpu().numpy()
+    df["comp-1"] = z[:, 0]
+    df["comp-2"] = z[:, 1]
+
+    sns.scatterplot(x="comp-1", y="comp-2", hue=df.y.tolist(),
+                    palette=sns.color_palette("hls", 4),
+                    data=df).set(title=title)

@@ -61,7 +61,7 @@ class Trainer:
 
         return score
 
-    def _feed_forward(self, model, images, labels, mode, criterion=None, optimizer=None, scheduler=None):
+    def _feed_forward(self, model, data, labels, mode, criterion=None, optimizer=None, scheduler=None):
         # Make sure mode is as expected
         if mode == 'train' and not model.training:
             model.train()
@@ -71,14 +71,17 @@ class Trainer:
             assert criterion is None and optimizer is None
 
         # Move to device
-        images, labels = images.to(device=self.config.device, dtype=torch.float), \
-                         labels.to(device=self.config.device, dtype=torch.float)
+        if isinstance(data, list):
+            data = [datum.to(device=self.config.device, dtype=torch.float) for datum in data]
+        else:
+            data = data.to(device=self.config.device, dtype=torch.float)
+        labels = labels.to(device=self.config.device, dtype=torch.float)
 
         # Run the model on the input batch
         with ExitStack() as stack:
             if not model.training:
                 stack.enter_context(torch.no_grad())
-            pred = model(images)
+            pred = model(data)
 
         # Calculate loss and update
         loss_value = 0.0
