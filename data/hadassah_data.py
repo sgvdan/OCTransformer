@@ -8,6 +8,7 @@ import pandas
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
+from torchvision.transforms import InterpolationMode
 
 import util
 
@@ -40,16 +41,25 @@ class HadassahDataset(Dataset):
         return self.samples
 
 
-class HadassahGistDataset(HadassahDataset):
-    def __init__(self, samples, chosen_labels, transformations, gist_transform):
+class HadassahLayerSegmentationDataset(HadassahDataset):
+    def __init__(self, samples, chosen_labels, transformations, layer_segmentation_transform):
         super().__init__(samples, chosen_labels, transformations)
-        self.gist_transform = gist_transform
+        self.layer_segmentation_transform = layer_segmentation_transform
 
     def __getitem__(self, idx):
         sample_data, label = super().__getitem__(idx)
-        gist = self.gist_transform(self.samples[idx].get_gist())
+        layer_segmentation = self.layer_segmentation_transform(self.samples[idx].get_layer_segmentation_data())
 
-        return [sample_data, gist], label
+        sample_data = (sample_data * 255).to(torch.uint8)
+        sample_data = torch.stack([layer_segmentation, sample_data[:, 0, :, :]], dim=1)
+
+        # import matplotlib.pyplot as plt
+        # plt.figure()
+        # plt.imshow(sample_data[0, 0, :, :])
+        # plt.figure()
+        # plt.imshow(sample_data[0, 1, :, :])
+        # plt.show()
+        return sample_data, label
 
 
 class Records:
@@ -107,11 +117,11 @@ class Patient:
 
 
 class Sample:
-    def __init__(self, name, label, volume_path=None, gist_path=None, fundus_path=None, metadata_path=None):
+    def __init__(self, name, label, volume_path=None, layer_segmentation_path=None, fundus_path=None, metadata_path=None):
         self.name = name
         self.label = label
         self.volume_path = volume_path
-        self.gist_path = gist_path
+        self.layer_segmentation_path = layer_segmentation_path
         self.fundus_path = fundus_path
         self.metadata_path = metadata_path
 
@@ -137,12 +147,12 @@ class Sample:
         else:
             return np.load(self.volume_path, mmap_mode='r')
 
-    def get_gist(self):
-        if self.gist_path is None:
+    def get_layer_segmentation_data(self):
+        if self.layer_segmentation_path is None:
             return None
         else:
-            with open(self.gist_path, 'rb') as gist_file:
-                return pickle.load(gist_file)
+            with open(self.layer_segmentation_path, 'rb') as layer_segmentation_file:
+                return pickle.load(layer_segmentation_file)
 
     def get_fundus(self):
         if self.fundus_path is None:
@@ -151,9 +161,10 @@ class Sample:
             return np.load(self.fundus_path, mmap_mode='r')
 
 
-def build_hadassah_dataset(dataset_root, annotations_path):
+def build_hadassah_dataset(dataset_root, layer_segmentation_root, annotations_path):
     annotations = pandas.read_excel(annotations_path)
     dataset_root = Path(dataset_root)
+    layer_segmentation_root = Path(layer_segmentation_root)
 
     records = Records()
     for row_idx in range(1, len(annotations)):
@@ -163,6 +174,7 @@ def build_hadassah_dataset(dataset_root, annotations_path):
         patient_name = metadata['DR_CODE']
         sample_name = '{}_{}_{}'.format(metadata['P.I.D'], metadata['E.I.D'], metadata['S.I.D'])
         path = dataset_root / '{}/{}'.format(patient_name, sample_name)
+        layer_segmentation_path = layer_segmentation_root / '{}/{}'.format(patient_name, sample_name)
 
         assert path.exists()
 
@@ -172,12 +184,12 @@ def build_hadassah_dataset(dataset_root, annotations_path):
             records.add_patient(patient)
 
         temp = path / 'volume/images/'
-        if len(list(temp.glob('ls-*.jpg'))) != 37:  # TODO: relevant only for -ls (layer-segmentation) dataset. Need to change
+        if len(list(temp.glob('*.jpg'))) != 37:  # TODO: relevant only for -ls (layer-segmentation) dataset. Need to change
             continue
 
         sample = Sample(sample_name, label,
                         volume_path=path / 'volume/data.npy',
-                        gist_path=path / 'volume/gist.pkl',
+                        layer_segmentation_path=layer_segmentation_path / 'volume/layer_segmentation.pkl',
                         fundus_path=path / 'fundus/fundus.npy',
                         metadata_path=path / '.metadata')
         patient.add_sample(sample)
@@ -193,7 +205,9 @@ def get_hadassah_transform(config, mean, stdev):
 
 
 def setup_hadassah(config):
-    records = build_hadassah_dataset(dataset_root=config.hadassah_root, annotations_path=config.hadassah_annotations)
+    records = build_hadassah_dataset(dataset_root=config.hadassah_root,
+                                     layer_segmentation_root=config.hadassah_layer_segmentation_root,
+                                     annotations_path=config.hadassah_annotations)
 
     control, study = records.slice_samples(dict(list(zip(config.labels, itertools.repeat(1)))))
 
@@ -205,8 +219,10 @@ def setup_hadassah(config):
                                                                   config.test_size])
 
     if config.layer_segmentation_input:
-        gist_transform = SubsetSamplesTransform(config.num_slices)
-        dataset_handler = partial(HadassahGistDataset, gist_transform=gist_transform)
+        layer_segmentation_transform = transforms.Compose([SubsetSamplesTransform(config.num_slices),
+                                                           transforms.Resize(config.input_size, interpolation=InterpolationMode.NEAREST),
+                                                           transforms.RandomHorizontalFlip(p=1)])
+        dataset_handler = partial(HadassahLayerSegmentationDataset, layer_segmentation_transform=layer_segmentation_transform)
     else:
         dataset_handler = HadassahDataset
 

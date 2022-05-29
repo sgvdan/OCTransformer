@@ -5,15 +5,15 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
-                           'log': False,
+                           'log': True,
                            'log_group': 'temp',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
                            # 'dataset': 'kermany',
-                           # 'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/original/kermany/train',
-                           # 'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/original/kermany/val',
-                           # 'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/original/kermany/test',
+                           # 'kermany_train_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/original/train',
+                           # 'kermany_eval_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/original/val',
+                           # 'kermany_test_path': '/home/projects/ronen/sgvdan/workspace/datasets/kermany/original/test',
                            # 'input_size': (256, 256),
                            # 'num_slices': 1,
                            # 'batch_size': 1,
@@ -21,8 +21,9 @@ default_config = dot_dict({'project': 'OCTransformer',
 
                            # Hadassah Dataset
                            'dataset': 'hadassah',
-                           'hadassah_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked-ls',
-                           'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked-ls/std_annotations.xlsx',
+                           'hadassah_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked',
+                           'hadassah_layer_segmentation_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/layer-segmentation',
+                           'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/std-masked/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
                            'num_slices': 11,
                            'batch_size': 1,
@@ -31,8 +32,8 @@ default_config = dot_dict({'project': 'OCTransformer',
                            # Environment
                            'backbone': 'kermany_ls_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': 'kC99843Hyt',  #None, MmwCDCwJlF - for no layer-segmentation-input, 'sGJbi5gB7j' - with
-                           'layer_segmentation_input': False,
+                           'model_name': None,  #None, MmwCDCwJlF - for no layer-segmentation-input, 'sGJbi5gB7j' - with
+                           'layer_segmentation_input': True,
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -42,7 +43,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 0,
+                           'epochs': 30,
                            'lr': 1e-5,
 
                            'train_size': 0.65,

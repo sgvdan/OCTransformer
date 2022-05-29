@@ -42,9 +42,13 @@ class ModelsBank:
             states_dict = torch.load(kermany_path)
             backbone.load_state_dict(states_dict['model_state_dict'])
         elif backbone_name == 'kermany_ls_resnet18':
-            backbone = tmodels.resnet18(pretrained=False, num_classes=4)
-            backbone.conv1 = Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-            backbone = backbone.to(self.config.device)
+            backbone = tmodels.resnet18(pretrained=False, num_classes=4).to(self.config.device)
+            backbone.conv1 = Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False).to(self.config.device)
+
+            kermany_ls_path = '.models_bank/kermany_ls_resnet18/resnet18-2ch-kermany.pth'
+            states_dict = torch.load(kermany_ls_path)
+            backbone.load_state_dict(states_dict['model_state_dict'])
+
         # elif backbone_name == 'pdresnet18':
         #     backbone = pdresnet18(pretrained=False).to(self.config.device)
         else:

@@ -172,33 +172,7 @@ class Experiment:
 def main():
     experiment = Experiment(default_config)
     experiment.train()
-    backbone = experiment.model.model.patch_embed
-    y = torch.concat([torch.stack(experiment.logger.train_gt), torch.stack(experiment.logger.eval_gt)])
-    z = torch.argmax(y, dim=1)
-    data = experiment.model.accum_cls_token
-    low_dimension_plot(data, z, "ViT T-SNE VOLUME TRAINING+EVALUATION (DR) projection")
-
-    # y = y[:, 0]  # LOOK ONLY AT DR
-    # y = y.unsqueeze(dim=1).expand(-1, experiment.config.num_slices)
-    #
-    # num_slices, embedding_dim = experiment.config.num_slices, experiment.config.embedding_dim
-    # num_samples = y.shape[0]
-    # y = y.reshape(num_samples * num_slices)
-
-    # data = backbone.accum_resnet_tokens.reshape(num_samples * num_slices, embedding_dim)
-    # low_dimension_plot(data, y, "ResNet T-SNE TRAINING+EVALUATION (DR) projection")
-    #
-    # data = backbone.accum_gist_tokens.reshape(num_samples * num_slices, 64)
-    # low_dimension_plot(data, y, "MGU-Net T-SNE TRAINING+EVALUATION (DR) projection")
-    #
-    # data = backbone.accum_concat_tokens.reshape(num_samples * num_slices, embedding_dim + 64)
-    # low_dimension_plot(data, y, "Concat T-SNE TRAINING+EVALUATION (DR) projection")
-
     experiment.test()
-
-    y = torch.argmax(torch.stack(experiment.logger.test_gt), dim=1)
-    data = experiment.model.accum_cls_token
-    low_dimension_plot(data, y, "ViT T-SNE VOLUME TEST (DR) projection")
     # experiment.logger.log_curves()
     # experiment.visualize()
     # experiment.boe_chiu_eval()

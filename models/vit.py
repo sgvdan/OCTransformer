@@ -14,30 +14,17 @@ class MyViT(torch.nn.Module):
         super().__init__()
 
         self.config = config
-        # TODO: Delete
-        self.accum_cls_token = torch.empty(0).to(device='cuda')
 
-        if self.config.layer_segmentation_input:
-            backbone = partial(MGUNetBackboneWrapper, backbone=backbone, num_patches=self.config.num_slices)
-            embedding_dim = self.config.embedding_dim + 64
-            assert self.config.attention_heads == 1
-        else:
-            backbone = partial(BackboneWrapper, backbone=backbone, num_patches=self.config.num_slices)
-            embedding_dim = self.config.embedding_dim
-
-        self.model = VisionTransformer(img_size=self.config.input_size, patch_size=(embedding_dim, 1),
+        backbone = partial(BackboneWrapper, backbone=backbone, num_patches=self.config.num_slices)
+        self.model = VisionTransformer(img_size=self.config.input_size, patch_size=(self.config.embedding_dim, 1),
                                        in_chans=3, num_classes=len(self.config.labels),
-                                       embed_dim=embedding_dim, depth=self.config.vit_depth,
+                                       embed_dim=self.config.embedding_dim, depth=self.config.vit_depth,
                                        num_heads=self.config.attention_heads, mlp_ratio=4., qkv_bias=True,
                                        representation_size=None, distilled=False, drop_rate=0., attn_drop_rate=0.,
                                        drop_path_rate=0., embed_layer=backbone, norm_layer=None, act_layer=None,
                                        weight_init='')  # TODO: Migrate many of these to config.py
 
     def forward(self, x):
-        # TODO: Delete
-        y = self.model.forward_features(x)
-        self.accum_cls_token = torch.concat([self.accum_cls_token, y])
-        # End TODO: Delete
         return self.model(x)
 
     def get_last_selfattention(self, x):
@@ -90,8 +77,6 @@ class BackboneWrapper(torch.nn.Module):
         super().__init__()
         self.backbone = backbone
         self.num_patches = num_patches
-        # TODO: delete
-        self.accum_resnet_tokens = torch.empty(0).to(device='cuda')
 
     def forward(self, x):
         batch_size, slices, channels, height, width = x.shape
@@ -99,9 +84,6 @@ class BackboneWrapper(torch.nn.Module):
         x = x.reshape(batch_size * slices, channels, height, width)
         x = self.backbone(x)
         x = x.reshape(batch_size, slices, -1)
-
-        # TODO: delete
-        self.accum_resnet_tokens = torch.concat([self.accum_resnet_tokens, x])
 
         return x
 
