@@ -16,6 +16,19 @@ from train.train import Trainer
 import torch
 
 
+class A:
+    def __init__(self, dataset):
+        self.dataset = dataset
+        A.volume_path = None
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        A.volume_path = self.dataset.samples[idx].volume_path
+        return self.dataset[idx]
+
+
 class Experiment:
     def __init__(self, config):
         assert config is not None
@@ -67,12 +80,12 @@ class Experiment:
         # mix_dataset = MixedDataset(self.test_loader.dataset)
         # mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
-        shuffle_test = torch.utils.data.DataLoader(dataset=self.test_loader.dataset,
+        shuffle_test = torch.utils.data.DataLoader(dataset=A(self.test_loader.dataset),
                                                    batch_size=self.config.batch_size,
                                                    shuffle=True)
         count = 0
         for idx, (volume, label) in enumerate(shuffle_test):
-            if count > 5:
+            if count > 15:
                 break
 
             # Generate Weighted GradCam Masks per each positive label
@@ -105,6 +118,7 @@ class Experiment:
 
             self.logger.flush_images(name='vis-' + str(idx))
             print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
+            print("{} path:".format(idx), A.volume_path)
 
     def boe_chiu_eval(self):
         assert self.config.num_slices == 11  # Need to comply with BOE_Chiu's slices count
@@ -173,8 +187,8 @@ def main():
     experiment = Experiment(default_config)
     experiment.train()
     experiment.test()
-    # experiment.logger.log_curves()
-    # experiment.visualize()
+    experiment.logger.log_curves()
+    experiment.visualize()
     # experiment.boe_chiu_eval()
 
 

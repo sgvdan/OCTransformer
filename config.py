@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCTransformer',
                            # Logger
                            'log': True,
-                           'log_group': 'temp',
+                           'log_group': 'layer-segmentation-11ch',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -30,9 +30,9 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'labels': ['DR', 'DME', 'IRF', 'ELLIPSOID ZONE DISRUPTION '],
 
                            # Environment
-                           'backbone': 'kermany_ls_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / resnet18
+                           'backbone': 'kermany_ls11_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': None,  #None, MmwCDCwJlF - for no layer-segmentation-input, 'sGJbi5gB7j' - with
+                           'model_name': None,  #None, MmwCDCwJlF - for no layer-segmentation-input, '7hUU7qAdh8' - with
                            'layer_segmentation_input': True,
 
                            # Models Bank
@@ -43,7 +43,7 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 30,
+                           'epochs': 15,
                            'lr': 1e-5,
 
                            'train_size': 0.65,
@@ -59,8 +59,8 @@ default_config = dot_dict({'project': 'OCTransformer',
                            'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad
                            'aug_smooth': True,
                            'eigen_smooth': False,
-                           'attention_temperature': 0.3,
-                           'mask_std_thresh': 3,
+                           'attention_temperature': 0.05,
+                           'mask_std_thresh': 3.5,
 
                            # General
                            'output_path': './output/',

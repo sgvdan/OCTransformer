@@ -12,6 +12,8 @@ from torchvision.transforms import InterpolationMode
 
 import util
 
+mask_values = [10, 26, 51, 77, 102, 128, 153, 179, 204, 230]
+
 
 class HadassahDataset(Dataset):
     def __init__(self, samples, chosen_labels, transformations):
@@ -50,15 +52,16 @@ class HadassahLayerSegmentationDataset(HadassahDataset):
         sample_data, label = super().__getitem__(idx)
         layer_segmentation = self.layer_segmentation_transform(self.samples[idx].get_layer_segmentation_data())
 
-        sample_data = (sample_data * 255).to(torch.uint8)
-        sample_data = torch.stack([layer_segmentation, sample_data[:, 0, :, :]], dim=1)
+        channel_mask = torch.stack([(layer_segmentation == value) for value in mask_values], dim=1).type(torch.uint8) * 255
+
+        sample_data = (sample_data[:, 0, :, :] * 255).unsqueeze(dim=1).to(torch.uint8)
+        sample_data = torch.concat([channel_mask, sample_data], dim=1)
 
         # import matplotlib.pyplot as plt
-        # plt.figure()
-        # plt.imshow(sample_data[0, 0, :, :])
-        # plt.figure()
-        # plt.imshow(sample_data[0, 1, :, :])
-        # plt.show()
+        # for channel in sample_data[0, :, :, :]:
+        #     plt.figure()
+        #     plt.imshow(channel)
+        #     plt.show()
         return sample_data, label
 
 
