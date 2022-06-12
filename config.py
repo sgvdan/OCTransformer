@@ -5,7 +5,7 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Logger
-                           'log': False,
+                           'log': True,
                            'log_group': 'temp',
                            'log_frequency': 10,
 
@@ -22,17 +22,17 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'hadassah_root': '/home/nih/nih-dannyh/data/oct/DR_TIFF',
-                           'hadassah_dest': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std-masked',  # TODO: CHANGE TO STD-MASKED
+                           'hadassah_dest': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std',  # TODO: CHANGE TO STD-MASKED
                            'hadassah_ls_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/layer-segmentation',
                            'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 33,
+                           'num_slices': 11,
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF'],
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
-                           'model': 'vit',  # vit / slivernet / deepset
+                           'model': 'deepset',  # vit / slivernet / deepset
                            'model_name': 'NmcOEYxGF7',  # vit-vanilla 57uyQrwq5Y
                            'layer_segmentation_input': False,
 

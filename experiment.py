@@ -1,8 +1,5 @@
 import numpy as np
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
-
 import wandb
-
 import util
 from analysis.stats import get_binary_prediction
 from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks, get_gradcam
@@ -15,6 +12,7 @@ from config import default_config
 from logger import Logger
 from train.train import Trainer
 import torch
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 
 
 class A:
@@ -88,7 +86,7 @@ class Experiment:
                                                    shuffle=True)
         count = 0
         for idx, (volume, label) in enumerate(shuffle_test):
-            if count > 5:
+            if count > 15:
                 break
 
             # Generate Weighted GradCam Masks per each positive label
@@ -108,9 +106,15 @@ class Experiment:
             # attn = self.model.get_attention_map(volume)
             # plot_attention(attn, logger=self.logger, title='attention')
 
+            # # Keep GradCAM
+            # cam = get_gradcam(input_tensor=volume, model=self.model.model.patch_embed,
+            #                   target_layers=[self.model.model.patch_embed.backbone.layer4[-1]],
+            #                   type=self.config.gradcam_type, device=self.config.device,
+            #                   aug_smooth=self.config.aug_smooth, eigen_smooth=self.config.eigen_smooth)
+            # plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam')
             # Keep GradCAM
-            cam = get_gradcam(input_tensor=volume, model=self.model.model.patch_embed,
-                              target_layers=[self.model.model.patch_embed.backbone.layer4[-1]],
+            cam = get_gradcam(input_tensor=volume, model=self.model,
+                              target_layers=[self.model.backbone[-1][-1]],
                               targets=[ClassifierOutputTarget(2)],
                               type=self.config.gradcam_type, device=self.config.device,
                               aug_smooth=self.config.aug_smooth, eigen_smooth=self.config.eigen_smooth)
