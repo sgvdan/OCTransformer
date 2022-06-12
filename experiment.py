@@ -74,7 +74,9 @@ class Experiment:
             self.model_bank.load_best(self.model, self.optimizer, self.scheduler)  # Refresh model (avoid over fitting)
 
     def test(self):
-        return self.trainer.test(self.model)
+        score = self.trainer.test(self.model)
+        self.logger.log_summary('overall_score', score)
+        return score
 
     def visualize(self):
         # mix_dataset = MixedDataset(self.test_loader.dataset)
@@ -85,7 +87,7 @@ class Experiment:
                                                    shuffle=True)
         count = 0
         for idx, (volume, label) in enumerate(shuffle_test):
-            if count > 15:
+            if count > 5:
                 break
 
             # Generate Weighted GradCam Masks per each positive label
@@ -189,7 +191,7 @@ def main():
     experiment.test()
     experiment.logger.log_curves()
     experiment.visualize()
-    # experiment.boe_chiu_eval()
+    experiment.boe_chiu_eval()
 
 
 if __name__ == '__main__':

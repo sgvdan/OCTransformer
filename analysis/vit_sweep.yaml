@@ -1,0 +1,22 @@
+entity: sgvdan
+project: OCT-Transformer-paper
+program: experiment.py
+method: random
+metric:
+  name: overall_score
+  goal: maximize
+parameters:
+  log_group:
+    value: 'vit-optimize'
+  model:
+    value: 'vit'
+  vit_depth:
+    values: [7, 9, 11, 12, 14, 16]
+  attention_heads:
+    values: [3, 4, 5, 6]
+  embedding_dim:
+    values: [576, 768, 960, 1152, 2016]
+  num_slices:
+    values: [3, 7, 11, 15, 19, 23, 27, 33, 37]
+  lr:
+    values: [1e-4, 1e-5, 5e-5, 1e-6, 5e-6, 5e-7]

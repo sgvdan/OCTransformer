@@ -1,10 +1,14 @@
+entity: sgvdan
+project: OCT-Transformer-paper
 program: experiment.py
 method: grid
 metric:
-  name: Overall_Score
+  name: overall_score
   goal: maximize
 parameters:
   num_slices:
     values: [5, 9, 11, 15, 19, 23, 29, 33, 37]
   model:
     values: ['vit', 'slivernet', 'deepset']
+  epochs:
+    value: 20

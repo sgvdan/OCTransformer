@@ -143,7 +143,7 @@ class SliverNet2(torch.nn.Module):
             self.backbone = backbone
         # get_backbone(model_name, n_feats)  # change to load_backbone
         # self.model = torch.nn.Sequential(self.model, NonAdaptiveConcatPool2d(8))
-        self.cov_model = FeatureCNN2(ncov=ncov,n_out=n_out,add_layers=add_layers)
+        self.cov_model = FeatureCNN2(ncov=ncov, n_out=n_out, add_layers=add_layers)
         # self.loss_func = torch.nn.BCEWithLogitsLoss()  # sigmoid loss, use this for optimization
 
     def forward(self,x,cov=None):

@@ -5,7 +5,7 @@ from io import BytesIO
 import numpy as np
 import torch
 from PIL import Image
-from cv2 import cv2
+import re
 
 pseudo_random = random.Random()  # performed prior to make_deterministic
 
@@ -27,6 +27,12 @@ def make_deterministic(seed=0):
     random.seed(seed)
     np.random.seed(seed)
 
+
+def sorted_nicely(l):
+    """ Sort the given iterable in the way that humans expect."""
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted([str(e) for e in l], key=alphanum_key)
 
 def split_list(input_list, chunks, random_split=True):
     assert sum(chunks) == 1
@@ -112,3 +118,7 @@ def get_dataset_stats(dataset):
     stdev = np.sqrt(variances_sum/number_of_pixels)
 
     return mean, stdev
+
+
+def glob_re(pattern, strings):
+    return list(filter(re.compile(pattern).match, strings))

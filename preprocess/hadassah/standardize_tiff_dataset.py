@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import PIL
+from util import glob_re
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
@@ -11,7 +12,6 @@ from skimage.restoration import denoise_tv_chambolle
 from torchvision import transforms
 
 # TODO: Standardize dataset
-import util
 from data.hadassah_data import HadassahDataset
 
 
@@ -33,10 +33,6 @@ def mask_out_noise(image, snr=10):
 
     return image
 
-import os
-import re
-def glob_re(pattern, strings):
-    return list(filter(re.compile(pattern).match, strings))
 
 def build_patient_dataset(patient_path, dest_path, remove_noise):
     dest_path = Path(dest_path)
@@ -68,19 +64,19 @@ def build(rootdir, destdir, remove_noise):
 
     # Iterate through all subdirectories and standardize them in destdir
     for path in rootdir.iterdir():
-        if path.is_dir():
+        if path.is_dir() and path.name in patient_list:
             dest_path = destdir / path.name
             tqdm.write('Saving patient\'s data {} to {}.'.format(path, dest_path))
             build_patient_dataset(path, dest_path, remove_noise)
 
 
-def calibrate(dataset_root, dest_path):
-    records = build_hadassah_dataset(dataset_root=dataset_root)  # TODO: make that it doesn't require annotations
-    dataset = HadassahDataset(records.get_samples())
-    mean, stdev = util.get_dataset_stats(dataset)
-
-    with open(dest_path + '/info.json', 'wb+') as file:
-        json.dump({'mean': mean, 'stdev': stdev}, file)
+# def calibrate(dataset_root, dest_path):
+#     records = build_hadassah_dataset(dataset_root=dataset_root)  # TODO: make that it doesn't require annotations
+#     dataset = HadassahDataset(records.get_samples())
+#     mean, stdev = util.get_dataset_stats(dataset)
+#
+#     with open(dest_path + '/info.json', 'wb+') as file:
+#         json.dump({'mean': mean, 'stdev': stdev}, file)
 
 
 if __name__ == '__main__':

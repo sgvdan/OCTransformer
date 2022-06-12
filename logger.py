@@ -8,7 +8,7 @@ from tqdm import tqdm
 import wandb
 from analysis.stats import get_performance_mesaures, sweep_thresholds_curves
 from util import max_contour
-
+from sklearn.metrics import auc
 
 class Logger:
     def __init__(self, config):
@@ -109,6 +109,7 @@ class Logger:
 
         pr_xs, roc_xs = [], []
         pr_ys, roc_ys = [], []
+        mean_pr_auc, mean_roc_auc = 0, 0
         for idx, label in enumerate(self.config.labels):
             # Log details
             roc_details = wandb.Table(data=np.concatenate([thres_range[:, None], roc[:, :, idx], f1[:, idx, None]], axis=1),
@@ -119,20 +120,28 @@ class Logger:
 
             # Log graphs (obtain singular (max) y per x
             xs, ys = max_contour(pr[:, :, idx])
+            area_under_curve = auc(np.array(xs), np.array(ys))
             pr_xs.append(xs)
             pr_ys.append(ys)
+            wandb.log({'pr-auc-' + label: area_under_curve})
+            mean_pr_auc += area_under_curve / pr.shape[2]
 
             xs, ys = max_contour(roc[:, :, idx])
+            area_under_curve = auc(np.array(xs), np.array(ys))
             roc_xs.append(xs)
             roc_ys.append(ys)
+            wandb.log({'roc-auc-' + label: area_under_curve})
+            mean_roc_auc += area_under_curve / roc.shape[2]
 
-            # Print ideal thresholds
+        # Print ideal thresholds
             tqdm.write(label + ' - optimal threshold:' + str(round(thresholds[idx], 2)))
 
         wandb.log({'pr-graph': wandb.plot.line_series(pr_xs, pr_ys, keys=self.config.labels,
                                                       title="Precision-Recall Curve"),
                    'roc-graph': wandb.plot.line_series(roc_xs, roc_ys, keys=self.config.labels,
-                                                       title="Receiver Operating Characteristic Curve")})
+                                                       title="Receiver Operating Characteristic Curve"),
+                   'mean-pr-auc': mean_pr_auc,
+                   'mean-roc-auc': mean_roc_auc})
 
     def log_image(self, image, caption):
         self.images.append((image, caption))
@@ -150,3 +159,8 @@ class Logger:
         self.log({('images/' + name): wandb_packet})
         self.images = []
 
+    def log_summary(self, key, val):
+        if not self.config.log:
+            return
+
+        wandb.summary[key] = val

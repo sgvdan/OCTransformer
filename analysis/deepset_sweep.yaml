@@ -1,0 +1,18 @@
+entity: sgvdan
+project: OCT-Transformer-paper
+program: experiment.py
+method: random
+metric:
+  name: overall_score
+  goal: maximize
+parameters:
+  log_group:
+    value: 'deepset-optimize'
+  model:
+    value: 'deepset'
+  embedding_dim:
+    values: [96, 288, 576, 768, 960, 1152, 2016]
+  num_slices:
+    values: [15, 27, 33, 37]
+  lr:
+    values: [1e-5, 5e-5, 1e-6, 5e-6, 5e-7]
