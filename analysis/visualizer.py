@@ -8,8 +8,6 @@ from PIL import Image, ImageEnhance
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
 from sklearn.manifold import TSNE
-import seaborn as sns
-import pandas as pd
 
 from util import move2cpu, normalize, figure2img
 from pytorch_grad_cam import GradCAM, ScoreCAM, GradCAMPlusPlus, AblationCAM, XGradCAM, EigenCAM, FullGrad
@@ -111,6 +109,9 @@ def plot_masks(volume, mask, logger, title):
 
 
 def low_dimension_plot(data, labels, title):
+    import pandas as pd
+    import seaborn as sns
+
     tsne = TSNE()
     z = tsne.fit_transform(data.cpu().numpy())
 

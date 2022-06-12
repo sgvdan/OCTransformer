@@ -26,14 +26,14 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'hadassah_ls_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/layer-segmentation',
                            'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 11,
+                           'num_slices': 33,
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF'],
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': '469YSOvo9b',  # vit-vanilla 57uyQrwq5Y
+                           'model_name': 'NmcOEYxGF7',  # vit-vanilla 57uyQrwq5Y
                            'layer_segmentation_input': False,
 
                            # Models Bank
@@ -50,7 +50,7 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Model parameters
                            'attention_heads': 4,
                            'vit_depth': 11,
-                           'embedding_dim': 288,
+                           'embedding_dim': 96,
 
                             # Segmentation parameters
                            'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad

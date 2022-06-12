@@ -1,10 +1,11 @@
 import numpy as np
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+
 import wandb
 
 import util
 from analysis.stats import get_binary_prediction
-from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks, get_gradcam, \
-    low_dimension_plot
+from analysis.visualizer import plot_attention, plot_masks, plot_slices, plot_gradcam, get_masks, get_gradcam
 from data.boe_chiu_data import BOEChiuDataset, get_boe_chiu_transform
 from data.hadassah_data import setup_hadassah
 from data.hadassah_mix import MixedDataset
@@ -102,21 +103,22 @@ class Experiment:
 
             # Keep slices
             plot_slices(volume.squeeze(dim=0), logger=self.logger, title='raw')
-
-            # Keep Attention Maps
-            attn = self.model.get_attention_map(volume)
-            plot_attention(attn, logger=self.logger, title='attention')
+            #
+            # # Keep Attention Maps
+            # attn = self.model.get_attention_map(volume)
+            # plot_attention(attn, logger=self.logger, title='attention')
 
             # Keep GradCAM
             cam = get_gradcam(input_tensor=volume, model=self.model.model.patch_embed,
                               target_layers=[self.model.model.patch_embed.backbone.layer4[-1]],
+                              targets=[ClassifierOutputTarget(2)],
                               type=self.config.gradcam_type, device=self.config.device,
                               aug_smooth=self.config.aug_smooth, eigen_smooth=self.config.eigen_smooth)
             plot_gradcam(volume.squeeze(dim=0), cam, logger=self.logger, title='gradcam')
-
-            # Keep Masks
-            mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
-            plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask')
+            #
+            # # Keep Masks
+            # mask = get_masks(attn, cam, std_thresh=self.config.mask_std_thresh)
+            # plot_masks(volume.squeeze(dim=0), mask, logger=self.logger, title='mask')
 
             self.logger.flush_images(name='vis-' + str(idx))
             print("Model's {} prediction:".format(idx), [self.config.labels[idx] for idx in target_labels])
@@ -191,7 +193,6 @@ def main():
     experiment.test()
     experiment.logger.log_curves()
     experiment.visualize()
-    experiment.boe_chiu_eval()
 
 
 if __name__ == '__main__':
