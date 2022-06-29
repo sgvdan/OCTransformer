@@ -32,8 +32,8 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
-                           'model': 'slivernet',  # vit / slivernet / deepset
-                           'model_name': '3l4orrlkt6',
+                           'model': 'deepset',  # vit / slivernet / deepset
+                           'model_name': '7nMnEiCHPg',
                            'layer_segmentation_input': False,
 
                            # Models Bank
@@ -50,7 +50,7 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Model parameters
                            'attention_heads': 3,
                            'vit_depth': 12,
-                           'embedding_dim': 96,
+                           'embedding_dim': 960,
 
                             # Segmentation parameters
                            'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad
