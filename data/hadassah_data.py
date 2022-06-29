@@ -12,12 +12,15 @@ from torch.autograd import Variable
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
+from tqdm import tqdm
+
 import util
-from data.mat_dataset import seg_transform
+from torchvision.transforms.functional import adjust_brightness
 from mgu_models.net_builder import net_builder
 import data.seg_transforms as dt
 
-mask_values = [0, 26, 51, 77, 102, 128, 153, 179, 204, 255]  # TODO: WTF? 230, 255]
+mask_values = [10, 26, 51, 77, 102, 128, 153, 179, 204, 230]
+fg_mask_values = [10, 77, 102, 128, 153, 179, 204, 230]
 
 
 class HadassahDataset(Dataset):
@@ -30,8 +33,10 @@ class HadassahDataset(Dataset):
         sample = self.samples[idx]
         label = util.get_reduced_label(sample.get_label(), self.classes.keys())
 
-        sample_data = self.transformations(np.moveaxis(sample.get_data(), 0, 2))
-        sample_data = sample_data.unsqueeze(dim=1).expand(-1, 3, -1, -1)  # TODO: remove extend, rely on 1 channel only.
+        # sample_data = (transforms.ToTensor()(sample.get_data()) * 255).type(torch.uint8) # TODO: uncomment REALLY
+        sample_data = transforms.ToTensor()(sample.get_data())
+        sample_data = self.transformations(sample_data)
+        sample_data = sample_data.unsqueeze(dim=1).expand(-1, 3, -1, -1)  # TODO: 1/3 channels? REALLY
 
         return sample_data, label
 
@@ -49,19 +54,39 @@ class HadassahDataset(Dataset):
 
 
 class HadassahLayerSegmentationDataset(HadassahDataset):
-    def __init__(self, samples, chosen_labels, transformations, layer_segmentation_transform):
+    def __init__(self, samples, chosen_labels, transformations, mode, layer_segmentation_transform):
         super().__init__(samples, chosen_labels, transformations)
         self.layer_segmentation_transform = layer_segmentation_transform
+        self.mode = mode
 
     def __getitem__(self, idx):
         sample_data, label = super().__getitem__(idx)
-        layer_segmentation = self.layer_segmentation_transform(self.samples[idx].get_layer_segmentation_data()) * 255
+        layer_segmentation = (transforms.ToTensor()(self.samples[idx].get_layer_segmentation_data()) * 255).type(torch.uint8)
+        layer_segmentation = self.layer_segmentation_transform(layer_segmentation)
 
-        channel_mask = torch.stack([(layer_segmentation == value) for value in mask_values], dim=1).type(torch.uint8) * 255
-
-        sample_data = (sample_data[:, 0, :, :] * 255).unsqueeze(dim=1).to(torch.uint8)
-        sample_data = torch.concat([channel_mask, sample_data], dim=1)
-
+        if self.mode == 0:
+            sample_data = sample_data
+        elif self.mode == 1:
+            mask = layer_segmentation.unsqueeze(dim=1)
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 2:
+            mask = torch.stack([(layer_segmentation == value) for value in mask_values], dim=1).type(torch.uint8) * 255
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 3:
+            mask = torch.zeros_like(layer_segmentation).unsqueeze(dim=1)
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 4:
+            mask = layer_segmentation.unsqueeze(dim=1)
+            mask[mask == 26] = 0
+            mask[mask == 51] = 0
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 5:
+            mask = torch.stack([(layer_segmentation == value) for value in fg_mask_values], dim=1).type(torch.uint8) * 255
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif 6 <= self.mode <= 15:
+            value = mask_values[self.mode - 6]
+            single_channel_mask = (layer_segmentation == value).type(torch.uint8) * 255
+            sample_data = torch.concat([single_channel_mask.unsqueeze(dim=1), sample_data], dim=1)
         # import matplotlib.pyplot as plt
         # for channel in sample_data[0, :, :, :]:
         #     plt.figure()
@@ -167,7 +192,7 @@ def build_hadassah_dataset(dataset_root, annotations_path, dest_path, add_layer_
         layer_seg_transform = LayerSegCreator()
 
     records = Records()
-    for row_idx in range(1, len(annotations)):
+    for row_idx in tqdm(range(1, len(annotations))):
         metadata = annotations.iloc[row_idx, :6]
         label = annotations.iloc[row_idx, 6:]
 
@@ -191,15 +216,16 @@ def build_hadassah_dataset(dataset_root, annotations_path, dest_path, add_layer_
 
         volume_data_path = dest_path / '{}/{}/data-volume.npy'.format(patient_name, file_name)
         if not volume_data_path.exists():
-            print('Creating volume {patient_name}:{file_name}'.format(patient_name=patient_name, file_name=file_name))
             volume_data = []
             for slice in util.sorted_nicely(slices):
-                image_data = Image.open(data_path / slice)
                 # Pre-process image and append
-                # image_data = mask_out_noise(np.array(image_data))  # TODO: mask-out noise?
-                image_data = np.array(image_data)
+                image = Image.open(data_path / slice)
+                image = adjust_brightness(image, 2)
+                image_data = np.array(image)
+                image_data = mask_out_noise(image_data)
                 volume_data.append(image_data)
-            volume_data = np.stack(volume_data)  # TODO: dim=2 -> remove "moveaxis", and change LayerSegCreator!
+            volume_data = np.stack(volume_data, axis=2)
+            print('Created volume {patient_name}:{file_name}'.format(patient_name=patient_name, file_name=file_name))
 
             os.makedirs(volume_data_path.parent, exist_ok=True)
             with open(volume_data_path, 'wb+') as volume_file:
@@ -207,8 +233,6 @@ def build_hadassah_dataset(dataset_root, annotations_path, dest_path, add_layer_
 
         volume_ls_path = dest_path / '{}/{}/ls-volume.npy'.format(patient_name, file_name)
         if add_layer_segmentation and not volume_ls_path.exists():
-            print('Creating layer-segmentation volume {patient_name}:{file_name}'
-                  .format(patient_name=patient_name, file_name=file_name))
             with open(volume_data_path, 'rb') as volume_file:
                 volume_data = np.load(volume_file)
 
@@ -216,6 +240,9 @@ def build_hadassah_dataset(dataset_root, annotations_path, dest_path, add_layer_
 
             with open(volume_ls_path, 'wb+') as volume_ls_file:
                 np.save(volume_ls_file, volume_ls)
+
+            print('Created layer-segmentation volume {patient_name}:{file_name}'
+                  .format(patient_name=patient_name, file_name=file_name))
 
         sample = Sample(file_name, label,
                         volume_path=volume_data_path,
@@ -228,13 +255,12 @@ def build_hadassah_dataset(dataset_root, annotations_path, dest_path, add_layer_
 
 
 def get_hadassah_transform(config):
-    return transforms.Compose([transforms.ToTensor(), transforms.Resize(config.input_size),
+    return transforms.Compose([transforms.Resize(config.input_size),
                                SubsetSamplesTransform(config.num_slices)])
 
 
 def get_layer_segmentation_transform(config):
-    return transforms.Compose([transforms.ToTensor(),
-                               transforms.Resize(config.input_size, interpolation=InterpolationMode.NEAREST),
+    return transforms.Compose([transforms.Resize(config.input_size, interpolation=InterpolationMode.NEAREST),
                                SubsetSamplesTransform(config.num_slices)])
 
 
@@ -247,7 +273,7 @@ def setup_hadassah(config):
 
     if config.layer_segmentation_input:
         dataset_handler = partial(HadassahLayerSegmentationDataset, chosen_labels=config.labels,
-                                  transformations=get_hadassah_transform(config),
+                                  transformations=get_hadassah_transform(config), mode=config.layer_segmentation_input,
                                   layer_segmentation_transform=get_layer_segmentation_transform(config))
     else:
         dataset_handler = partial(HadassahDataset, chosen_labels=config.labels,
@@ -316,13 +342,13 @@ class LayerSegCreator:
         self.model.load_state_dict(checkpoint['state_dict'])
         self.model.eval()
         self.transform = dt.Compose([dt.ToTensor(), dt.Normalize(mean=[37.49601251371136, 37.49601251371136, 37.49601251371136],
-                                                                         std=[51.04429269367485, 51.04429269367485, 51.04429269367485])])
+                                                                 std=[51.04429269367485, 51.04429269367485, 51.04429269367485])])
 
     def __call__(self, volume_data):
         layer_segmentation = []
 
         with torch.no_grad():
-            for image_data in volume_data:
+            for image_data in np.moveaxis(volume_data, 2, 0):
                 image = Image.fromarray(image_data).resize((1024, 992))
                 image_data = list(self.transform(image))[0]
                 image_var = Variable(image_data).cuda().unsqueeze(dim=0)
@@ -333,7 +359,7 @@ class LayerSegCreator:
 
         layer_segmentation = np.stack(layer_segmentation, axis=2)
 
-        for label in range(0, 11):
+        for label in range(0, 10):
             layer_segmentation[layer_segmentation == label] = mask_values[label]
 
         return layer_segmentation

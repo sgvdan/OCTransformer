@@ -24,8 +24,9 @@ class Trainer:
             tqdm.write("\nTrain:")
             self.logger.scratch()
             for images, labels in tqdm(self.train_loader):
-                pred, loss = self._feed_forward(model, images, labels, mode='train',
-                                                criterion=criterion, optimizer=optimizer, scheduler=scheduler)
+                # pred, loss = self._feed_forward(model, images, labels, mode='train', # TODO: uncomment REALLY!
+                #                                 criterion=criterion, optimizer=optimizer, scheduler=scheduler)
+                pred, loss = self._feed_forward(model, images, labels, mode='eval')  # TODO: delete REALLY!
                 self.logger.accumulate(pred=pred, gt=labels, loss=loss)
                 self.logger.log_train_periodic(thres=model.thresholds)
             self.logger.log_train(epoch=epoch, thres=model.thresholds)

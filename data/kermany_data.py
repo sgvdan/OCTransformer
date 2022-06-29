@@ -25,12 +25,12 @@ class KermanyDataset(Dataset):
 
     def __getitem__(self, idx):
         image_path, label = self.samples[idx]
-        image = read_image(str(image_path))
+        image = (transforms.ToTensor()(Image.open(str(image_path))) * 255).type(torch.uint8)
 
         if self.transformations is not None:
             image = self.transformations(image)
 
-        image = image.unsqueeze(dim=0).expand(-1, 3, -1, -1)
+        image = image.unsqueeze(dim=0)
 
         return image, label
 
@@ -48,6 +48,7 @@ class KermanyLayerSegmentationDataset(KermanyDataset):
     def __init__(self, root, chosen_labels, transformations=None, layer_segmentation_transform=None):
         super().__init__(root, chosen_labels, transformations)
         self.layer_segmentation_transform = layer_segmentation_transform
+        self.mode = 3
 
     def __getitem__(self, idx):
         sample_data, label = super().__getitem__(idx)
@@ -58,7 +59,26 @@ class KermanyLayerSegmentationDataset(KermanyDataset):
         layer_segmentation_data = (transforms.ToTensor()(Image.open(str(layer_segmentation_path))) * 255).type(torch.uint8)
 
         layer_segmentation = self.layer_segmentation_transform(layer_segmentation_data)
-        sample_data = torch.stack([layer_segmentation, sample_data[:, 0, :, :]], dim=1)
+
+        if self.mode == 0:
+            sample_data = sample_data
+        elif self.mode == 1:
+            mask = layer_segmentation.unsqueeze(dim=1)
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 2:
+            mask = torch.stack([(layer_segmentation == value) for value in mask_values], dim=1).type(torch.uint8) * 255
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 3:
+            mask = torch.zeros_like(layer_segmentation).unsqueeze(dim=1)
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 4:
+            mask = layer_segmentation.unsqueeze(dim=1)
+            mask[mask == 26] = 0
+            mask[mask == 51] = 0
+            sample_data = torch.concat([mask, sample_data], dim=1)
+        elif self.mode == 5:
+            mask = torch.stack([(layer_segmentation == value) for value in fg_mask_values], dim=1).type(torch.uint8) * 255
+            sample_data = torch.concat([mask, sample_data], dim=1)
 
         # import matplotlib.pyplot as plt
         # plt.figure()

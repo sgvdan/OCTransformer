@@ -6,7 +6,7 @@ from util import dot_dict
 default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Logger
                            'log': False,
-                           'log_group': 'temp',
+                           'log_group': 'temp-1',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -22,18 +22,18 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'hadassah_root': '/home/nih/nih-dannyh/data/oct/DR_TIFF',
-                           'hadassah_dest': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std-masked',  # TODO: CHANGE TO STD-MASKED
-                           'hadassah_ls_root': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/layer-segmentation',
+                           'hadassah_dest': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std',
                            'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 11,
+                           'num_slices': 37,
+
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF'],
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': '469YSOvo9b',  # vit-vanilla 57uyQrwq5Y
+                           'model_name': 's9lyRdCReG',  # vit-vanilla 57uyQrwq5Y
                            'layer_segmentation_input': False,
 
                            # Models Bank
@@ -44,13 +44,13 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 0,
+                           'epochs': 1,
                            'lr': 1e-5,
 
                            # Model parameters
-                           'attention_heads': 4,
-                           'vit_depth': 11,
-                           'embedding_dim': 288,
+                           'attention_heads': 3,
+                           'vit_depth': 12,
+                           'embedding_dim': 2016,
 
                             # Segmentation parameters
                            'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad
