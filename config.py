@@ -32,8 +32,8 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
 
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
-                           'model': 'deepset',  # vit / slivernet / deepset
-                           'model_name': '7nMnEiCHPg',
+                           'model': 'vit',  # vit / slivernet / deepset
+                           'model_name': 's9lyRdCReG',
                            'layer_segmentation_input': False,
 
                            # Models Bank

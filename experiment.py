@@ -205,10 +205,10 @@ class Experiment:
 
 def main():
     experiment = Experiment(default_config)
-    experiment.train()
-    experiment.test()
-    experiment.logger.log_curves()
-    # experiment.attention_eval()
+    # experiment.train()
+    # experiment.test()
+    # experiment.logger.log_curves()
+    experiment.attention_eval()
     #experiment.visualize()
     #experiment.boe_chiu_eval()
 

@@ -39,16 +39,16 @@ def get_performance_mesaures(pred, gt, thres):
 def get_stats(pred, gt, thres):
     binary_pred = get_binary_prediction(pred, thres)
 
-    # TODO: REALLY DELETE
-    normal_pred = (binary_pred.sum(dim=1) == 0).float().unsqueeze(dim=1)
-    normal_gt = (gt.sum(dim=1) == 0).float().unsqueeze(dim=1)
+    # # TODO: REALLY DELETE
+    # normal_pred = (binary_pred.sum(dim=1) == 0).float().unsqueeze(dim=1)
+    # normal_gt = (gt.sum(dim=1) == 0).float().unsqueeze(dim=1)
+    #
+    # with_normal_pred = torch.concat([binary_pred, normal_pred], dim=1)
+    # with_normal_gt = torch.concat([gt, normal_gt], dim=1)
+    # confusion = with_normal_pred / with_normal_gt
+    # # TODO: END REALLY DELETE
 
-    with_normal_pred = torch.concat([binary_pred, normal_pred], dim=1)
-    with_normal_gt = torch.concat([gt, normal_gt], dim=1)
-    confusion = with_normal_pred / with_normal_gt
-    # TODO: END REALLY DELETE
-
-    # confusion = binary_pred / gt  # TODO: REALLY UNCOMMENT
+    confusion = binary_pred / gt
     # Element-wise division of the 2 tensors returns a new tensor which holds a
     # unique value for each case:
     #   1     where prediction and truth are 1 (True Positive)
