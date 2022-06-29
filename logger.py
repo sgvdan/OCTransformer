@@ -59,7 +59,8 @@ class Logger:
 
         accuracy, precision, recall, f1, macro_f1 = get_performance_mesaures(pred, gt, thres)
 
-        for idx, label in enumerate(self.config.labels):
+        new_labels = [*self.config.labels, 'Normal']  # TODO: DELETE REALLY
+        for idx, label in enumerate(new_labels):
             self.log({'{title}/accuracy/{label}'.format(title=title, label=label): accuracy[idx],
                       '{title}/precision/{label}'.format(title=title, label=label): precision[idx],
                       '{title}/recall/{label}'.format(title=title, label=label): recall[idx],
@@ -110,7 +111,8 @@ class Logger:
         pr_xs, roc_xs = [], []
         pr_ys, roc_ys = [], []
         mean_pr_auc, mean_roc_auc = 0, 0
-        for idx, label in enumerate(self.config.labels):
+        new_labels = [*self.config.labels, 'Normal']  # TODO: DELETE REALLY
+        for idx, label in enumerate(new_labels):
             # Log details
             roc_details = wandb.Table(data=np.concatenate([thres_range[:, None], roc[:, :, idx], f1[:, idx, None]], axis=1),
                                       columns=["Threshold", "False Positive Rate", "True Positive Rate", "F1-Score"])
@@ -136,9 +138,9 @@ class Logger:
         # Print ideal thresholds
             tqdm.write(label + ' - optimal threshold:' + str(round(thresholds[idx], 2)))
 
-        wandb.log({'pr-graph': wandb.plot.line_series(pr_xs, pr_ys, keys=self.config.labels,
+        wandb.log({'pr-graph': wandb.plot.line_series(pr_xs, pr_ys, keys=new_labels,
                                                       title="Precision-Recall Curve"),
-                   'roc-graph': wandb.plot.line_series(roc_xs, roc_ys, keys=self.config.labels,
+                   'roc-graph': wandb.plot.line_series(roc_xs, roc_ys, keys=new_labels,
                                                        title="Receiver Operating Characteristic Curve"),
                    'mean-pr-auc': mean_pr_auc,
                    'mean-roc-auc': mean_roc_auc})

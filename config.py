@@ -5,7 +5,7 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Logger
-                           'log': False,
+                           'log': True,
                            'log_group': 'temp-1',
                            'log_frequency': 10,
 
@@ -45,12 +45,12 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
                            'epochs': 0,
-                           'lr': 5e-6,
+                           'lr': 1e-5,
 
                            # Model parameters
                            'attention_heads': 3,
                            'vit_depth': 12,
-                           'embedding_dim': 960,
+                           'embedding_dim': 96,
 
                             # Segmentation parameters
                            'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad
