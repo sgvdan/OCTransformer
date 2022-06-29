@@ -34,7 +34,7 @@ class HadassahDataset(Dataset):
         label = util.get_reduced_label(sample.get_label(), self.classes.keys())
 
         # sample_data = (transforms.ToTensor()(sample.get_data()) * 255).type(torch.uint8) # TODO: uncomment REALLY
-        sample_data = transforms.ToTensor()(sample.get_data())
+        sample_data = transforms.ToTensor()(sample.get_data()) # TODO: delete REALLY
         sample_data = self.transformations(sample_data)
         sample_data = sample_data.unsqueeze(dim=1).expand(-1, 3, -1, -1)  # TODO: 1/3 channels? REALLY
 

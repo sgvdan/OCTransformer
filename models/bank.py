@@ -208,7 +208,7 @@ class ModelsBank:
         if scheduler is not None and states_dict['scheduler_state_dict'] is not None:
             scheduler.load_state_dict(states_dict['scheduler_state_dict'])
 
-        # model.thresholds = self.bank_record[model.name]['thresholds']  TODO: UNCOMMENT
-        self.bank_record[model.name] = {}
-        self.bank_record[model.name]['thresholds'] = None
-        self.bank_record[model.name]['score'] = 0
+        # model.thresholds = self.bank_record[model.name]['thresholds']  TODO: UNCOMMENT REALLY
+        self.bank_record[model.name] = {}  # TODO: DELETE REALLY
+        self.bank_record[model.name]['thresholds'] = None  # TODO: DELETE REALLY
+        self.bank_record[model.name]['score'] = 0  # TODO: DELETE REALLY
