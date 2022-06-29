@@ -44,7 +44,7 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 1,
+                           'epochs': 0,
                            'lr': 5e-6,
 
                            # Model parameters

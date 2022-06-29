@@ -36,7 +36,7 @@ class HadassahDataset(Dataset):
         # sample_data = (transforms.ToTensor()(sample.get_data()) * 255).type(torch.uint8) # TODO: uncomment REALLY
         sample_data = transforms.ToTensor()(sample.get_data()) # TODO: delete REALLY
         sample_data = self.transformations(sample_data)
-        sample_data = sample_data.unsqueeze(dim=1).expand(-1, 3, -1, -1)  # TODO: 1/3 channels? REALLY
+        sample_data = sample_data.unsqueeze(dim=1).expand(-1, 3, -1, -1)
 
         return sample_data, label
 
@@ -61,6 +61,8 @@ class HadassahLayerSegmentationDataset(HadassahDataset):
 
     def __getitem__(self, idx):
         sample_data, label = super().__getitem__(idx)
+        sample_data = sample_data[:, 0, :, :]  # One channel is enough
+
         layer_segmentation = (transforms.ToTensor()(self.samples[idx].get_layer_segmentation_data()) * 255).type(torch.uint8)
         layer_segmentation = self.layer_segmentation_transform(layer_segmentation)
 

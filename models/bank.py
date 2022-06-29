@@ -92,7 +92,6 @@ class ModelsBank:
         # Choose Model
         model_type = self.config.model.lower()
         if model_type == 'vit':
-            torch.use_deterministic_algorithms(mode=False)  # TODO: DELETE REALLY
             backbone.fc = torch.nn.Linear(in_features=512, out_features=self.config.embedding_dim,
                                           device=self.config.device)
             model = MyViT(backbone, self.config).to(self.config.device)
@@ -176,17 +175,16 @@ class ModelsBank:
                 pickle.dump(self.bank_record, file)
 
         if score > self.bank_record[model.name]['score']:
-            # torch.save({  TODO: UNCOMMENT REALLY!
-            #     'model_state_dict': model.state_dict(),
-            #     'optimizer_state_dict': optimizer.state_dict(),
-            #     'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
-            # }, os.path.join(self.bank_path, model.name, 'best.tar'))
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
+            }, os.path.join(self.bank_path, model.name, 'best.tar'))
 
             # Open, add & save bank records - to minimize race condition
             with FileLock(self.bank_lock), open(self.bank_record_path, 'rb') as file:
                 self.bank_record = pickle.load(file)
 
-            self.bank_record[model.name] = {}  # TODO: DELETE REALLY!
             self.bank_record[model.name]['score'] = score
             self.bank_record[model.name]['thresholds'] = model.thresholds
 
@@ -208,7 +206,5 @@ class ModelsBank:
         if scheduler is not None and states_dict['scheduler_state_dict'] is not None:
             scheduler.load_state_dict(states_dict['scheduler_state_dict'])
 
-        # model.thresholds = self.bank_record[model.name]['thresholds']  TODO: UNCOMMENT REALLY
-        self.bank_record[model.name] = {}  # TODO: DELETE REALLY
-        self.bank_record[model.name]['thresholds'] = None  # TODO: DELETE REALLY
-        self.bank_record[model.name]['score'] = 0  # TODO: DELETE REALLY
+        model.thresholds = self.bank_record[model.name]['thresholds']
+
