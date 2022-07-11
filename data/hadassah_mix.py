@@ -32,10 +32,8 @@ class MixedDataset(Dataset):
         sick_sample = self.sick_samples[random.randint(0, len(self.sick_samples) - 1)]
         healthy_sample = self.healthy_samples[random.randint(0, len(self.healthy_samples) - 1)]
 
-        sick_idx = []
-        sick_count = random.randint(1, self.slices_num//2+1)  # somewhere from 0-0.5 of slices should be sick
-        for idx in range(sick_count):
-            sick_idx.append(random.randint(0, self.slices_num-1))
+        sick_count = random.randint(1, self.slices_num//2+1)  # somewhere from 1 to half of slices should be sick
+        sick_idx = random.sample(range(1, self.slices_num), sick_count)
 
         mix_sample = []
         for idx in range(self.slices_num):
@@ -47,7 +45,7 @@ class MixedDataset(Dataset):
                 mix_sample.append(healthy_sample[t])
 
         mix_sample = torch.stack(mix_sample, dim=0)
-        sick_idx = np.concatenate(sick_idx)
+        sick_idx = np.array(sick_idx)
         return (mix_sample, sick_idx), self.label
 
     def __len__(self):

@@ -45,7 +45,7 @@ class MyViT(torch.nn.Module):
                 x = blk.norm1(x)
                 B, N, C = x.shape
                 qkv = blk.attn.qkv(x).reshape(B, N, 3, blk.attn.num_heads, C // blk.attn.num_heads).permute(2, 0, 3, 1, 4)
-                q, k, v = qkv[0], qkv[1], qkv[2]  .to(self.config.device) # make torchscript happy (cannot use tensor as tuple)
+                q, k, v = qkv[0], qkv[1], qkv[2]  .to(self.config.device)  # make torchscript happy (cannot use tensor as tuple)
 
                 attn = (q @ k.transpose(-2, -1)) * blk.attn.scale
                 attn = attn.softmax(dim=-1)

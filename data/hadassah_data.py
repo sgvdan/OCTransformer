@@ -222,9 +222,9 @@ def build_hadassah_dataset(dataset_root, annotations_path, dest_path, add_layer_
             for slice in util.sorted_nicely(slices):
                 # Pre-process image and append
                 image = Image.open(data_path / slice)
-                image = adjust_brightness(image, 2)
+                # image = adjust_brightness(image, 2)
                 image_data = np.array(image)
-                image_data = mask_out_noise(image_data)
+                # image_data = mask_out_noise(image_data)
                 volume_data.append(image_data)
             volume_data = np.stack(volume_data, axis=2)
             print('Created volume {patient_name}:{file_name}'.format(patient_name=patient_name, file_name=file_name))

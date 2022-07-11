@@ -185,12 +185,13 @@ class Experiment:
         print('MEAN DSC:', mean_dsc)
 
     def attention_eval(self):
-        mix_dataset = MixedDataset(self.test_loader.dataset, count=10, slices_num=self.config.num_slices)
+        mix_dataset = MixedDataset(self.test_loader.dataset, count=1000, slices_num=self.config.num_slices)
         mix_loader = torch.utils.data.DataLoader(dataset=mix_dataset, batch_size=self.config.batch_size)
 
         score = []
         for idx, ((volume, sick_idx), _) in enumerate(mix_loader):
-            attn = self.model.get_attention_map(volume)
+            attn = self.model.get_attention_map(volume).squeeze(axis=0)
+            sick_idx = sick_idx.squeeze(axis=0)
             healthy_avg = np.average(np.delete(attn, sick_idx))
             scr = (attn[sick_idx] > healthy_avg).astype(float).sum() / len(sick_idx)  # How many SICK slices are above healthy avg?
 
@@ -198,19 +199,18 @@ class Experiment:
             print('{} score: {}'.format(idx, scr))
 
         print('Average score: ', np.mean(score))
-        print('Overall scores: ', score)
 
         return score
 
 
 def main():
     experiment = Experiment(default_config)
-    # experiment.train()
-    # experiment.test()
-    # experiment.logger.log_curves()
-    experiment.attention_eval()
-    #experiment.visualize()
-    #experiment.boe_chiu_eval()
+    experiment.train()
+    experiment.test()
+    experiment.logger.log_curves()
+    # experiment.attention_eval()
+    # experiment.visualize()
+    experiment.boe_chiu_eval()
 
 
 if __name__ == '__main__':

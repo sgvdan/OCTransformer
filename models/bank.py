@@ -175,13 +175,13 @@ class ModelsBank:
                 pickle.dump(self.bank_record, file)
 
         if score > self.bank_record[model.name]['score']:
-            torch.save({
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
-            }, os.path.join(self.bank_path, model.name, 'best.tar'))
+            # torch.save({
+            #     'model_state_dict': model.state_dict(),
+            #     'optimizer_state_dict': optimizer.state_dict(),
+            #     'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
+            # }, os.path.join(self.bank_path, model.name, 'best.tar'))
 
-            # Open, add & save bank records - to minimize race condition
+            # Open, add & save bank records - to eliminate race condition
             with FileLock(self.bank_lock), open(self.bank_record_path, 'rb') as file:
                 self.bank_record = pickle.load(file)
 
@@ -206,5 +206,5 @@ class ModelsBank:
         if scheduler is not None and states_dict['scheduler_state_dict'] is not None:
             scheduler.load_state_dict(states_dict['scheduler_state_dict'])
 
-        model.thresholds = self.bank_record[model.name]['thresholds']
-
+        if model.name in self.bank_record:
+            model.thresholds = self.bank_record[model.name]['thresholds']

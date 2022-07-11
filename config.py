@@ -5,8 +5,8 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Logger
-                           'log': True,
-                           'log_group': 'temp-1',
+                           'log': False,
+                           'log_group': 'mask-eval',
                            'log_frequency': 10,
 
                            # # Kermany Dataset
@@ -25,7 +25,7 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'hadassah_dest': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std',
                            'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
-                           'num_slices': 37,
+                           'num_slices': 11,
 
                            'batch_size': 1,
                            'labels': ['DR', 'DME', 'IRF'],
@@ -33,7 +33,7 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Environment
                            'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset
-                           'model_name': 's9lyRdCReG',
+                           'model_name': 'LlE1q28ZZO',
                            'layer_segmentation_input': False,
 
                            # Models Bank
@@ -45,11 +45,11 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
                            'epochs': 0,
-                           'lr': 1e-5,
+                           'lr': 1e-6,
 
                            # Model parameters
                            'attention_heads': 3,
-                           'vit_depth': 12,
+                           'vit_depth': 7,
                            'embedding_dim': 960,
 
                             # Segmentation parameters
