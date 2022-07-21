@@ -5,7 +5,7 @@ from util import dot_dict
 
 default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Logger
-                           'log': True,
+                           'log': False,
                            'log_group': 'ls-confidence-compr-sweep',
                            'log_frequency': 10,
 
@@ -22,7 +22,7 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            # Hadassah Dataset
                            'dataset': 'hadassah',
                            'hadassah_root': '/home/hsd/dannyh/data/oct/DR_TIFF',
-                           'hadassah_dest': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std-ls-confidence2',
+                           'hadassah_dest': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std',
                            'hadassah_annotations': '/home/projects/ronen/sgvdan/workspace/datasets/hadassah/new/std/std_annotations.xlsx',
                            'input_size': (256, 256),  # (496, 1024)
                            'num_slices': 37,
@@ -31,10 +31,10 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'labels': ['DR', 'DME', 'IRF'],
 
                            # Environment
-                           'backbone': 'kermany_auto',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
+                           'backbone': 'kermany_resnet18',  # imagenet_resnet18 / kermany_resnet18 / kermany_ls_resnet18 / kermany_ls11_resnet18 / resnet18
                            'model': 'vit',  # vit / slivernet / deepset / deepset2
-                           'model_name': None,
-                           'layer_segmentation_input': 'confidence-only',
+                           'model_name': 's9lyRdCReG',
+                           'layer_segmentation_input': False,
 
                            # Models Bank
                            'keep_best_model': True,  # Whether to sync best model bank
@@ -44,20 +44,20 @@ default_config = dot_dict({'project': 'OCT-Transformer-paper',
                            'optimizer': 'adam',
                            'criterion': 'binary_cross_entropy',  # cross_entropy
                            'scheduler': None,
-                           'epochs': 10,
+                           'epochs': 0,
                            'lr': 1e-6,
 
                            # Model parameters
                            'attention_heads': 3,
                            'vit_depth': 12,
-                           'embedding_dim': 768,
+                           'embedding_dim': 2016,
 
                             # Segmentation parameters
                            'gradcam_type': 'gradcam++',  # gradcam++, xgradcam, eigencam, fullgrad
                            'aug_smooth': True,
                            'eigen_smooth': False,
                            'attention_temperature': 0.05,
-                           'mask_std_thresh': 3.5,
+                           'mask_std_thresh': 3.1498181581613514,
 
                            # General
                            'output_path': './output/',

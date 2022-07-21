@@ -1,0 +1,28 @@
+entity: sgvdan
+project: OCT-Transformer-paper
+program: experiment.py
+method: random
+metric:
+  name: overall_score
+  goal: maximize
+parameters:
+  log:
+    value: True
+  model:
+    value: 'vit'
+  backbone:
+    value: 'kermany_auto'
+  vit_depth:
+    values: [7, 12]
+  attention_heads:
+    values: [3, 8]
+  embedding_dim:
+    values: [768, 360, 1440]
+  num_slices:
+    value: 37
+  layer_segmentation_input:
+    values: ['none', 'confidence', 'confidence-only']
+  lr:
+    values: [1e-6, 5e-6, 1e-7, 5e-7]
+  epochs:
+    value: 20
