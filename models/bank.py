@@ -35,29 +35,20 @@ class ModelsBank:
         # Choose Backbone
         backbone_name = self.config.backbone.lower()
         if backbone_name == 'kermany_auto':
-            if self.config.layer_segmentation_input == 0:
-                backbone_path = '.models_bank/single_channel_backbones/mode-0-epoch-10.pth'  # temp-kermany-backbones/model-0-epoch-11.pth
+            if self.config.layer_segmentation_input == 'none':
+                backbone_path = '.models_bank/confidence-backbones2/mode-0-epoch-6.pth'
                 input_dim = 1
-            elif self.config.layer_segmentation_input == 1:
-                backbone_path = '.models_bank/temp-kermany-backbones/model-1-epoch-11.pth'
-                input_dim = 2
-            elif self.config.layer_segmentation_input == 2:
-                backbone_path = '.models_bank/temp-kermany-backbones/model-2-epoch-11.pth'
+            elif self.config.layer_segmentation_input == 'zeros':
+                backbone_path = '.models_bank/confidence-backbones2/mode-3-epoch-6.pth'
+                input_dim = 12
+            elif self.config.layer_segmentation_input == 'confidence':
+                backbone_path = '.models_bank/confidence-backbones2/mode-16-epoch-6.pth'
+                input_dim = 12
+            elif self.config.layer_segmentation_input == 'confidence-only':
+                backbone_path = '.models_bank/confidence-backbones2/mode-17-epoch-6.pth'
                 input_dim = 11
-            elif self.config.layer_segmentation_input == 3:
-                backbone_path = '.models_bank/single_channel_backbones/mode-3-epoch-10.pth'  # temp-kermany-backbones/model-3-epoch-14.pth
-                print(backbone_path, flush=True)
-                input_dim = 2
-            elif self.config.layer_segmentation_input == 4:
-                backbone_path = '.models_bank/temp-kermany-backbones/model-4-epoch-11.pth'
-                input_dim = 2
-            elif self.config.layer_segmentation_input == 5:
-                backbone_path = '.models_bank/temp-kermany-backbones/model-5-epoch-11.pth'
-                input_dim = 9
-            elif 6 <= self.config.layer_segmentation_input <= 15:
-                backbone_path = '.models_bank/single_channel_backbones/mode-{}-epoch-10.pth'\
-                                .format(self.config.layer_segmentation_input)
-                input_dim = 2
+            else:
+                raise NotImplementedError
 
             backbone = tmodels.resnet18(pretrained=False, num_classes=4).to(self.config.device)
             backbone.conv1 = Conv2d(input_dim, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False).to(self.config.device)
@@ -73,19 +64,6 @@ class ModelsBank:
             backbone_path = '.models_bank/kermany_resnet18/resnet18.tar'
             states_dict = torch.load(backbone_path)
             backbone.load_state_dict(states_dict['model_state_dict'])
-        # elif backbone_name == 'kermany_ls_resnet18':
-        #     backbone = tmodels.resnet18(pretrained=False, num_classes=4).to(self.config.device)
-        #     backbone.conv1 = Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False).to(self.config.device)
-        #     # backbone_path = '.models_bank/kermany_ls_resnet18/resnet18-2ch-kermany-new.pth'
-        #     # backbone_path = '.models_bank/kermany_backbones/kermany-mask_image_2ch.pth'
-        #     states_dict = torch.load(backbone_path)
-        #     backbone.load_state_dict(states_dict['model_state_dict'])
-        # elif backbone_name == 'kermany_ls11_resnet18':
-        #     backbone = tmodels.resnet18(pretrained=False, num_classes=4).to(self.config.device)
-        #     backbone.conv1 = Conv2d(11, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False).to(self.config.device)
-        #     # backbone_path = '.models_bank/kermany_ls_resnet18/resnet18-11ch-kermany.pth'
-        #     states_dict = torch.load(backbone_path)
-        #     backbone.load_state_dict(states_dict['model_state_dict'])
         else:
             raise NotImplementedError
 
@@ -106,10 +84,11 @@ class ModelsBank:
             if self.config.device == 'cuda':
                 model = model.cuda()
 
-        elif model_type == 'deepset':
+        elif 'deepset' in model_type:
             backbone = torch.nn.Sequential(*list(backbone.children())[:-2])
+            dof = 2 if model_type == 'deepset2' else 1
             model = DeepSet(backbone=backbone, x_dim=1024, d_dim=self.config.embedding_dim,
-                            num_classes=len(self.config.labels)).to(self.config.device)
+                            num_classes=len(self.config.labels), dof=dof).to(self.config.device)
         else:
             raise NotImplementedError
 
@@ -175,15 +154,18 @@ class ModelsBank:
                 pickle.dump(self.bank_record, file)
 
         if score > self.bank_record[model.name]['score']:
-            # torch.save({
-            #     'model_state_dict': model.state_dict(),
-            #     'optimizer_state_dict': optimizer.state_dict(),
-            #     'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
-            # }, os.path.join(self.bank_path, model.name, 'best.tar'))
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': None if scheduler is None else scheduler.state_dict(),
+            }, os.path.join(self.bank_path, model.name, 'best.tar'))
 
             # Open, add & save bank records - to eliminate race condition
             with FileLock(self.bank_lock), open(self.bank_record_path, 'rb') as file:
                 self.bank_record = pickle.load(file)
+
+            if model.name not in self.bank_record:  # Not a good fix, but mandatory
+                self.bank_record[model.name] = {}
 
             self.bank_record[model.name]['score'] = score
             self.bank_record[model.name]['thresholds'] = model.thresholds

@@ -1,3 +1,5 @@
+from data.kermany_data import build_kermany_dataset
+
 import os
 import re
 from pathlib import Path
@@ -92,9 +94,21 @@ from pathlib import Path
 #
 #     print('{}:{}'.format(patient_id, sample_id))
 
-from filelock import FileLock
+# from filelock import FileLock
+#
+# with FileLock("temp.txt"), open("temp.txt") as file:
+#     # work with the file as it is now locked
+#     print("Lock acquired.")
+#     print(file)
 
-with FileLock("temp.txt"), open("temp.txt") as file:
-    # work with the file as it is now locked
-    print("Lock acquired.")
-    print(file)
+print('Build Kermany train', flush=True)
+build_kermany_dataset('/home/projects/ronen/sgvdan/workspace/datasets/kermany/original/train',
+                      '/home/projects/ronen/sgvdan/workspace/datasets/kermany/ls-confidence2/train')
+
+print('Build Kermany val', flush=True)
+build_kermany_dataset('/home/projects/ronen/sgvdan/workspace/datasets/kermany/original/val',
+                      '/home/projects/ronen/sgvdan/workspace/datasets/kermany/ls-confidence2/val')
+
+print('Build Kermany test', flush=True)
+build_kermany_dataset('/home/projects/ronen/sgvdan/workspace/datasets/kermany/original/test',
+                      '/home/projects/ronen/sgvdan/workspace/datasets/kermany/ls-confidence2/test')

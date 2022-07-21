@@ -1,11 +1,17 @@
+from tqdm import tqdm
+
+from data.hadassah_data import LayerSegCreator
+
+import os
 from functools import partial
 from pathlib import Path
+
+import numpy as np
 import torch
 from PIL import Image
 from torch.nn.functional import one_hot
 from torch.utils.data import Dataset
 from torchvision import transforms
-from torchvision.io import read_image
 from torchvision.transforms import InterpolationMode
 
 
@@ -62,12 +68,6 @@ class KermanyLayerSegmentationDataset(KermanyDataset):
 
         if self.mode == 0:
             sample_data = sample_data
-        elif self.mode == 1:
-            mask = layer_segmentation.unsqueeze(dim=1)
-            sample_data = torch.concat([mask, sample_data], dim=1)
-        elif self.mode == 2:
-            mask = torch.stack([(layer_segmentation == value) for value in mask_values], dim=1).type(torch.uint8) * 255
-            sample_data = torch.concat([mask, sample_data], dim=1)
         elif self.mode == 3:
             mask = torch.zeros_like(layer_segmentation).unsqueeze(dim=1)
             sample_data = torch.concat([mask, sample_data], dim=1)
@@ -119,3 +119,32 @@ def setup_kermany(config):
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=True)
 
     return train_loader, eval_loader, test_loader
+
+
+def build_kermany_dataset(root, dest):
+    root = Path(root)
+    dest = Path(dest)
+
+    classes = {'NORMAL': 0, 'CNV': 1, 'DME': 2, 'DRUSEN': 3}
+
+    layer_seg_transform = LayerSegCreator()
+
+    samples = []
+    for label, label_value in classes.items():
+        label_dir = root / label
+        samples += [(img_path, label) for img_path in label_dir.iterdir() if img_path.suffix == '.jpeg']
+
+    for sample, label in tqdm(samples):
+        if os.path.exists(dest / label / sample.name / 'data.npy') and \
+                os.path.exists(dest / label / sample.name / 'ls.npy'):
+            continue
+        image = Image.open(sample)
+        image_data = np.array(image)
+        os.makedirs(dest / label / sample.name, exist_ok=True)
+        with open(dest / label / sample.name / 'data.npy', 'wb+') as data_file:
+            np.save(data_file, image_data)
+
+        layer_seg = layer_seg_transform(np.expand_dims(image_data, axis=2)).squeeze(axis=3)
+
+        with open(dest / label / sample.name / 'ls.npy', 'wb+') as ls_file:
+            np.save(ls_file, layer_seg)

@@ -1,10 +1,10 @@
 import itertools
 import pickle
+import pandas
 import os
 from functools import partial
 from pathlib import Path
 import numpy as np
-import pandas
 import torch
 from PIL import Image
 from skimage.restoration import denoise_tv_chambolle
@@ -33,8 +33,7 @@ class HadassahDataset(Dataset):
         sample = self.samples[idx]
         label = util.get_reduced_label(sample.get_label(), self.classes.keys())
 
-        # sample_data = (transforms.ToTensor()(sample.get_data()) * 255).type(torch.uint8) # TODO: uncomment REALLY
-        sample_data = transforms.ToTensor()(sample.get_data()) # TODO: delete REALLY
+        sample_data = transforms.ToTensor()(sample.get_data())
         sample_data = self.transformations(sample_data)
         sample_data = sample_data.unsqueeze(dim=1).expand(-1, 3, -1, -1)
 
@@ -61,34 +60,20 @@ class HadassahLayerSegmentationDataset(HadassahDataset):
 
     def __getitem__(self, idx):
         sample_data, label = super().__getitem__(idx)
-        sample_data = sample_data[:, 0, :, :]  # One channel is enough
+        sample_data = sample_data[:, 0, :, :].unsqueeze(dim=1)  # One channel is enough
 
-        layer_segmentation = (transforms.ToTensor()(self.samples[idx].get_layer_segmentation_data()) * 255).type(torch.uint8)
+        layer_segmentation = torch.tensor(self.samples[idx].get_layer_segmentation_data()).moveaxis(3, 0)
         layer_segmentation = self.layer_segmentation_transform(layer_segmentation)
 
-        if self.mode == 0:
+        if self.mode == 'none':
             sample_data = sample_data
-        elif self.mode == 1:
-            mask = layer_segmentation.unsqueeze(dim=1)
+        elif self.mode == 'zeros':
+            mask = torch.zeros_like(layer_segmentation)
             sample_data = torch.concat([mask, sample_data], dim=1)
-        elif self.mode == 2:
-            mask = torch.stack([(layer_segmentation == value) for value in mask_values], dim=1).type(torch.uint8) * 255
-            sample_data = torch.concat([mask, sample_data], dim=1)
-        elif self.mode == 3:
-            mask = torch.zeros_like(layer_segmentation).unsqueeze(dim=1)
-            sample_data = torch.concat([mask, sample_data], dim=1)
-        elif self.mode == 4:
-            mask = layer_segmentation.unsqueeze(dim=1)
-            mask[mask == 26] = 0
-            mask[mask == 51] = 0
-            sample_data = torch.concat([mask, sample_data], dim=1)
-        elif self.mode == 5:
-            mask = torch.stack([(layer_segmentation == value) for value in fg_mask_values], dim=1).type(torch.uint8) * 255
-            sample_data = torch.concat([mask, sample_data], dim=1)
-        elif 6 <= self.mode <= 15:
-            value = mask_values[self.mode - 6]
-            single_channel_mask = (layer_segmentation == value).type(torch.uint8) * 255
-            sample_data = torch.concat([single_channel_mask.unsqueeze(dim=1), sample_data], dim=1)
+        elif self.mode == 'confidence':
+            sample_data = torch.concat([layer_segmentation, sample_data], dim=1)
+        elif self.mode == 'confidence-only':
+            sample_data = layer_segmentation
         # import matplotlib.pyplot as plt
         # for channel in sample_data[0, :, :, :]:
         #     plt.figure()
@@ -205,7 +190,7 @@ def build_hadassah_dataset(dataset_root, annotations_path, dest_path, add_layer_
             continue
 
         data_path = dataset_root / '{}/{}'.format(patient_name, file_name)
-        assert data_path.exists()
+        # assert data_path.exists()
 
         slices = list(util.glob_re(r'bscan_\d+.tiff', os.listdir(data_path)))
         if len(slices) != 37:
@@ -355,14 +340,11 @@ class LayerSegCreator:
                 image_data = list(self.transform(image))[0]
                 image_var = Variable(image_data).cuda().unsqueeze(dim=0)
                 _,_,output_seg = self.model(image_var)
-                _, pred_seg = torch.max(output_seg, 1)
-                pred_seg = pred_seg.cpu().data.numpy().astype('uint8')
+                pred_seg = torch.nn.functional.softmax(output_seg, dim=1)
+                pred_seg = pred_seg.cpu().data.numpy()
                 layer_segmentation.append(pred_seg[0])
 
-        layer_segmentation = np.stack(layer_segmentation, axis=2)
-
-        for label in range(0, 10):
-            layer_segmentation[layer_segmentation == label] = mask_values[label]
+        layer_segmentation = np.stack(layer_segmentation, axis=3)
 
         return layer_segmentation
 

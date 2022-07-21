@@ -2,6 +2,7 @@ import torch
 from torch import nn
 
 # Obtained from: https://github.com/manzilzaheer/DeepSets/blob/master/PointClouds/classifier.py#L58
+
 class PermEqui1_mean(nn.Module):
     def __init__(self, in_dim, out_dim):
         super().__init__()
@@ -13,8 +14,22 @@ class PermEqui1_mean(nn.Module):
         return x
 
 
+class PermEqui2_mean(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        super(PermEqui2_mean, self).__init__()
+        self.Gamma = nn.Linear(in_dim, out_dim)
+        self.Lambda = nn.Linear(in_dim, out_dim, bias=False)
+
+    def forward(self, x):
+        xm = x.mean(1, keepdim=True)
+        xm = self.Lambda(xm)
+        x = self.Gamma(x)
+        x = x - xm
+        return x
+
+
 class DeepSet(nn.Module):
-    def __init__(self, backbone, x_dim, d_dim, num_classes):
+    def __init__(self, backbone, x_dim, d_dim, num_classes, dof=1):
         """
 
         :param backbone:
@@ -26,12 +41,21 @@ class DeepSet(nn.Module):
 
         self.backbone = backbone
 
-        self.phi = self.phi = nn.Sequential(
-            PermEqui1_mean(x_dim, d_dim),
+        if dof == 1:
+            print('DeepSet DOF 1', flush=True)
+            perm_equi = PermEqui1_mean
+        elif dof == 2:
+            print('DeepSet DOF 2', flush=True)
+            perm_equi = PermEqui2_mean
+        else:
+            raise NotImplementedError
+
+        self.phi = nn.Sequential(
+            perm_equi(x_dim, d_dim),
             nn.ELU(inplace=True),
-            PermEqui1_mean(d_dim, d_dim),
+            perm_equi(d_dim, d_dim),
             nn.ELU(inplace=True),
-            PermEqui1_mean(d_dim, d_dim),
+            perm_equi(d_dim, d_dim),
             nn.ELU(inplace=True),
         )
 

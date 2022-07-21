@@ -194,7 +194,7 @@ class Experiment:
             sick_idx = sick_idx.squeeze(axis=0)
             healthy_avg = np.average(np.delete(attn, sick_idx))
             scr = (attn[sick_idx] > healthy_avg).astype(float).sum() / len(sick_idx)  # How many SICK slices are above healthy avg?
-
+            print("Attention scores: {}, sick_idx: {}, healthy avg: {}".format(attn, sick_idx, healthy_avg))
             score.append(scr)
             print('{} score: {}'.format(idx, scr))
 
@@ -210,7 +210,7 @@ def main():
     experiment.logger.log_curves()
     # experiment.attention_eval()
     # experiment.visualize()
-    experiment.boe_chiu_eval()
+    # experiment.boe_chiu_eval()
 
 
 if __name__ == '__main__':
